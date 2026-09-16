@@ -1047,138 +1047,138 @@ _Utilisation :_
 <a id="handoff-artifact"></a>
 ### Artefact de transfert
 
-A document used as the carry mechanism for a [handoff](#handoff) — written to the [environment](#environment) by one [session](#session) to be read by another. [Specs](#spec), [tickets](#ticket), and plan docs are all handoff artifacts.
+Un document utilisé comme support de transfert lors d'un [passage de relais](#handoff), écrit dans l'[environnement](#environment) par une [session](#session) et lu par une autre. Les [spécifications](#spec), les [tickets](#ticket) et les documents de planification sont tous des artefacts de transfert.
 
-The reason to write one: the [model](#model) is [stateless](#stateless), so nothing in a session survives [clearing](#clearing) it. Decisions, constraints, half-finished plans — all gone with the [context](#context) that held them. The environment persists. Writing the important state into a file moves it somewhere the next session can read it back from.
+La raison d'en écrire un est que le [modèle](#model) est [sans état](#stateless) : rien dans une session ne survit à sa [réinitialisation](#clearing). Décisions, contraintes et plans à moitié terminés disparaissent avec le [contexte](#context) qui les contenait. L'environnement, lui, persiste. Écrire l'état important dans un fichier le déplace vers un endroit d'où la session suivante pourra le relire.
 
-The artifact is a [secondary source](#secondary-source) — an account of the session's work, not the work itself. That's what makes it small enough to brief a fresh session, and also why it can mislead one: it records what the writing session believed, and anything it left out or got wrong is invisible to the reader. Where a claim matters, the next session should verify it against the [primary source](#primary-source) — the code, the tests — rather than inherit it.
+L'artefact est une [source secondaire](#secondary-source) : un récit du travail de la session, non le travail lui-même. C'est ce qui le rend suffisamment compact pour briefer une session neuve, mais aussi ce qui peut l'induire en erreur : il enregistre ce que croyait la session qui l'a écrit, et tout ce qu'elle a omis ou mal compris est invisible au lecteur. Lorsqu'une affirmation importe, la session suivante doit la vérifier auprès de la [source primaire](#primary-source), le code ou les tests, plutôt que de l'hériter aveuglément.
 
-A good artifact is written to be read into a session that has zero context. Concrete file paths rather than "the file we discussed". What was decided and why, so the next session doesn't relitigate it. What's done and what's left. It helps to tell the writing session where the artifact is headed: "write a handoff doc for a fresh session that knows nothing about this work".
+Un bon artefact est écrit pour être lu par une session sans aucun contexte. Utilisez des chemins de fichiers précis plutôt que « le fichier dont nous avons parlé ». Indiquez ce qui a été décidé et pourquoi, pour que la session suivante ne le rediscute pas, ainsi que ce qui est terminé et ce qui reste à faire. Il est utile d'indiquer à la session rédactrice la destination de l'artefact : « écris un document de transfert pour une session neuve qui ne connaît rien de ce travail ».
 
-The alternative carry mechanism is [compaction](#compaction), which summarises in-memory. The artifact has two advantages: it lives on disk where you can read and correct it before anything depends on it, and it can be reused — the same spec can brief five parallel sessions.
+L'autre mécanisme de transmission est le [compactage](#compaction), qui résume en mémoire. L'artefact présente deux avantages : il réside sur le disque, où vous pouvez le lire et le corriger avant que le travail ne s'appuie sur lui, et il est réutilisable, une même spécification peut briefer cinq sessions parallèles.
 
-_Usage:_
+_Utilisation :_
 
-"How do I split this between the planning [agent](#agent) and the implementing one?"
+« Comment répartir ce travail entre l'[agent](#agent) de planification et celui d'implémentation ? »
 
-"Have the planner write a handoff artifact — file paths, decisions, constraints. The implementer's session opens with a pointer to the artifact and works from it as its brief."
+« Demandez au planificateur d'écrire un artefact de transfert : chemins de fichiers, décisions et contraintes. La session de l'implémenteur s'ouvrira avec un pointeur vers cet artefact et l'utilisera comme feuille de route. »
 
 <a id="spec"></a>
 ### Spécification
 
-A [handoff artifact](#handoff-artifact) describing a multi-[session](#session) piece of work — what's being built, not how each session does its share. Mutates as work progresses. Made of [tickets](#ticket).
+Un [artefact de transfert](#handoff-artifact) décrivant un travail sur plusieurs [sessions](#session) : ce qui doit être construit, non la manière dont chaque session réalise sa part. Elle évolue avec le travail et se compose de [tickets](#ticket).
 
-The spec exists because sessions are disposable and big work isn't. Anything that takes more than one [context window](#context-window) of effort needs a home outside the [context](#context) — somewhere in the agent's [environment](#environment) that survives [clearing](#clearing), whether that's a file in the repo, a GitHub issue, or an issue tracker the agent can reach. The spec is that home: the goal, the constraints, the decisions made so far, and the list of tickets with their status. Any fresh session can read it and know where the work stands without inheriting the previous session's accumulated noise.
+La spécification existe parce que les sessions sont jetables, contrairement aux grands travaux. Tout travail nécessitant plus d'une [fenêtre de contexte](#context-window) a besoin d'un emplacement hors du [contexte](#context), dans l'[environnement](#environment) de l'agent et survivant à une [réinitialisation](#clearing) : fichier du dépôt, ticket GitHub ou gestionnaire de tickets accessible à l'agent. La spécification est cet emplacement : objectif, contraintes, décisions prises à ce stade et liste des tickets avec leur état. Toute session neuve peut la lire et connaître l'avancement du travail sans hériter du bruit accumulé par la session précédente.
 
-Specs come in recognisable styles, mostly inherited from how teams already write things down. A _product requirements document_ (PRD) leans toward the user-facing what and why — features, behaviour, acceptance criteria. A _design doc_ or _RFC_ leans technical — the chosen approach, the alternatives rejected, the trade-offs. At the small end, a plain `plan.md` with a checklist of tickets does the same job for a multi-session feature. The style matters less than the role: for the [agent](#agent), each of these is the same thing — the durable statement of intent it reads at the start of every session.
+Les spécifications prennent des formes reconnaissables, souvent héritées de la manière dont les équipes consignent déjà leur travail. Un _document d'exigences produit_ (PRD) privilégie le quoi et le pourquoi visibles par l'utilisateur : fonctionnalités, comportement et critères d'acceptation. Un _document de conception_ ou une _RFC_ privilégie la technique : approche retenue, alternatives écartées et compromis. À petite échelle, un simple `plan.md` avec une liste de tickets remplit le même rôle pour une fonctionnalité sur plusieurs sessions. Le style importe moins que le rôle : pour l'[agent](#agent), il s'agit dans tous les cas de l'énoncé durable de l'intention lu au début de chaque session.
 
-_Usage:_
+_Utilisation :_
 
-"Should this all be one session?"
+« Tout cela doit-il tenir dans une seule session ? »
 
-"No, write it up as a spec — break it into tickets, run each one in its own session. Trying to do the whole thing in a single context will hit the [dumb zone](#smart-zone) before you're halfway."
+« Non, rédigez une spécification : découpez-la en tickets et exécutez chacun dans sa propre session. Tenter de tout faire dans un seul contexte atteindra la [zone stupide](#smart-zone) avant la moitié du travail. »
 
 <a id="ticket"></a>
 ### Ticket
 
-A [handoff artifact](#handoff-artifact) scoping one [session](#session) of work. Stands alone, or hangs off a [spec](#spec) as one of its children. Tickets can block or be blocked by sibling tickets, so the order of work falls out of their dependency graph rather than a linear plan.
+Un [artefact de transfert](#handoff-artifact) qui délimite une [session](#session) de travail. Il peut être autonome ou rattaché à une [spécification](#spec) en tant qu'enfant. Des tickets frères peuvent se bloquer mutuellement ; l'ordre du travail découle donc de leur graphe de dépendances plutôt que d'un plan linéaire.
 
-The defining constraint is the size: one session. A ticket should be completable before the session drifts out of the [smart zone](#smart-zone) — and that constraint is testable. If sessions on your tickets routinely degrade before the work is done, the tickets are too big; split them. If each session spends most of its [context](#context) on setup before doing five minutes of work, they're too small; merge them.
+La contrainte déterminante est la taille : une session. Un ticket doit pouvoir être terminé avant que la session ne sorte de la [zone intelligente](#smart-zone), et cette contrainte est testable. Si les sessions dédiées à vos tickets se dégradent régulièrement avant la fin du travail, les tickets sont trop grands : découpez-les. Si chaque session consacre la majeure partie de son [contexte](#context) à la mise en place avant cinq minutes de travail, ils sont trop petits : regroupez-les.
 
-A good ticket is written for a reader with no other context. The goal, the acceptance criteria, and [context pointers](#context-pointer) to the relevant files and decisions — enough that the session can start working without re-deriving what the last one knew.
+Un bon ticket est écrit pour un lecteur sans autre contexte. Il fournit l'objectif, les critères d'acceptation et les [pointeurs de contexte](#context-pointer) vers les fichiers et décisions pertinents, suffisamment pour que la session puisse commencer sans redéduire ce que savait la précédente.
 
-The dependency graph is also what unlocks parallelism. Independent tickets — the leaves of the graph — can each run in their own session at the same time. This is an effective way of running multiple agents at once.
+Le graphe de dépendances permet aussi le parallélisme. Les tickets indépendants, les feuilles du graphe, peuvent chacun être exécutés dans leur session au même moment. C'est une manière efficace d'exécuter plusieurs agents simultanément.
 
-_Usage:_
+_Utilisation :_
 
-"Where do I start on the migration spec?"
+« Par où commencer dans la spécification de migration ? »
 
-"Look at the ticket graph — the schema change blocks the backfill, the backfill blocks the API switch. Pick a leaf and run a session on it."
+« Regardez le graphe des tickets : la modification du schéma bloque le remplissage des données, qui bloque le basculement de l'API. Choisissez une feuille et exécutez une session dessus. »
 
 <a id="compaction"></a>
 ### Compactage
 
-A [handoff](#handoff) done in-memory: the previous [session](#session)'s history is summarised, and the summary seeds a fresh session. Lossy by design: the transcript is a [primary source](#primary-source), the summary a [secondary source](#secondary-source) — detail traded for headroom. Triggered manually by the user, or automatically via [autocompact](#autocompact).
+Un [passage de relais](#handoff) réalisé en mémoire : l'historique de la [session](#session) précédente est résumé, puis ce résumé amorce une session neuve. Il est volontairement avec perte : la transcription est une [source primaire](#primary-source), le résumé une [source secondaire](#secondary-source), et l'on échange du détail contre de l'espace disponible. Il peut être déclenché manuellement par l'utilisateur ou automatiquement par le [compactage automatique](#autocompact).
 
-The mechanism: the [context window](#context-window) is finite, and a long session fills it — every [tool result](#tool-result), every file read, every wrong turn stays in history. When it gets heavy, the [harness](#harness) asks the [model](#model) to summarise the session, throws the original history away, and seeds a fresh session with the summary. Whatever didn't make it into the summary is gone from the context. Some harnesses soften this by keeping the old transcript on disk and leaving a [context pointer](#context-pointer) to it in the summary — the secondary source links back to its primary source, so a detail the summary lost can be recovered by re-reading the original.
+Le mécanisme est le suivant : la [fenêtre de contexte](#context-window) est finie, et une longue session la remplit, car chaque [résultat d'outil](#tool-result), chaque fichier lu et chaque fausse piste restent dans l'historique. Lorsqu'elle devient chargée, le [harnais](#harness) demande au [modèle](#model) de résumer la session, écarte l'historique original et amorce une session neuve avec ce résumé. Tout élément absent du résumé disparaît du contexte. Certains harnais atténuent cela en conservant l'ancienne transcription sur disque et en plaçant dans le résumé un [pointeur de contexte](#context-pointer) vers elle : la source secondaire renvoie ainsi vers la source primaire, et un détail perdu peut être récupéré en relisant l'original.
 
-The summary is written by the model, so it can be prompted. "Preserve the schema decisions" makes the generated artifact more deliberate. Timing matters too — compact at a phase boundary, after the plan is settled, not mid-task.
+Le résumé est écrit par le modèle et peut donc être guidé par un prompt. « Préserve les décisions de schéma » rend l'artefact généré plus intentionnel. Le moment compte aussi : compactez à une frontière de phase, une fois le plan établi, et non au milieu d'une tâche.
 
-Contrast with [clearing](#clearing), which drops everything and starts cold: compaction tries to carry the essentials across; clearing bets they're already written down somewhere better.
+À comparer avec la [réinitialisation](#clearing), qui abandonne tout et recommence à froid : le compactage cherche à transmettre l'essentiel ; la réinitialisation suppose que cet essentiel est déjà mieux consigné ailleurs.
 
-_Usage:_
+_Utilisation :_
 
-"[Context](#context)'s getting heavy and I still have the test pass to do."
+« Le [contexte](#context) devient lourd et il me reste encore la passe de tests. »
 
-"Compact before you start — write what must survive into the summary prompt so the new session keeps the schema decisions and drops the exploration."
+« Compactez avant de commencer : écrivez dans le prompt de résumé ce qui doit survivre, afin que la nouvelle session conserve les décisions de schéma et abandonne l'exploration. »
 
 <a id="autocompact"></a>
 ### Compactage automatique
 
-[Compaction](#compaction) triggered automatically by the [harness](#harness) when the [context window](#context-window) approaches full.
+Un [compactage](#compaction) déclenché automatiquement par le [harnais](#harness) lorsque la [fenêtre de contexte](#context-window) approche de sa capacité maximale.
 
-The harness watches how full the context window is. When it crosses a threshold — often around 80% — it pauses, asks the [model](#model) to summarise the [session](#session) so far, and seeds a fresh session with the summary. Work then continues as if nothing happened.
+Le harnais surveille le remplissage de la fenêtre de contexte. Lorsqu'il franchit un seuil, souvent autour de 80 %, il se met en pause, demande au [modèle](#model) de résumer la [session](#session) jusqu'alors et amorce une session neuve avec ce résumé. Le travail se poursuit ensuite comme si rien ne s'était passé.
 
-Except something did happen. Compaction is lossy, and autocompact is lossy at a moment you didn't choose. A manual compact happens at a phase boundary, when you can tell the model what to preserve. Autocompact fires mid-task, whenever the threshold is hit — possibly halfway through a refactor, with the summary deciding for itself which of your decisions were worth keeping. The classic symptom: the [agent](#agent) carries on confidently but has quietly forgotten a constraint you established an hour ago, and you only notice when its work starts contradicting it.
+Pourtant, quelque chose s'est produit. Le compactage perd de l'information, et le compactage automatique le fait à un moment que vous n'avez pas choisi. Un compactage manuel intervient à une frontière de phase, où vous pouvez indiquer au modèle ce qu'il doit préserver. Le compactage automatique se déclenche au milieu de la tâche dès que le seuil est atteint, peut-être à mi-chemin d'une refactorisation, et le résumé décide seul quelles décisions méritaient d'être conservées. Le symptôme classique est que l'[agent](#agent) continue avec assurance mais a discrètement oublié une contrainte établie une heure plus tôt, ce que vous ne remarquez que lorsque son travail la contredit.
 
-The defence is to not let it fire. Watch the context indicator and compact manually at a natural boundary, or write decisions into a plan doc or [handoff artifact](#handoff-artifact) on disk, where no summary can lose them. Most harnesses also let you customise the buffer — moving the threshold earlier or later, or turning autocompact off entirely — so you can tune how much headroom you keep before it fires.
+La défense consiste à ne pas le laisser se déclencher. Surveillez l'indicateur de contexte et compactez manuellement à une frontière naturelle, ou écrivez les décisions dans un document de planification ou un [artefact de transfert](#handoff-artifact) sur disque, où aucun résumé ne pourra les perdre. La plupart des harnais permettent aussi de personnaliser la marge : déplacer le seuil vers l'avant ou l'arrière, voire désactiver entièrement le compactage automatique, afin d'ajuster l'espace disponible avant son déclenchement.
 
-_Usage:_
+_Utilisation :_
 
-"It doesn't seem to remember what we decided about the schema earlier."
+« Il ne semble plus se souvenir de ce que nous avions décidé pour le schéma. »
 
-"Autocompact fired between [turns](#turn) — the early decisions got summarised and we must have lost something. Reload the plan doc, or compact manually next time so you control what gets kept."
+« Le compactage automatique s'est déclenché entre deux [tours](#turn) : les décisions initiales ont été résumées et nous avons dû perdre un élément. Rechargez le document de planification, ou compactez manuellement la prochaine fois pour contrôler ce qui est conservé. »
 
 ## Section 6 — Mémoire et pilotage
 
 <a id="memory-system"></a>
 ### Système de mémoire
 
-A system that attempts to make an [agent](#agent) [stateful](#stateful) across [sessions](#session). Persists information into the [environment](#environment) during a session and reloads it into the [context window](#context-window) at the start of future ones, so the agent carries continuity beyond the user [clearing](#clearing) the session.
+Un système qui cherche à rendre un [agent](#agent) [avec état](#stateful) entre les [sessions](#session). Il persiste des informations dans l'[environnement](#environment) pendant une session et les recharge dans la [fenêtre de contexte](#context-window) au début des sessions suivantes, afin que l'agent conserve une continuité après la [réinitialisation](#clearing) par l'utilisateur.
 
-A memory system has two halves. The write path: during a session, the agent records what it learned — a preference you stated, a fact about the project — as files in the environment. The read path: at session start, the [harness](#harness) loads those files, or an index of them, back into the context window. Many harnesses ship their own memory system — Claude Code's `/memory` is one — but you can also build one yourself: a directory of notes plus an instruction in [AGENTS.md](#agentsmd) to consult it.
+Un système de mémoire comporte deux parties. La voie d'écriture : durant une session, l'agent enregistre ce qu'il a appris, préférence que vous avez exprimée ou fait sur le projet, dans des fichiers de l'environnement. La voie de lecture : au début de la session, le [harnais](#harness) recharge ces fichiers, ou leur index, dans la fenêtre de contexte. De nombreux harnais fournissent leur propre système de mémoire, comme `/memory` de Claude Code, mais vous pouvez aussi en construire un : un répertoire de notes et une instruction dans [AGENTS.md](#agentsmd) demandant de le consulter.
 
-The same trade-offs as any always-loaded content apply. Memories accumulate, so most systems load a one-line index and leave the bodies behind [context pointers](#context-pointer) rather than inlining everything. And memories are [secondary sources](#secondary-source), so they drift: a fact recorded in March is loaded with equal confidence in June, after the project has moved on. A memory system needs pruning, the same way AGENTS.md does.
+Les compromis liés à tout contenu chargé en permanence s'appliquent également. Les mémoires s'accumulent ; la plupart des systèmes chargent donc un index d'une ligne et laissent les contenus derrière des [pointeurs de contexte](#context-pointer) plutôt que de tout intégrer. Les mémoires sont aussi des [sources secondaires](#secondary-source), et dérivent donc : un fait consigné en mars est chargé avec la même assurance en juin, après l'évolution du projet. Un système de mémoire doit être élagué, comme AGENTS.md.
 
-_Usage:_
+_Utilisation :_
 
-"I keep having to re-tell it I'm on Postgres, not MySQL."
+« Je dois constamment lui répéter que nous utilisons Postgres, pas MySQL. »
 
-"Wire up a memory system — write what it learns to the [filesystem](#filesystem) on the first [turn](#turn), reload it at session start. The [model](#model) itself is [stateless](#stateless); the memory layer fakes continuity."
+« Mettez en place un système de mémoire : écrivez ce qu'il apprend dans le [système de fichiers](#filesystem) au premier [tour](#turn), puis rechargez-le au début de chaque session. Le [modèle](#model) est lui-même [sans état](#stateless) ; la couche mémoire simule la continuité. »
 
 <a id="agentsmd"></a>
 ### AGENTS.md
 
-A file in the [environment](#environment) that the [harness](#harness) loads into the [context window](#context-window) at [session](#session) start — the project's standing brief to the [agent](#agent). Cross-harness convention; some harnesses also have their own variant (Claude Code's is CLAUDE.md).
+Un fichier de l'[environnement](#environment) que le [harnais](#harness) charge dans la [fenêtre de contexte](#context-window) au début d'une [session](#session) : la feuille de route permanente du projet pour l'[agent](#agent). C'est une convention inter-harnais ; certains harnais possèdent aussi leur propre variante, `CLAUDE.md` pour Claude Code.
 
-Because it loads automatically, it's one way to avoid repeating yourself across sessions. The [model](#model) is [stateless](#stateless) — a correction you give in one session is gone in the next, and you end up telling every fresh session that the project uses pnpm, that tests run with a particular flag, that a directory is generated and shouldn't be touched. When you've corrected the agent for the same thing twice, that correction is a candidate line for AGENTS.md.
+Comme il est chargé automatiquement, ce fichier évite de vous répéter entre les sessions. Le [modèle](#model) est [sans état](#stateless) : une correction apportée dans une session a disparu dans la suivante, et vous finissez par expliquer à chaque session neuve que le projet utilise pnpm, que les tests s'exécutent avec une option particulière ou qu'un répertoire est généré et ne doit pas être touché. Après avoir corrigé deux fois l'agent sur le même point, cette correction est une bonne candidate pour AGENTS.md.
 
-Suitable content is whatever the agent can't derive from the code: build and test commands, conventions the codebase doesn't make obvious, hard constraints ("never edit the generated client"). Short and declarative — it's a brief, not documentation.
+Le contenu adapté est tout ce que l'agent ne peut pas déduire du code : commandes de compilation et de test, conventions que la base de code ne rend pas évidentes et contraintes strictes, comme « ne modifie jamais le client généré ». Le texte doit être court et déclaratif : c'est une feuille de route, non une documentation.
 
-The trade-off is that everything in it is always loaded. Instructions accumulate, most of them irrelevant to any given task, and a long AGENTS.md both costs tokens and dilutes itself — the more instructions in context, the less reliably the model follows any one of them.
+Le compromis est que tout son contenu est chargé en permanence. Les instructions s'accumulent, la plupart sans rapport avec une tâche donnée, et un AGENTS.md long consomme des jetons tout en se diluant : plus il y a d'instructions dans le contexte, moins le modèle suit chacune de façon fiable.
 
-_Avoid:_ using AGENTS.md for content that should be [progressively disclosed](#progressive-disclosure) — anything in it pays a [token](#token) cost every [turn](#turn), in every session, whether or not that session needs it. A style guide can go behind a [skill](#skill) or a [context pointer](#context-pointer) instead; keep AGENTS.md for the lines that apply everywhere.
+_À éviter :_ placer dans AGENTS.md un contenu qui devrait être [divulgué progressivement](#progressive-disclosure). Tout ce qui s'y trouve paie un coût en [jetons](#token) à chaque [tour](#turn), dans chaque session, qu'elle en ait besoin ou non. Un guide de style peut être placé derrière une [compétence](#skill) ou un [pointeur de contexte](#context-pointer) ; réservez AGENTS.md aux lignes applicables partout.
 
-_Usage:_
+_Utilisation :_
 
-"Why is every session starting with 4k tokens already burned?"
+« Pourquoi chaque session commence-t-elle avec 4 000 jetons déjà consommés ? »
 
-"Check AGENTS.md — someone pasted the entire style guide in there instead of putting it behind a skill."
+« Vérifiez AGENTS.md : quelqu'un y a collé le guide de style entier au lieu de le placer derrière une compétence. »
 
 <a id="progressive-disclosure"></a>
 ### Divulgation progressive
 
-Loading only the [context](#context) an [agent](#agent) needs right now, with [context pointers](#context-pointer) to the rest. Borrowed from UI design, where it means showing users only the controls relevant to their current task and hiding the rest behind a click.
+Charger seulement le [contexte](#context) dont un [agent](#agent) a besoin à cet instant, et utiliser des [pointeurs de contexte](#context-pointer) vers le reste. Le terme vient de la conception d'interfaces, où il désigne l'affichage aux utilisateurs des seules commandes pertinentes à leur tâche, les autres restant derrière une action.
 
-The technique exists because context is a cost twice over. Every [token](#token) loaded up front is billed as [input tokens](#input-tokens) on every [turn](#turn), and every token spends [attention budget](#attention-budget) whether the agent needs it or not. An [AGENTS.md](#agentsmd) stuffed with the full style guide, deployment runbook, and database conventions makes the agent worse at all of them — the instructions that matter for the current task are diluted by the ones that don't. The tell is an agent that ignores rules you know are in its context: they're in there, but buried.
+Cette technique existe parce que le contexte a un double coût. Chaque [jeton](#token) chargé d'emblée est facturé comme [jeton d'entrée](#input-tokens) à chaque [tour](#turn), et consomme du [budget d'attention](#attention-budget), que l'agent en ait besoin ou non. Un [AGENTS.md](#agentsmd) rempli du guide de style complet, du guide de déploiement et des conventions de base de données dégrade l'agent sur chacun de ces sujets : les instructions utiles à la tâche actuelle sont diluées par celles qui ne le sont pas. Un signe révélateur est un agent qui ignore des règles dont vous savez qu'elles sont dans son contexte : elles s'y trouvent, mais enfouies.
 
-Progressive disclosure inverts this. Keep the always-loaded layer small — a sentence per topic and a pointer to where the detail lives. The agent reads the style guide when it's writing a component, the deployment runbook when it's deploying, and neither when it's fixing a test. [Skills](#skill) are the pattern built into the [harness](#harness): a short description loaded every [session](#session), the full instructions only when triggered.
+La divulgation progressive inverse ce mécanisme. Gardez la couche toujours chargée réduite, une phrase par sujet et un pointeur vers les détails. L'agent lit le guide de style lorsqu'il écrit un composant, le guide de déploiement lorsqu'il déploie, et aucun des deux lorsqu'il corrige un test. Les [compétences](#skill) sont le mécanisme intégré au [harnais](#harness) : une brève description est chargée dans chaque [session](#session), les instructions complètes seulement lorsqu'elles sont déclenchées.
 
-_Usage:_
+_Utilisation :_
 
-"Should I dump the entire style guide into AGENTS.md?"
+« Dois-je placer tout le guide de style dans AGENTS.md ? »
 
-"No — progressive disclosure. Reference the style guide as a skill the agent loads when it actually needs to write a component. AGENTS.md pays the token cost every turn."
+« Non, utilisez la divulgation progressive. Référencez le guide de style comme une compétence que l'agent charge lorsqu'il doit réellement écrire un composant. AGENTS.md paie le coût en jetons à chaque tour. »
 
 <a id="context-pointer"></a>
 ### Pointeur de contexte
