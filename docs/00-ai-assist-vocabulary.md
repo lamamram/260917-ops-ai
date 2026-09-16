@@ -400,43 +400,43 @@ _Utilisation :_
 <a id="cache-tokens"></a>
 ### Jetons en cache
 
-[Input tokens](#input-tokens) the [provider](#model-provider) has cached from a previous [model provider request](#model-provider-request) so it doesn't have to re-process them. When consecutive requests share a prefix, the provider reuses the work via its [prefix cache](#prefix-cache) and bills the cached portion at a much lower rate. The lever that makes long [sessions](#session) affordable — without it, every [turn](#turn) re-pays for the whole history.
+Des [jetons d'entrée](#input-tokens) que le [fournisseur](#model-provider) a mis en cache à partir d'une précédente [requête au fournisseur de modèles](#model-provider-request), afin de ne pas avoir à les retraiter. Lorsque des requêtes consécutives partagent un préfixe, le fournisseur réutilise le travail grâce à son [cache de préfixe](#prefix-cache) et facture la partie mise en cache à un tarif bien inférieur. C'est ce qui rend les longues [sessions](#session) abordables : sans cela, chaque [tour](#turn) repaierait tout l'historique.
 
-The reason this matters is how sessions are billed. The [model](#model) is [stateless](#stateless), so every request resends the entire conversation — [system prompt](#system-prompt), every message, every [tool result](#tool-result) — as input tokens. By turn fifty, each request carries fifty turns of history, and you'd pay full rate on all of it, every time. The cache changes the maths: tokens the provider has already processed in an identical prefix are billed as cache tokens, often at a tenth of the input rate or less. On a long session, most of what you send is cache tokens, and the bill stays sane.
+L'importance de ce mécanisme vient du mode de facturation des sessions. Le [modèle](#model) est [sans état](#stateless), chaque requête renvoie donc toute la conversation, le [prompt système](#system-prompt), chaque message et chaque [résultat d'outil](#tool-result), sous forme de jetons d'entrée. Au cinquantième tour, chaque requête transporte cinquante tours d'historique, qui seraient tous facturés au tarif complet à chaque fois. Le cache change le calcul : les jetons que le fournisseur a déjà traités dans un préfixe identique sont facturés comme jetons en cache, souvent à un dixième du tarif d'entrée, voire moins. Au cours d'une longue session, la plupart des jetons envoyés sont ainsi en cache, et la facture reste raisonnable.
 
-An example shows when tokens are cached and when they're not. Each letter stands for a block of conversation content; each request sends the conversation so far:
+Cet exemple montre quand les jetons sont mis en cache et quand ils ne le sont pas. Chaque lettre représente un bloc de contenu de la conversation ; chaque requête envoie la conversation accumulée :
 
-| Request sends | Cached  | Billed at full rate | Why                                               |
-| ------------- | ------- | ------------------- | ------------------------------------------------- |
-| `AB`          | nothing | `AB`                | First request — nothing to match against          |
-| `ABC`         | `AB`    | `C`                 | `AB` is an exact prefix of the previous request   |
-| `ABCD`        | `ABC`   | `D`                 | Prefix still intact                               |
-| `AXCD`        | `A`     | `XCD`               | An edit changed `B` to `X`; the match fails there |
+| La requête envoie | En cache | Facturé au tarif complet | Pourquoi                                             |
+| ----------------- | -------- | ------------------------ | ---------------------------------------------------- |
+| `AB`              | rien     | `AB`                     | Première requête : aucun élément auquel correspondre |
+| `ABC`             | `AB`     | `C`                      | `AB` est un préfixe exact de la requête précédente   |
+| `ABCD`            | `ABC`    | `D`                      | Le préfixe est toujours intact                       |
+| `AXCD`            | `A`      | `XCD`                    | Une modification a remplacé `B` par `X` ; la correspondance échoue ici |
 
-The cache is fragile in a specific way: it matches exact prefixes. If anything changes earlier in the conversation — the [harness](#harness) reorders content, a timestamp updates, a file's representation shifts — the cache misses from that point onward and everything after it is billed at full input rate. Caches also expire after a few minutes of inactivity, so a session resumed after a long pause re-pays its history once. When a session's cost jumps without an obvious cause, compare cache tokens to input tokens in the usage report — a broken cache shows up there first.
+Le cache est fragile d'une manière précise : il compare des préfixes exacts. Si un élément plus tôt dans la conversation change, si le [harnais](#harness) réorganise le contenu, qu'un horodatage est mis à jour ou que la représentation d'un fichier varie, le cache échoue à partir de ce point et tout ce qui suit est facturé au tarif d'entrée complet. Les caches expirent aussi après quelques minutes d'inactivité : une session reprise après une longue pause repaie une fois son historique. Lorsqu'une session devient coûteuse sans raison apparente, comparez les jetons en cache et les jetons d'entrée dans le rapport d'utilisation : c'est là qu'un cache défaillant apparaît d'abord.
 
-_Usage:_
+_Utilisation :_
 
-"Cost on long sessions is brutal — eight bucks for a refactor."
+« Le coût des longues sessions est brutal : huit dollars pour une refactorisation. »
 
-"Check the cache tokens. If the harness is reordering the system prompt or files between turns, the prefix breaks and you re-pay full input rate every request."
+« Vérifiez les jetons en cache. Si le harnais réorganise le prompt système ou les fichiers entre les tours, le préfixe est rompu et chaque requête repaie le tarif d'entrée complet. »
 
 ## Section 2 — Sessions, fenêtres de contexte et tours
 
 <a id="stateless"></a>
 ### Sans état
 
-Carries no information forward. The [model](#model) is stateless across [model provider requests](#model-provider-request) — each request resends the full [context window](#context-window), because the model has no way to see anything else. An [agent](#agent) is stateless across [sessions](#session) by default: a new session starts empty, with no trace of prior ones. Counterpart to [stateful](#stateful).
+Ne conserve aucune information d'une interaction à l'autre. Le [modèle](#model) est sans état entre les [requêtes au fournisseur de modèles](#model-provider-request) : chaque requête renvoie la [fenêtre de contexte](#context-window) complète, car le modèle ne peut rien voir d'autre. Par défaut, un [agent](#agent) est sans état entre les [sessions](#session) : une nouvelle session commence vide, sans trace des précédentes. Contraire d'[avec état](#stateful).
 
-The model itself is permanently stateless: its [parameters](#parameters) are frozen after [training](#training), and nothing you do at [inference](#inference) changes them. The model doesn't learn from your corrections, doesn't remember being told the same thing yesterday, and isn't getting to know you — however much the conversation feels otherwise. The feeling of continuity within a session is manufactured by the [harness](#harness), which keeps the transcript and re-sends it with every request. The model isn't remembering the conversation; it's re-reading it.
+Le modèle lui-même est en permanence sans état : ses [paramètres](#parameters) sont figés après l'[entraînement](#training), et rien de ce que vous faites à l'[inférence](#inference) ne les modifie. Le modèle n'apprend pas de vos corrections, ne se souvient pas qu'on lui a dit la même chose hier et n'apprend pas à vous connaître, aussi continue que puisse sembler la conversation. La continuité ressentie au sein d'une session est fabriquée par le [harnais](#harness), qui conserve la transcription et la renvoie à chaque requête. Le modèle ne se souvient pas de la conversation, il la relit.
 
-The practical consequence: if you want something remembered across sessions, you have to write it down somewhere the agent will read it back. That's what [AGENTS.md](#agentsmd) files, [memory systems](#memory-system), and [handoff artifacts](#handoff-artifact) are — files that get loaded into the [context](#context) of future sessions, standing in for the memory the model doesn't have. When the agent keeps making a mistake you've corrected before, the question isn't why it didn't learn — it can't — but where that correction should be written down so every future session reads it.
+La conséquence pratique est la suivante : si vous souhaitez qu'une information soit mémorisée entre les sessions, vous devez l'écrire quelque part où l'agent la relira. C'est le rôle des fichiers [AGENTS.md](#agentsmd), des [systèmes de mémoire](#memory-system) et des [artefacts de passage de relais](#handoff-artifact) : ils sont chargés dans le [contexte](#context) des sessions futures et remplacent la mémoire dont le modèle est dépourvu. Lorsque l'agent répète une erreur que vous avez déjà corrigée, la question n'est pas pourquoi il n'a pas appris, il ne le peut pas, mais où écrire cette correction pour que toutes les sessions futures la lisent.
 
-_Usage:_
+_Utilisation :_
 
-"Why does it forget the convention every time I [clear](#clearing)?"
+« Pourquoi oublie-t-il la convention à chaque [réinitialisation](#clearing) ? »
 
-"The model's stateless — the new session starts empty. If you want it carried, write it to AGENTS.md or a memory file the harness loads at session start."
+« Le modèle est sans état : la nouvelle session commence vide. Si vous voulez conserver l'information, écrivez-la dans AGENTS.md ou dans un fichier de mémoire que le harnais charge au début de la session. »
 
 <a id="context"></a>
 ### Contexte
