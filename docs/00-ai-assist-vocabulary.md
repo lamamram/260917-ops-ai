@@ -441,25 +441,25 @@ _Utilisation :_
 <a id="context"></a>
 ### Contexte
 
-The relevant information the [agent](#agent) has access to right now. The abstract noun — not the raw input the model sees (that's the [context window](#context-window)), not the running history (that's the [session](#session)), but _what the agent knows that's pertinent to the task_. "Loading something into context" means making it part of this set; "context engineering" is the discipline of curating it.
+Les informations pertinentes auxquelles l'[agent](#agent) a accès à un instant donné. C'est un nom abstrait : ni l'entrée brute vue par le modèle, qui est la [fenêtre de contexte](#context-window), ni l'historique en cours, qui est la [session](#session), mais ce que l'agent sait qui est pertinent pour la tâche. « Charger quelque chose dans le contexte » signifie l'ajouter à cet ensemble ; l'« ingénierie de contexte » est la discipline qui consiste à le sélectionner.
 
-The three terms separate cleanly:
+Les trois termes se distinguent clairement :
 
-| Term           | What it names                                                       |
-| -------------- | ------------------------------------------------------------------- |
-| Context        | The task-relevant information the agent currently has               |
-| Context window | The literal [token](#token) sequence the model sees per request |
-| Session        | The running conversation the [harness](#harness) stores         |
+| Terme | Ce qu'il désigne |
+| ----- | ---------------- |
+| Contexte | Les informations pertinentes pour la tâche dont l'agent dispose actuellement |
+| Fenêtre de contexte | La séquence littérale de [jetons](#token) que le modèle voit à chaque requête |
+| Session | La conversation en cours que le [harnais](#harness) conserve |
 
-The separation matters because context is a measure of quality, not quantity. A context window can be nearly full and the context still poor — thousands of tokens of stale tool output, none of it about the task at hand. It can also be nearly empty and the context excellent: the one type definition the task turns on.
+Cette distinction importe parce que le contexte est une mesure de qualité, pas de quantité. Une fenêtre de contexte peut être presque pleine tout en contenant un mauvais contexte, avec des milliers de jetons de résultats d'outil périmés, sans rapport avec la tâche en cours. Elle peut également être presque vide et contenir un excellent contexte : l'unique définition de type dont dépend la tâche.
 
-Most day-to-day failures trace back to context. When the agent invents an API, contradicts a decision, or guesses at a schema, the first question is what was in context when it did — usually the relevant fact was never loaded, or was buried under [attention degradation](#attention-degradation). The fix is curation: load what the task needs, keep out what it doesn't.
+La plupart des échecs courants remontent au contexte. Lorsque l'agent invente une API, contredit une décision ou devine un schéma, la première question est de savoir ce qui était dans le contexte à ce moment-là. En général, le fait pertinent n'a jamais été chargé ou se trouvait enfoui sous la [dégradation de l'attention](#attention-degradation). La solution consiste à sélectionner : charger ce dont la tâche a besoin et écarter le reste.
 
-_Usage:_
+_Utilisation :_
 
-"It keeps inventing fields that aren't in the type."
+« Il continue d'inventer des champs qui n'existent pas dans le type. »
 
-"The type file isn't in context — it's reading the call sites and guessing. Read the definition in first."
+« Le fichier de types n'est pas dans le contexte : il lit les sites d'appel et devine. Commencez par lire la définition. »
 
 <a id="context-window"></a>
 ### Fenêtre de contexte
