@@ -1013,36 +1013,36 @@ _Utilisation :_
 <a id="primary-source"></a>
 ### Source primaire
 
-A source of truth in its original form — the code, the conversation transcript, the raw log, the actual API response. Not an account of the thing; the thing. Counterpart to [secondary source](#secondary-source).
+Une source de vérité dans sa forme originale : le code, la transcription d'une conversation, le journal brut ou la véritable réponse d'une API. Ce n'est pas le récit de la chose, c'est la chose elle-même. C'est le pendant de la [source secondaire](#secondary-source).
 
-If you want to know what your codebase does, the code is the primary source. The docs, the architecture diagram, and the README are all descriptions of it — accurate when written, on their own schedule ever since. When an [agent](#agent) confidently asserts something wrong about your project, the question to ask is which source it was working from: an agent that read a doc inherits the doc's staleness; an agent that read the code is reading the current truth.
+Pour savoir ce que fait une base de code, le code est la source primaire. La documentation, le diagramme d'architecture et le README en sont des descriptions, exactes lorsqu'elles ont été écrites, puis mises à jour selon leur propre rythme. Lorsqu'un [agent](#agent) affirme avec assurance une chose fausse sur votre projet, demandez-vous de quelle source il est parti : un agent qui a lu une documentation hérite de son obsolescence ; celui qui a lu le code lit la vérité actuelle.
 
-The cost is what keeps primary sources from being the default. Loading one into the [context window](#context-window) is expensive — the full file, the full transcript, every [token](#token) billed as [input](#input-tokens) and competing for [attention budget](#attention-budget). What you get for the cost is completeness: nothing has been pre-filtered by someone else's judgement about what mattered. A summary written last month can't contain the detail that turned out to matter today; the primary source still does.
+Le coût empêche les sources primaires d'être la solution par défaut. En charger une dans la [fenêtre de contexte](#context-window) est coûteux : fichier complet, transcription complète, chaque [jeton](#token) facturé comme [entrée](#input-tokens) et en concurrence pour le [budget d'attention](#attention-budget). En échange, vous obtenez l'exhaustivité : rien n'a été préfiltré selon le jugement d'une autre personne sur ce qui importait. Un résumé écrit le mois dernier ne peut pas contenir le détail devenu important aujourd'hui ; la source primaire le contient encore.
 
-Reach for the primary source when precision matters — the exact signature, the actual error, the line that throws. Much of managing [context](#context) is deciding when to pay for the primary source and when a secondary source is good enough.
+Préférez la source primaire lorsque la précision importe : la signature exacte, l'erreur réelle ou la ligne qui lève l'exception. Une grande part de la gestion du [contexte](#context) consiste à décider quand payer le coût de la source primaire et quand une source secondaire suffit.
 
-_Usage:_
+_Utilisation :_
 
-"The agent says the retry logic backs off exponentially, but I'm watching it hammer the endpoint."
+« L'agent affirme que la logique de nouvelle tentative applique un délai exponentiel, mais je la vois marteler le point de terminaison. »
 
-"It read that out of the design doc. Point it at the actual retry module — work from the primary source when the behaviour matters."
+« Il l'a lu dans le document de conception. Orientez-le vers le véritable module de nouvelles tentatives : travaillez à partir de la source primaire lorsque le comportement importe. »
 
 <a id="secondary-source"></a>
 ### Source secondaire
 
-An account of a [primary source](#primary-source), one step removed — documentation describing code, a summary describing a transcript, a report describing search results. Cheaper to load into the [context window](#context-window) than the source it describes, and lossy by construction: whoever wrote it decided what mattered, and whatever they dropped is invisible to a reader who only has the summary.
+Le récit d'une [source primaire](#primary-source), avec un niveau d'éloignement : une documentation décrivant du code, un résumé décrivant une transcription ou un rapport décrivant des résultats de recherche. Elle coûte moins cher à charger dans la [fenêtre de contexte](#context-window) que la source qu'elle décrit, mais perd nécessairement de l'information : son auteur a décidé ce qui importait et tout ce qu'il a omis est invisible au lecteur qui ne possède que le résumé.
 
-A lot of [context](#context) engineering is the manufacture of secondary sources. [Compaction](#compaction) turns the [session](#session) history into a summary that seeds the next session. A [subagent](#subagent) burns its own context on a noisy search and returns a short report. A [handoff artifact](#handoff-artifact) condenses a session's decisions into a document the next session reads. [Memory systems](#memory-system) distil what a session learned into notes. Each makes the same trade: fidelity for headroom.
+Une grande part de l'ingénierie de [contexte](#context) consiste à produire des sources secondaires. Le [compactage](#compaction) transforme l'historique d'une [session](#session) en résumé qui amorce la session suivante. Un [sous-agent](#subagent) consomme son propre contexte dans une recherche bruyante et renvoie un rapport court. Un [artefact de transfert](#handoff-artifact) condense les décisions d'une session dans un document lu par la suivante. Les [systèmes de mémoire](#memory-system) distillent ce qu'une session a appris en notes. Tous effectuent le même compromis : fidélité contre espace disponible.
 
-Secondary sources fail in two ways. They're lossy — the compaction summary that lost the schema decision, the report that didn't mention the edge case. And they drift — the primary source changes and the account doesn't follow, so docs describe last quarter's architecture with this quarter's confidence. When an [agent](#agent) acts on a secondary source that has failed either way, it works confidently from wrong information; the fix is sending it back to the primary source.
+Les sources secondaires échouent de deux façons. Elles perdent de l'information : résumé de compactage qui a perdu la décision de schéma, rapport qui ne mentionne pas le cas limite. Elles dérivent aussi : la source primaire change sans que le récit la suive, et la documentation décrit l'architecture du trimestre précédent avec l'assurance de ce trimestre. Lorsqu'un [agent](#agent) agit à partir d'une source secondaire défaillante d'une de ces deux manières, il travaille avec assurance sur des informations fausses ; la correction est de le renvoyer à la source primaire.
 
-Neither failure makes secondary sources a mistake. The context window is finite, and primary sources are expensive; without summaries, reports, and handoff documents, nothing large fits. The skill is knowing which details can survive the loss — and verifying against the primary source when one can't. A well-made secondary source carries a [context pointer](#context-pointer) back to its original — the summary that names the transcript it came from, the doc that names the file it describes — so when the account isn't enough, the reader can follow the pointer rather than work from the loss.
+Aucun de ces échecs ne fait des sources secondaires une erreur. La fenêtre de contexte est limitée et les sources primaires coûteuses ; sans résumés, rapports et documents de transfert, rien de volumineux ne tient. La compétence consiste à savoir quels détails peuvent survivre à la perte et à vérifier auprès de la source primaire ceux qui ne le peuvent pas. Une source secondaire bien conçue transporte un [pointeur de contexte](#context-pointer) vers son original, le résumé qui nomme la transcription dont il provient ou le document qui nomme le fichier décrit, afin que le lecteur puisse suivre ce pointeur lorsque le récit ne suffit plus.
 
-_Usage:_
+_Utilisation :_
 
-"The handoff doc says auth is done, but the new session keeps finding broken token refresh."
+« Le document de transfert dit que l'authentification est terminée, mais la nouvelle session continue de trouver un rafraîchissement de jeton défaillant. »
 
-"The doc's a secondary source — the last session wrote down what it believed, not what's true. Have the new session run the auth tests and trust the primary source."
+« Le document est une source secondaire : la dernière session y a consigné ce qu'elle croyait, non la vérité. Faites exécuter les tests d'authentification par la nouvelle session et faites confiance à la source primaire. »
 
 <a id="handoff-artifact"></a>
 ### Artefact de transfert
