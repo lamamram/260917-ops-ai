@@ -1183,122 +1183,122 @@ _Utilisation :_
 <a id="context-pointer"></a>
 ### Pointeur de contexte
 
-A mention in one document that points to another, so the [agent](#agent) can pull it into the [context window](#context-window) only when the task calls for it. The unit [progressive disclosure](#progressive-disclosure) is built from.
+Une mention, dans un document, qui renvoie vers un autre afin que l'[agent](#agent) ne le charge dans la [fenêtre de contexte](#context-window) que lorsque la tâche le nécessite. C'est l'unité qui compose la [divulgation progressive](#progressive-disclosure).
 
-The reason to use a pointer (instead of inlining the content) is cost. A pointer is one line in the context window. The document behind it might be thousands of [tokens](#token), but those tokens cost nothing until the agent actually follows the pointer. Inline a 2,000-token runbook in [AGENTS.md](#agentsmd) and every [session](#session) pays for it; replace it with "deploy process: see `internal/deploy.md`" and only the sessions that deploy ever load it. The agent follows the pointer with a [tool call](#tool-call) when the task matches.
+La raison d'utiliser un pointeur, plutôt que d'intégrer le contenu, est le coût. Un pointeur n'occupe qu'une ligne dans la fenêtre de contexte. Le document derrière peut représenter des milliers de [jetons](#token), mais ces jetons ne coûtent rien tant que l'agent ne suit pas réellement le pointeur. Intégrez un guide opératoire de 2 000 jetons dans [AGENTS.md](#agentsmd) et chaque [session](#session) le paie ; remplacez-le par « processus de déploiement : voir `internal/deploy.md` » et seules les sessions qui déploient le chargeront. L'agent suit le pointeur par un [appel d'outil](#tool-call) lorsque la tâche y correspond.
 
-A pointer needs two parts to work: a stable path, and enough description for the agent to know when following it is worth it. A bare path is a pointer the agent has no reason to follow; "see `internal/deploy.md`" with no hint of what's inside gets skipped by a session that needed it. Write the line so it matches how tasks present: "release, deploy, or rollback — read `internal/deploy.md` first".
+Pour fonctionner, un pointeur nécessite deux éléments : un chemin stable et une description suffisante pour que l'agent sache quand il vaut la peine de le suivre. Un chemin seul est un pointeur que l'agent n'a aucune raison d'emprunter ; « voir `internal/deploy.md` » sans indication de son contenu sera ignoré par une session qui en aurait eu besoin. Rédigez la ligne selon la manière dont les tâches se présentent : « publication, déploiement ou retour arrière : lire d'abord `internal/deploy.md` ».
 
-Pointers are everywhere once you look: lines in AGENTS.md, [skill](#skill) descriptions (the harness loads the description; the skill body waits behind it), filenames in a directory listing, links between docs.
+Les pointeurs se trouvent partout : lignes d'AGENTS.md, descriptions de [compétences](#skill), dont le harnais charge la description tandis que le corps attend derrière, noms de fichiers dans une liste de répertoires ou liens entre documents.
 
-A pointer can also tie a [secondary source](#secondary-source) back to the [primary source](#primary-source) it was derived from — the compaction summary that names the original transcript, the doc that names the source file it describes. This makes the secondary source's lossiness recoverable: when the summary turns out not to be enough, the agent follows the pointer and reads the original, instead of working from whatever the summary kept.
+Un pointeur peut également rattacher une [source secondaire](#secondary-source) à la [source primaire](#primary-source) dont elle est issue : le résumé de compactage qui nomme la transcription originale ou le document qui nomme le fichier source décrit. La perte d'information de la source secondaire devient alors récupérable : lorsque le résumé s'avère insuffisant, l'agent suit le pointeur et lit l'original au lieu de travailler à partir de ce que le résumé a conservé.
 
-_Avoid:_ "reference" — too dry; doesn't convey that following it pulls more context in. "Portal" — too florid.
+_À éviter :_ « référence », trop sec et ne transmet pas l'idée que le suivre charge davantage de contexte ; « portail », trop emphatique.
 
-_Usage:_
+_Utilisation :_
 
-"AGENTS.md is getting huge."
+« AGENTS.md devient énorme. »
 
-"Most of it should be context pointers, not content. Keep the always-on rules inline; turn the deploy runbook and the style guide into skills and leave a context pointer behind."
+« La majeure partie devrait être constituée de pointeurs de contexte, non de contenu. Gardez les règles toujours actives en ligne ; transformez le guide de déploiement et le guide de style en compétences, puis laissez un pointeur de contexte. »
 
 <a id="skill"></a>
 ### Compétence
 
-A teachable capability bundled as a unit — instructions and resources for doing one task well, kept in the [environment](#environment) until a [context pointer](#context-pointer) pulls it into the [context window](#context-window) for the task at hand. The unit of [progressive disclosure](#progressive-disclosure) in a [harness](#harness).
+Une capacité enseignable regroupée en une unité : instructions et ressources permettant de bien accomplir une tâche, conservées dans l'[environnement](#environment) jusqu'à ce qu'un [pointeur de contexte](#context-pointer) les charge dans la [fenêtre de contexte](#context-window) pour la tâche en cours. C'est l'unité de [divulgation progressive](#progressive-disclosure) dans un [harnais](#harness).
 
-Skills are an open standard, defined at [agentskills.io](https://agentskills.io) — originally developed by Anthropic and since adopted by most major harnesses, so a skill written once works across them. The format is a folder containing:
+Les compétences constituent une norme ouverte, définie sur [agentskills.io](https://agentskills.io), élaborée initialement par Anthropic puis adoptée par la plupart des grands harnais. Une compétence écrite une fois fonctionne donc entre eux. Son format est un dossier contenant :
 
-- A `SKILL.md` file — metadata (a name and description, at minimum) plus the instructions themselves
-- Optionally, scripts the [agent](#agent) can run
-- Optionally, templates and reference material the instructions point to
+- un fichier `SKILL.md`, avec au minimum des métadonnées, nom et description, et les instructions elles-mêmes ;
+- éventuellement des scripts que l'[agent](#agent) peut exécuter ;
+- éventuellement des modèles et documents de référence auxquels renvoient les instructions.
 
-Only the name and description sit in [context](#context) by default. When the agent's task matches, it loads the rest. Until then, the skill takes up almost no room — a sentence or two of [tokens](#token), however large its full instructions are.
+Par défaut, seuls le nom et la description se trouvent dans le [contexte](#context). Lorsque la tâche de l'agent correspond, il charge le reste. Jusque-là, la compétence n'occupe presque aucun espace, une ou deux phrases de [jetons](#token), quelle que soit la taille de ses instructions complètes.
 
-This distinguishes skills from [AGENTS.md](#agentsmd), which is loaded into every [session](#session) regardless of the task. A skill is read when a particular kind of work comes up — releasing, scaffolding a new service, writing a migration — and ignored the rest of the time.
+Cela distingue les compétences d'[AGENTS.md](#agentsmd), qui est chargé dans chaque [session](#session) quelle que soit la tâche. Une compétence est lue lorsqu'un type de travail particulier se présente, publication, initialisation d'un nouveau service ou écriture d'une migration, et ignorée le reste du temps.
 
-_Avoid:_ "[tool](#tool)" — a tool is what the agent _calls_; a skill is instructions it _reads_.
+_À éviter :_ « [outil](#tool) » : un outil est ce que l'agent _appelle_, une compétence contient les instructions qu'il _lit_.
 
-_Usage:_
+_Utilisation :_
 
-"Where should I put the deploy runbook?"
+« Où placer le guide opératoire de déploiement ? »
 
-"As a skill — the agent loads it only when the task involves deploys. In AGENTS.md it'd burn tokens on every [turn](#turn) for something we use weekly."
+« Dans une compétence : l'agent ne la charge que lorsque la tâche concerne un déploiement. Dans AGENTS.md, elle consommerait des jetons à chaque [tour](#turn) pour un processus utilisé seulement chaque semaine. »
 
 <a id="subagent"></a>
 ### Sous-agent
 
-An [agent](#agent) spawned by another agent via a [tool call](#tool-call). Runs in its own [session](#session) with its own [context window](#context-window), and reports a single [tool result](#tool-result) back. Distinct from a [handoff](#handoff) — the parent specifically expects a return; a handoff has no return path. **Cannot spawn further subagents** — the tree is one level deep. Subagents exist to isolate [context](#context), not to compose hierarchies.
+Un [agent](#agent) lancé par un autre agent au moyen d'un [appel d'outil](#tool-call). Il s'exécute dans sa propre [session](#session), avec sa propre [fenêtre de contexte](#context-window), et renvoie un unique [résultat d'outil](#tool-result). Il se distingue d'un [passage de relais](#handoff) : le parent attend expressément un retour, tandis qu'un passage de relais ne possède pas de chemin de retour. **Il ne peut pas lancer d'autres sous-agents** : l'arbre ne comporte qu'un niveau. Les sous-agents servent à isoler le [contexte](#context), non à composer des hiérarchies.
 
-The point is to keep noisy work out of the parent's context. A broad search or a long file-reading expedition produces pages of tool results, most of which matter only long enough to find the answer. Run inside the parent and all of it stays in the parent's context for the rest of the session. Run inside a subagent and the noise fills a disposable window instead — only the final report lands in the parent's context. The report is a [secondary source](#secondary-source): the parent gets the subagent's account of what it found, not the raw results, so anything the report leaves out is invisible to the parent.
+L'objectif est de garder le travail bruyant hors du contexte du parent. Une recherche étendue ou une longue lecture de fichiers produit des pages de résultats d'outil, dont la plupart n'importent que le temps de trouver la réponse. Exécutez ce travail dans le parent et ils restent dans son contexte pour le reste de la session. Exécutez-le dans un sous-agent et le bruit remplit plutôt une fenêtre jetable ; seul le rapport final arrive dans le contexte du parent. Ce rapport est une [source secondaire](#secondary-source) : le parent reçoit le récit des résultats du sous-agent, non les résultats bruts ; tout ce que le rapport omet reste invisible au parent.
 
-Subagents also run concurrently — a parent can fan several out at once over independent pieces of work.
+Les sous-agents s'exécutent également en parallèle : un parent peut en répartir plusieurs simultanément sur des parties indépendantes du travail.
 
-_Usage:_
+_Utilisation :_
 
-"The grep results are blowing out my context."
+« Les résultats de `grep` saturent mon contexte. »
 
-"Spawn a subagent to do the search — it'll burn its own context window on the noise and report back the two file paths you actually need."
+« Lance un sous-agent pour effectuer la recherche : il consommera sa propre fenêtre de contexte avec le bruit et te renverra les deux chemins de fichiers dont tu as réellement besoin. »
 
 ## Section 7 — Modes de travail
 
 <a id="human-in-the-loop"></a>
 ### Humain dans la boucle
 
-A working pattern where one or more humans pair with the [agent](#agent) during a [session](#session) — reviewing, redirecting, or collaborating in real time. The human is present and engaged, not just gating individual actions.
+Un mode de travail dans lequel une ou plusieurs personnes collaborent avec l'[agent](#agent) pendant une [session](#session), pour examiner, réorienter ou travailler en temps réel. L'humain est présent et impliqué, pas seulement chargé d'autoriser des actions individuelles.
 
-The contrast is with [AFK](#afk) work, where the agent runs unattended and you judge the result afterwards. Human-in-the-loop means catching problems while they're still cheap: you see the agent reach for the wrong file, misread the requirement, or start down a dead end, and you redirect it in one sentence — rather than discovering twenty minutes of confident work built on that mistake. Agents don't reliably know when they're off track; left alone, they tend to push forward rather than stop and ask.
+Il s'oppose au travail [AFK](#afk), où l'agent s'exécute sans surveillance et où vous évaluez le résultat après coup. Garder un humain dans la boucle permet d'intercepter les problèmes tant qu'ils sont peu coûteux : vous voyez l'agent viser le mauvais fichier, mal comprendre le besoin ou s'engager dans une impasse, et le redirigez en une phrase, plutôt que de découvrir vingt minutes de travail assuré fondé sur cette erreur. Les agents ne savent pas toujours qu'ils dévient ; livrés à eux-mêmes, ils ont tendance à continuer plutôt qu'à s'arrêter pour demander.
 
-Which pattern fits depends on the work. Well-specified, low-risk, easy-to-verify tasks suit AFK. Tasks that are ambiguous, irreversible, or where you'd struggle to review the finished result — a schema migration, a tricky design decision, anything touching production — suit staying in the loop. The judgement call is essentially: how expensive is a wrong turn, and how late would you catch it?
+Le bon mode dépend du travail. Les tâches bien spécifiées, peu risquées et faciles à vérifier conviennent à l'AFK. Les tâches ambiguës, irréversibles ou dont le résultat final serait difficile à examiner, migration de schéma, décision de conception délicate ou tout élément touchant la production, demandent de rester dans la boucle. La décision revient essentiellement à deux questions : quel est le coût d'une fausse piste et à quel moment la découvririez-vous ?
 
-Some work is in-the-loop by nature, because your reactions are the input. [Grilling](#grilling) only works with you there to answer the questions; [prototyping](#prototyping) only works with you there to react to the artifact.
+Certains travaux sont intrinsèquement dans la boucle, car vos réactions en constituent l'entrée. Le [questionnement approfondi](#grilling) nécessite votre présence pour répondre aux questions ; le [prototypage](#prototyping) nécessite votre présence pour réagir à l'artefact.
 
-Staying in the loop costs your attention, which is the scarce resource. Part of getting better with agents is moving more work safely out of the loop — with plans, [automated checks](#automated-check), and [human review](#human-review) at the end instead of supervision throughout.
+Rester dans la boucle consomme votre attention, ressource rare. Une partie de la progression avec les agents consiste à sortir davantage de travail de la boucle en sécurité, avec des plans, des [vérifications automatisées](#automated-check) et une [revue humaine](#human-review) finale au lieu d'une supervision permanente.
 
-_Usage:_
+_Utilisation :_
 
-"Run this AFK overnight?"
+« Lancer cela en AFK cette nuit ? »
 
-"No, schema migration — keep it human-in-the-loop. I want to see each step and steer if it picks the wrong column to backfill from."
+« Non, c'est une migration de schéma : garde un humain dans la boucle. Je veux voir chaque étape et pouvoir rediriger l'agent s'il choisit la mauvaise colonne à utiliser pour le remplissage. »
 
 <a id="afk"></a>
 ### AFK
 
-Away from keyboard. A working pattern where the user kicks off a [session](#session) and leaves the [agent](#agent) to run unattended. The throughput multiplier of [AI](#ai) coding — many AFK sessions can run in parallel while you sleep, eat, or work on something else. Usually requires a permissive [permission mode](#permission-mode) plus [sandboxing](#sandbox) to be safe.
+Abréviation de _away from keyboard_, « loin du clavier ». Un mode de travail dans lequel l'utilisateur lance une [session](#session) puis laisse l'[agent](#agent) travailler sans surveillance. C'est un multiplicateur de débit pour la programmation avec l'[IA](#ai) : de nombreuses sessions AFK peuvent s'exécuter en parallèle pendant que vous dormez, mangez ou travaillez sur autre chose. Il exige généralement un [mode d'autorisation](#permission-mode) permissif et un [bac à sable](#sandbox) pour rester sûr.
 
-When you're not there, the agent handles ambiguity differently. While you're watching, an ambiguous decision surfaces as a question and you answer it; once you've walked away, the agent picks a default and keeps going, and every later decision builds on that guess. The characteristic failure is coming back to hours of finished, confident work built on a wrong call made in the first ten minutes. The work isn't sloppy — it's coherent, just coherent about the wrong thing.
+En votre absence, l'agent traite l'ambiguïté autrement. Lorsque vous le surveillez, une décision ambiguë devient une question à laquelle vous répondez ; une fois parti, l'agent choisit une valeur par défaut et continue, chaque décision suivante se construisant sur cette hypothèse. L'échec caractéristique est de revenir vers des heures de travail terminé et assuré, fondé sur une mauvaise décision prise dans les dix premières minutes. Le travail n'est pas négligé : il est cohérent, mais cohérent à propos de la mauvaise chose.
 
-Since you can't give input during the run, give it before and after instead. Before: resolve the ambiguity up front — a [grilling](#grilling) session, a written [spec](#spec) — so there are fewer gaps for the agent to fill alone. During: [automated checks](#automated-check) and [automated review](#automated-review) stand in for the attention you're not giving, failing fast on what can be caught mechanically. After: the run ends in something reviewable — a PR, not changes already merged. AFK doesn't remove [human review](#human-review); it defers all of it to the end, which is why what arrives at the end has to be worth reviewing. This is also why [AX](#ax) matters most in AFK runs — with no one watching, the environment is the only support the agent gets.
+Puisque vous ne pouvez pas intervenir pendant l'exécution, intervenez avant et après. Avant : levez les ambiguïtés, avec une session de [questionnement approfondi](#grilling) ou une [spécification](#spec) écrite, pour laisser moins de vides à l'agent. Pendant : les [vérifications automatisées](#automated-check) et la [revue automatisée](#automated-review) remplacent l'attention que vous ne fournissez pas, en échouant rapidement sur ce qui est détectable mécaniquement. Après : l'exécution doit se terminer par quelque chose d'examinable, une PR et non des modifications déjà fusionnées. L'AFK ne supprime pas la [revue humaine](#human-review), il la reporte à la fin ; le résultat final doit donc mériter cette revue. C'est aussi pourquoi l'[AX](#ax) compte davantage lors d'exécutions AFK : sans personne pour observer, l'environnement est le seul soutien de l'agent.
 
-_Avoid:_ "background agent" — centers the machine ("running in the background") rather than the human pattern ("user has walked away"). AFK names the fact that matters: the user isn't watching.
+_À éviter :_ « agent en arrière-plan », qui centre l'expression sur la machine plutôt que sur le fait humain : l'utilisateur est parti. AFK nomme ce qui importe, l'utilisateur ne surveille pas.
 
-_Usage:_
+_Utilisation :_
 
-"I'm running this AFK — three sandboxed agents on the refactor, reviewing the PRs in the morning."
+« J'exécute cela en AFK : trois agents en bac à sable sur la refactorisation, puis revue des PR demain matin. »
 
-"[Bypass permissions](#agent-mode)?"
+« [Contournement des autorisations](#agent-mode) ? »
 
-"Yeah, read-only [filesystem](#filesystem), no network."
+« Oui, [système de fichiers](#filesystem) en lecture seule, sans réseau. »
 
 <a id="automated-check"></a>
 ### Vérification automatisée
 
-A deterministic verification that runs in the [environment](#environment) — tests, type checks, lints, build, pre-commit hooks. Pass/fail, no judgement. The signal an [agent](#agent) can self-correct from without involving anyone else. A flaky test is a broken check, not a non-check; automated checks are deterministic _by design_.
+Une vérification déterministe exécutée dans l'[environnement](#environment) : tests, vérification de types, linters, compilation ou hooks de pré-commit. Elle réussit ou échoue, sans jugement. C'est le signal à partir duquel un [agent](#agent) peut s'autocorriger sans impliquer personne. Un test instable est une vérification défectueuse, non une absence de vérification ; les vérifications automatisées sont déterministes _par conception_.
 
-Self-correction works as a loop. The agent makes a change, runs the check as a [tool call](#tool-call), and the failure output lands in its [context window](#context-window) — a type error with a file and line, a failing assertion with expected and actual values. That's enough for the agent to fix the problem and run the check again, around and around until it passes, with no human in the loop. Determinism is what makes the loop trustworthy: the same code always produces the same verdict, so a pass means something. A flaky check poisons this — the agent "fixes" code that was fine, or retries past a real failure.
+L'autocorrection fonctionne sous forme de boucle. L'agent effectue une modification, exécute la vérification par un [appel d'outil](#tool-call) et la sortie de l'échec arrive dans sa [fenêtre de contexte](#context-window) : erreur de type avec fichier et ligne, assertion échouée avec valeurs attendue et obtenue. Cela suffit à l'agent pour corriger le problème et relancer la vérification jusqu'à ce qu'elle passe, sans humain dans la boucle. Le déterminisme rend cette boucle fiable : le même code produit toujours le même verdict, donc une réussite signifie quelque chose. Une vérification instable empoisonne la boucle : l'agent « corrige » un code qui était juste ou réessaie au-delà d'un échec réel.
 
-This is why good checks are a large part of a codebase's [AX](#ax). An agent in a repo with strict types, a fast test suite, and a linter catches most of its own mistakes before you see them; an agent in a repo with none of those ships whatever it produces. The difference matters most in [AFK](#afk) runs, where checks are the only verification happening during the run. But a check only catches what it asserts — green checks mean the asserted properties hold, not that the code is right. The judgement-shaped gaps are what [automated review](#automated-review) and [human review](#human-review) are for.
+C'est pourquoi de bonnes vérifications représentent une part importante de l'[AX](#ax) d'une base de code. Dans un dépôt avec des types stricts, une suite de tests rapide et un linter, un agent intercepte la plupart de ses erreurs avant que vous ne les voyiez ; dans un dépôt sans ces éléments, il livre tout ce qu'il produit. Cette différence importe surtout lors des exécutions [AFK](#afk), où les vérifications sont le seul contrôle effectué pendant l'exécution. Mais une vérification ne détecte que ce qu'elle affirme : des contrôles verts indiquent que les propriétés testées sont satisfaites, non que le code est correct. Les lacunes exigeant un jugement relèvent de la [revue automatisée](#automated-review) et de la [revue humaine](#human-review).
 
-_Avoid:_ "feedback loop" / "backpressure" — both lump checks together with review. _Avoid:_ "test" — tests are automated checks, but not all automated checks are tests.
+_À éviter :_ « boucle de rétroaction » ou « contre-pression », qui confondent vérifications et revue. À éviter également : « test », car les tests sont des vérifications automatisées, mais toutes les vérifications automatisées ne sont pas des tests.
 
-_Usage:_
+_Utilisation :_
 
-"The agent keeps shipping broken code in the AFK runs."
+« L'agent continue de livrer du code cassé dans les exécutions AFK. »
 
-"What automated checks are wired into the [sandbox](#sandbox)?"
+« Quelles vérifications automatisées sont connectées au [bac à sable](#sandbox) ? »
 
-"Just the unit tests."
+« Seulement les tests unitaires. »
 
-"Add typecheck and lint — it'll self-correct from those before the PR ever lands."
+« Ajoutez la vérification de types et le lint : l'agent pourra s'autocorriger grâce à eux avant même l'arrivée de la PR. »
 
 <a id="automated-review"></a>
 ### Revue automatisée
