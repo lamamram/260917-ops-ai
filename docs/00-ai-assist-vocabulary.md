@@ -976,39 +976,39 @@ _Utilisation :_
 <a id="clearing"></a>
 ### Réinitialisation
 
-Ending the current [session](#session) and starting a fresh one. The next message begins with an empty session and an empty [context window](#context-window). Usually user-driven.
+Terminer la [session](#session) actuelle et en démarrer une nouvelle. Le message suivant commence avec une session et une [fenêtre de contexte](#context-window) vides. C'est généralement une action de l'utilisateur.
 
-Clearing is the cure for a polluted context. A session accumulates everything: failed attempts, wrong turns, stale [tool results](#tool-result), abandoned plans. The [model](#model) re-reads all of it on every [turn](#turn), and bad history drags on new work. Deep into a long session the [agent](#agent) gets vaguer and less obedient — instructions you gave clearly get ignored, quality slips, and prodding it to do better doesn't help, because the noise it's wading through is still in its [context](#context). Clearing removes the noise.
+La réinitialisation est le remède à un contexte pollué. Une session accumule tout : tentatives échouées, fausses pistes, [résultats d'outil](#tool-result) périmés et plans abandonnés. Le [modèle](#model) relit cet ensemble à chaque [tour](#turn), et un mauvais historique pèse sur le travail nouveau. Dans une longue session, l'[agent](#agent) devient moins précis et moins obéissant : les instructions clairement données sont ignorées, la qualité diminue, et lui demander de faire mieux n'aide pas car le bruit dans lequel il raisonne reste dans son [contexte](#context). La réinitialisation retire ce bruit.
 
-Clearing doesn't erase the conversation. Most [harnesses](#harness) keep session history on your computer, so the transcript is still there to read or resume. What's gone is the agent's working state: the model is [stateless](#stateless), so the new session knows nothing the old one knew. If the session holds decisions or progress the next one will need, have the agent write a [handoff artifact](#handoff-artifact) first, then start the new session by pointing at it.
+Elle n'efface pas la conversation. La plupart des [harnais](#harness) conservent l'historique de session sur votre ordinateur ; la transcription peut donc toujours être lue ou reprise. Ce qui disparaît est l'état de travail de l'agent : le modèle est [sans état](#stateless), donc la nouvelle session ignore tout ce que savait l'ancienne. Si la session contient des décisions ou une progression nécessaires à la suivante, demandez d'abord à l'agent d'écrire un [artefact de transfert](#handoff-artifact), puis démarrez la nouvelle session en le lui indiquant.
 
-Compare [compaction](#compaction), which summarises the session into the new context instead of starting empty. Clearing is the blunter tool: nothing carries over, including the junk.
+Comparez avec le [compactage](#compaction), qui résume la session dans le nouveau contexte plutôt que de repartir vide. La réinitialisation est l'outil le plus direct : rien ne passe, y compris les éléments inutiles.
 
-_Usage:_
+_Utilisation :_
 
-"It's stuck looping on the failing test."
+« Il tourne en boucle sur le test en échec. »
 
-"Just clear it — start a fresh session with the plan doc and the test file. No point fighting the existing context."
+« Réinitialisez simplement : démarrez une session neuve avec le document de planification et le fichier de test. Il est inutile de lutter contre le contexte actuel. »
 
 <a id="handoff"></a>
 ### Passage de relais
 
-Transferring [agent](#agent) [context](#context) from one [session](#session) to another. The carry mechanism varies — a written [handoff artifact](#handoff-artifact), an in-memory summary ([compaction](#compaction)), and others. Distinct from [clearing](#clearing) (no transfer at all). Reasons vary: switching roles (planner → implementer), kicking off an [AFK](#afk) run, fanning out to parallel sessions, or freeing up [context window](#context-window) room.
+Le transfert du [contexte](#context) d'un [agent](#agent) d'une [session](#session) à une autre. Le mécanisme de transmission varie : [artefact de transfert](#handoff-artifact) écrit, résumé en mémoire par [compactage](#compaction) ou autre moyen. Il se distingue de la [réinitialisation](#clearing), qui ne transmet rien. Les raisons varient : changement de rôle, du planificateur vers l'implémenteur, lancement d'un travail [AFK](#afk), répartition vers des sessions parallèles ou libération d'espace dans la [fenêtre de contexte](#context-window).
 
-The receiving session starts with zero context — the [model](#model) is [stateless](#stateless), and nothing from the old session is visible to the new one. Whatever the next session needs has to be carried explicitly; everything else is gone. "No return path" is the constraint that shapes the carry: the new session can't ask the old one what it meant, so the carried material has to stand on its own.
+La session qui reçoit le relais commence sans contexte : le [modèle](#model) est [sans état](#stateless), et rien de l'ancienne session n'est visible dans la nouvelle. Ce dont la session suivante a besoin doit être transmis explicitement ; le reste est perdu. L'absence de chemin de retour est la contrainte qui façonne ce transfert : la nouvelle session ne peut demander à l'ancienne ce qu'elle voulait dire, le contenu transmis doit donc se suffire à lui-même.
 
-| Mechanism        | Form                                        | Properties                                                                               |
-| ---------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Handoff artifact | File in the [environment](#environment) | You can read and correct it before anything depends on it; reusable across many sessions |
-| Compaction       | Summary in the context window               | Automatic and cheap; harder to inspect; feeds one successor                              |
+| Mécanisme | Forme | Propriétés |
+| --------- | ----- | ---------- |
+| Artefact de transfert | Fichier dans l'[environnement](#environment) | Vous pouvez le lire et le corriger avant qu'un travail n'en dépende ; il est réutilisable par plusieurs sessions |
+| Compactage | Résumé dans la fenêtre de contexte | Automatique et peu coûteux ; plus difficile à examiner ; alimente un seul successeur |
 
-The visible failure of a bad handoff is relitigation: the new session re-opens decisions the old one had settled, because the carry recorded what was decided but not why. Judge a handoff by what a session with zero context could do with it.
+L'échec visible d'un mauvais passage de relais est la rediscussion : la nouvelle session rouvre des décisions que l'ancienne avait tranchées, car le transfert a enregistré ce qui avait été décidé mais pas pourquoi. Évaluez un passage de relais selon ce qu'une session sans aucun contexte pourrait faire avec lui.
 
-_Usage:_
+_Utilisation :_
 
-"Planning session is getting heavy — should I just keep going?"
+« La session de planification devient lourde : dois-je simplement continuer ? »
 
-"Do a handoff. Write the decisions to a doc, clear, start the implementation in a fresh session reading from it."
+« Faites un passage de relais. Écrivez les décisions dans un document, réinitialisez, puis démarrez l'implémentation dans une session neuve qui le lit. »
 
 <a id="primary-source"></a>
 ### Source primaire
