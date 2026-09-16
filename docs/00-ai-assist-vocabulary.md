@@ -481,26 +481,26 @@ _Utilisation :_
 <a id="stateful"></a>
 ### Avec état
 
-Carries information forward. A [session](#session) is stateful across [turns](#turn) — [context](#context) accumulates as the session runs, which is why long sessions drift into the [dumb zone](#smart-zone). An [agent](#agent) can be made stateful across **sessions** by adding a [memory system](#memory-system) that persists information into the [environment](#environment) and reloads it at the start of future sessions. The [model](#model) is never stateful; any apparent continuity is the [harness](#harness) re-feeding context. Counterpart to [stateless](#stateless).
+Conserve des informations d'une interaction à l'autre. Une [session](#session) est avec état entre les [tours](#turn) : le [contexte](#context) s'accumule au fil de son déroulement, ce qui explique que les longues sessions dérivent vers la [zone stupide](#smart-zone). Un [agent](#agent) peut être rendu avec état entre les **sessions** en ajoutant un [système de mémoire](#memory-system) qui inscrit les informations dans l'[environnement](#environment) et les recharge au début des sessions futures. Le [modèle](#model) n'est jamais avec état ; toute continuité apparente provient du [harnais](#harness) qui lui fournit à nouveau le contexte. Contraire de [sans état](#stateless).
 
-Where state lives at each layer:
+Voici où réside l'état à chaque couche :
 
-| Layer       | Stateful?       | How                                                                                                                    |
-| ----------- | --------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Model       | Never           | [Parameters](#parameters) are frozen; it sees only what's in each request                                          |
-| Session     | Across turns    | The harness appends every message and [tool result](#tool-result) to the context                                 |
-| Harness     | Across sessions | Memory files, [AGENTS.md](#agentsmd), [handoff artifacts](#handoff-artifact) — written down, reloaded later |
-| Environment | Always          | Files persist whether or not any session is running                                                                    |
+| Couche | Avec état ? | Comment |
+| ------ | ----------- | ------- |
+| Modèle | Jamais | Les [paramètres](#parameters) sont figés ; il ne voit que ce qui figure dans chaque requête |
+| Session | Entre les tours | Le harnais ajoute chaque message et chaque [résultat d'outil](#tool-result) au contexte |
+| Harnais | Entre les sessions | Fichiers de mémoire, [AGENTS.md](#agentsmd), [artefacts de passage de relais](#handoff-artifact), écrits puis rechargés ultérieurement |
+| Environnement | Toujours | Les fichiers persistent, qu'une session soit en cours ou non |
 
-Each layer's statefulness is built by re-reading something stored a layer below: the session feels continuous because the harness re-sends the message history to the stateless model, and the agent remembers across sessions because the harness re-loads files from the environment. No state is ever stored in the model itself.
+L'état de chaque couche est construit en relisant un élément stocké dans la couche inférieure : la session semble continue parce que le harnais renvoie l'historique des messages au modèle sans état, et l'agent se souvient d'une session à l'autre parce que le harnais recharge des fichiers depuis l'environnement. Aucun état n'est jamais stocké dans le modèle lui-même.
 
-State isn't always wanted. Everything carried forward influences what comes next, so a wrong assumption made early in a session is carried forward too. [Clearing](#clearing) is the deliberate act of throwing session state away and starting from what's written down.
+L'état n'est pas toujours souhaitable. Tout ce qui est transmis influence la suite ; une hypothèse erronée formulée tôt dans une session est donc elle aussi transmise. La [réinitialisation](#clearing) consiste délibérément à abandonner l'état de la session pour repartir de ce qui a été écrit.
 
-_Usage:_
+_Utilisation :_
 
-"It remembered my preferences from yesterday — does that mean the model learned them?"
+« Il s'est souvenu de mes préférences d'hier : cela signifie-t-il que le modèle les a apprises ? »
 
-"No, the agent's stateful because the harness wrote them to a memory file and reloaded them at session start. The model itself saw nothing of yesterday."
+« Non, l'agent est avec état parce que le harnais les a écrites dans un fichier de mémoire et l'a rechargé au début de la session. Le modèle lui-même n'a rien vu d'hier. »
 
 <a id="agent"></a>
 ### Agent
