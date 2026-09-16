@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/css" href="claude-code-diagrams.css"?>
+<svg class="cc-diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 500" role="img" aria-labelledby="title description">
+  <title id="title">Démarrage de Claude Code sans sandbox</title>
+  <desc id="description">Installer Claude Code, fournir une clé API, démarrer une session, puis ajouter des extensions utilisateur.</desc>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a8b7c4" /></marker>
+  </defs>
+  <rect class="frame" x="25" y="25" width="1150" height="450" rx="10" />
+  <text class="title" x="70" y="83">Claude Code sans sandbox</text>
+  <text class="subtitle" x="70" y="111">Une installation native, une clé temporaire, puis des extensions à portée utilisateur.</text>
+
+  <line class="arrow" x1="270" y1="238" x2="350" y2="238" />
+  <line class="arrow" x1="530" y1="238" x2="610" y2="238" />
+  <line class="arrow" x1="790" y1="238" x2="870" y2="238" />
+
+  <rect class="node node-blue" x="70" y="170" width="200" height="135" rx="8" />
+  <text class="node-label" x="170" y="212">1. Installer</text>
+  <text class="node-detail" x="170" y="241">Windows : PowerShell</text>
+  <text class="node-detail" x="170" y="264">Linux : curl | bash</text>
+
+  <rect class="node node-gold" x="350" y="170" width="180" height="135" rx="8" />
+  <text class="node-label" x="440" y="212">2. Connecter</text>
+  <text class="node-detail" x="440" y="241">Clé API ou jeton</text>
+  <text class="node-detail" x="440" y="264">dans ce terminal</text>
+
+  <rect class="node node-teal" x="610" y="170" width="180" height="135" rx="8" />
+  <text class="node-label" x="700" y="212">3. Lancer</text>
+  <text class="node-detail" x="700" y="241">cd mon-projet</text>
+  <text class="node-detail" x="700" y="264">claude</text>
+
+  <rect class="node node-pink" x="870" y="170" width="260" height="135" rx="8" />
+  <text class="node-label" x="1000" y="212">4. Étendre</text>
+  <text class="node-detail" x="1000" y="241">plugins et MCP</text>
+  <text class="node-detail" x="1000" y="264">avec --scope user</text>
+
+  <text class="arrow-label" x="310" y="342">binaire local</text>
+  <text class="arrow-label" x="570" y="342">authentification</text>
+  <text class="arrow-label" x="830" y="342">session interactive</text>
+</svg>

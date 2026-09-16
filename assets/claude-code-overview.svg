@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/css" href="claude-code-diagrams.css"?>
+<svg class="cc-diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title description">
+  <title id="title">Éléments de base de Claude Code</title>
+  <desc id="description">Claude Code au centre, relié aux commandes slash, agents et sous-agents, skills et MCP.</desc>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a8b7c4" /></marker>
+  </defs>
+  <rect class="frame" x="25" y="25" width="1150" height="670" rx="10" />
+  <text class="title" x="70" y="83">Les éléments de Claude Code</text>
+  <text class="subtitle" x="70" y="111">Chaque élément répond à une question différente pendant une session.</text>
+
+  <path class="arrow" d="M 510 315 C 430 270, 390 245, 330 220" />
+  <path class="arrow" d="M 690 315 C 770 270, 810 245, 870 220" />
+  <path class="arrow" d="M 510 405 C 430 450, 390 475, 330 500" />
+  <path class="arrow" d="M 690 405 C 770 450, 810 475, 870 500" />
+
+  <rect class="node node-blue" x="105" y="150" width="260" height="145" rx="8" />
+  <text class="node-label" x="235" y="192">Commandes slash</text>
+  <text class="node-detail" x="235" y="221">/status, /plugin, /mcp</text>
+  <text class="node-detail" x="235" y="252">QUOI contrôler ou lancer ?</text>
+
+  <rect class="node node-gold" x="835" y="150" width="260" height="145" rx="8" />
+  <text class="node-label" x="965" y="192">Agents et sous-agents</text>
+  <text class="node-detail" x="965" y="221">déléguer, explorer, vérifier</text>
+  <text class="node-detail" x="965" y="252">QUI traite cette tâche ?</text>
+
+  <rect class="node node-teal" x="105" y="430" width="260" height="145" rx="8" />
+  <text class="node-label" x="235" y="472">Skills</text>
+  <text class="node-detail" x="235" y="501">instructions spécialisées</text>
+  <text class="node-detail" x="235" y="532">COMMENT bien procéder ?</text>
+
+  <rect class="node node-pink" x="835" y="430" width="260" height="145" rx="8" />
+  <text class="node-label" x="965" y="472">MCP</text>
+  <text class="node-detail" x="965" y="501">outils, ressources et API</text>
+  <text class="node-detail" x="965" y="532">QUELS outils étendus ?</text>
+
+  <rect class="node-core" x="470" y="300" width="260" height="125" rx="10" />
+  <text class="core-label" x="600" y="349">Claude Code</text>
+  <text class="core-detail" x="600" y="380">session dans votre dépôt</text>
+  <text class="arrow-label" x="600" y="635">L'utilisateur garde la décision et valide les actions sensibles.</text>
+</svg>

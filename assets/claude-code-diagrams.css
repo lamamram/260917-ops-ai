@@ -1,0 +1,107 @@
+@import url("course-common.css");
+
+:root {
+  --cc-ink: #172534;
+  --cc-muted: #526270;
+  --cc-paper: #f7fafc;
+  --cc-line: #a8b7c4;
+  --cc-teal: #007f80;
+  --cc-teal-soft: #d9f2ef;
+  --cc-blue: #1769aa;
+  --cc-blue-soft: #dcecf9;
+  --cc-gold: #a65d00;
+  --cc-gold-soft: #fff0cf;
+  --cc-pink: #a52a5b;
+  --cc-pink-soft: #fde3ed;
+}
+
+svg.cc-diagram {
+  background: var(--cc-paper);
+  font-family: "Segoe UI", "Noto Sans", sans-serif;
+}
+
+.cc-diagram .frame {
+  fill: #ffffff;
+  stroke: #dce5ec;
+  stroke-width: 2;
+}
+
+.cc-diagram .title {
+  fill: var(--cc-ink);
+  font-size: 29px;
+  font-weight: 700;
+}
+
+.cc-diagram .subtitle {
+  fill: var(--cc-muted);
+  font-size: 16px;
+}
+
+.cc-diagram .node {
+  stroke-width: 2;
+}
+
+.cc-diagram .node-teal {
+  fill: var(--cc-teal-soft);
+  stroke: var(--cc-teal);
+}
+
+.cc-diagram .node-blue {
+  fill: var(--cc-blue-soft);
+  stroke: var(--cc-blue);
+}
+
+.cc-diagram .node-gold {
+  fill: var(--cc-gold-soft);
+  stroke: var(--cc-gold);
+}
+
+.cc-diagram .node-pink {
+  fill: var(--cc-pink-soft);
+  stroke: var(--cc-pink);
+}
+
+.cc-diagram .node-core {
+  fill: var(--cc-ink);
+  stroke: var(--course-focus);
+  stroke-width: 3;
+}
+
+.cc-diagram .node-label {
+  fill: var(--cc-ink);
+  font-size: 18px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.cc-diagram .node-detail {
+  fill: var(--cc-muted);
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+.cc-diagram .core-label {
+  fill: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.cc-diagram .core-detail {
+  fill: #d9e5ed;
+  font-size: 14px;
+  text-anchor: middle;
+}
+
+.cc-diagram .arrow {
+  fill: none;
+  stroke: var(--cc-line);
+  stroke-width: 2.5;
+  marker-end: url(#arrowhead);
+}
+
+.cc-diagram .arrow-label {
+  fill: var(--cc-muted);
+  font-size: 13px;
+  text-anchor: middle;
+}
