@@ -1303,145 +1303,145 @@ _Utilisation :_
 <a id="automated-review"></a>
 ### Revue automatisée
 
-An [agent](#agent) reviewing another agent's work, often with a different [model](#model) or [system prompt](#system-prompt). Non-deterministic: it forms a judgement. Runs anywhere — pre-merge on a PR, post-hoc on commit history, mid-session as a [subagent](#subagent). An LLM-as-judge in CI is automated review, not an [automated check](#automated-check); what the assertion _does_ decides the category, not where it runs.
+Un [agent](#agent) qui examine le travail d'un autre, souvent avec un [modèle](#model) ou un [prompt système](#system-prompt) différent. Elle est non déterministe : elle formule un jugement. Elle peut s'exécuter partout, avant fusion d'une PR, après coup sur l'historique des commits ou au milieu d'une session sous forme de [sous-agent](#subagent). Un LLM employé comme juge dans l'intégration continue constitue une revue automatisée, pas une [vérification automatisée](#automated-check) : la catégorie dépend de ce que fait l'assertion, non de son lieu d'exécution.
 
-The separation from the working agent is what makes it work. Asking the agent that wrote the code to review its own work gets you very little — the [session](#session) that produced the bug also contains the reasoning that produced it, and the agent reads its own conclusions back as confirmation. A reviewer with a fresh [context window](#context-window) has none of that attachment: it sees the diff the way a stranger would, which is what review depends on. A different model or a review-specific system prompt sharpens this further — different blind spots, and a system prompt scoped to what you actually care about (security, API contracts, performance) rather than a vague "look for problems".
+La séparation d'avec l'agent qui travaille est ce qui rend cette approche efficace. Demander à l'agent ayant écrit le code de revoir son propre travail apporte peu : la [session](#session) qui a produit le bug contient aussi le raisonnement qui l'a produit, et l'agent relit ses propres conclusions comme confirmation. Un réviseur avec une [fenêtre de contexte](#context-window) neuve ne possède aucun de ces attachements : il voit le diff comme un inconnu, ce dont dépend la revue. Un autre modèle ou un prompt système dédié à la revue renforce encore cette séparation, avec d'autres angles morts et un prompt limité à ce qui importe réellement, sécurité, contrats d'API ou performance, plutôt qu'un vague « cherche les problèmes ».
 
-It slots between the other review layers. Automated checks are deterministic and catch what can be asserted mechanically; [human review](#human-review) is expensive and scales worst. Automated review sits in the middle: it catches judgement-shaped problems — a misleading function name, a missed edge case — at machine cost. Because it's non-deterministic, it can miss things and flag non-issues; treat it as a filter that raises the floor before a human looks, not a gate that replaces one.
+Elle se place entre les autres couches de revue. Les vérifications automatisées sont déterministes et détectent ce qui peut être affirmé mécaniquement ; la [revue humaine](#human-review) est coûteuse et passe moins à l'échelle. La revue automatisée se situe entre les deux : elle détecte à coût machine les problèmes qui demandent un jugement, comme un nom de fonction trompeur ou un cas limite oublié. Étant non déterministe, elle peut manquer des éléments et signaler de faux problèmes ; considérez-la comme un filtre qui relève le niveau avant qu'un humain examine le travail, non comme une barrière qui le remplace.
 
-_Avoid:_ "AI review" / "agent review" — too vague to distinguish from the working agent itself.
+_À éviter :_ « revue IA » ou « revue d'agent », trop vagues pour les distinguer de l'agent qui travaille lui-même.
 
-_Usage:_
+_Utilisation :_
 
-"We're getting too many bad PRs from the [AFK](#afk) runs."
+« Nous recevons trop de mauvaises PR provenant des exécutions [AFK](#afk). »
 
-"Add an automated review step before merge — different model, separate system prompt, scoped to security and contract changes."
+« Ajoutez une étape de revue automatisée avant la fusion : modèle différent, prompt système séparé et périmètre limité aux changements de sécurité et de contrats. »
 
 <a id="human-review"></a>
 ### Revue humaine
 
-The user reading the code the [agent](#agent) produced and forming a judgement on it. Reading the diff or the changed files counts; reading the agent's _description_ of what it did does not — narration is not the artifact. The description is a [secondary source](#secondary-source), written by the party being reviewed; the diff is the [primary source](#primary-source), and review means reading it.
+L'utilisateur qui lit le code produit par l'[agent](#agent) et porte un jugement dessus. Lire le diff ou les fichiers modifiés compte ; lire la _description_ de ce que l'agent a fait ne compte pas, car la narration n'est pas l'artefact. La description est une [source secondaire](#secondary-source), écrite par la partie examinée ; le diff est la [source primaire](#primary-source), et faire une revue signifie le lire.
 
-Agents raise the volume of code produced, so review becomes the bottleneck. One useful idea is layering different review strategies. [Automated checks](#automated-check) catch the mechanical failures, [automated review](#automated-review) catches the describable ones, and human review is reserved for what only you can judge — whether the change is the right change, whether the approach fits the codebase, whether this should exist at all.
+Les agents augmentent le volume de code produit, la revue devient donc le goulot d'étranglement. Une stratégie utile consiste à superposer plusieurs niveaux de revue. Les [vérifications automatisées](#automated-check) détectent les échecs mécaniques, la [revue automatisée](#automated-review) détecte les problèmes descriptibles et la revue humaine est réservée à ce que vous seul pouvez évaluer : le changement est-il le bon, l'approche convient-elle à la base de code, ce changement devrait-il exister ?
 
-Review is also cheaper earlier. Reading a plan before work starts, or a small diff mid-flight, takes minutes; excavating a finished branch after an [AFK](#afk) run takes longer. Where you place the review checkpoint is a [human-in-the-loop](#human-in-the-loop) decision, not an afterthought.
+La revue coûte aussi moins cher lorsqu'elle intervient tôt. Lire un plan avant le début du travail ou un petit diff en cours de route prend quelques minutes ; examiner une branche terminée après une exécution [AFK](#afk) en prend davantage. L'emplacement du point de contrôle de revue relève d'une décision d'[humain dans la boucle](#human-in-the-loop), non d'une réflexion tardive.
 
-_Avoid:_ "code review" alone — ambiguous between human and automated.
+_À éviter :_ « revue de code » seul, qui est ambigu entre revue humaine et automatisée.
 
-_Usage:_
+_Utilisation :_
 
-"I human-reviewed the AFK output."
+« J'ai fait une revue humaine de la sortie AFK. »
 
-"You read the diff or just the summary?"
+« Tu as lu le diff ou seulement le résumé ? »
 
-"Diff. The summary said it deleted dead code — turned out the function was called from a generated file."
+« Le diff. Le résumé indiquait qu'il avait supprimé du code mort ; en réalité, la fonction était appelée depuis un fichier généré. »
 
 <a id="vibe-coding"></a>
 ### Programmation au feeling
 
-A working pattern where the user accepts the [agent](#agent)'s code without [human review](#human-review). The diff is treated as opaque — what matters is whether the program behaves, not what's inside. [Automated review](#automated-review) and [automated checks](#automated-check) may still run; vibe coding is silent on both.
+Un mode de travail où l'utilisateur accepte le code de l'[agent](#agent) sans [revue humaine](#human-review). Le diff est traité comme opaque : l'important est le comportement du programme, non ce qu'il contient. Une [revue automatisée](#automated-review) et des [vérifications automatisées](#automated-check) peuvent tout de même s'exécuter ; la programmation au feeling ne dit rien de l'une ni des autres.
 
-The term comes from Andrej Karpathy, who [coined it in early 2025](https://x.com/karpathy/status/1886192184808149383): you "fully give in to the vibes" and "forget that the code even exists" — describe what you want, accept what comes back, and judge it by running it.
+L'expression vient d'Andrej Karpathy, qui l'a [forgée au début de 2025](https://x.com/karpathy/status/1886192184808149383) : vous « vous abandonnez entièrement au feeling » et « oubliez même que le code existe » ; vous décrivez ce que vous voulez, acceptez ce qui revient et le jugez en l'exécutant.
 
-Vibe coding trades inspection for speed. Reading diffs is usually the slowest step in agent-driven work, so dropping it removes the main bottleneck. For code whose failures are cheap — [prototypes](#prototyping), one-off scripts, internal tools — that's a reasonable trade. The risk scales with the code's lifespan and stakes.
+La programmation au feeling échange l'inspection contre la vitesse. Lire les diffs constitue généralement l'étape la plus lente du travail piloté par agent ; l'abandonner supprime donc le principal goulot d'étranglement. Pour un code dont les échecs sont peu coûteux, [prototypes](#prototyping), scripts ponctuels ou outils internes, c'est un compromis raisonnable. Le risque augmente avec la durée de vie et les enjeux du code.
 
-The cost arrives later. Vibe-coded changes accumulate into a codebase nobody has read, and behaviour was the only thing checked — so anything behaviour doesn't surface, like a secret written to logs, a missing edge case, or quietly wrong data handling, ships unseen. The first time someone debugs the system is the first time anyone reads the code. With human review gone, whatever automated verification still runs — tests, types, automated review — is the only gate the code passes through.
+Le coût apparaît plus tard. Les modifications produites au feeling s'accumulent dans une base de code que personne n'a lue, tandis que seul le comportement a été vérifié. Tout ce que le comportement ne révèle pas, secret écrit dans les journaux, cas limite manquant ou traitement des données discrètement incorrect, est livré sans être vu. La première fois que quelqu'un débogue le système est la première fois que quelqu'un lit le code. Sans revue humaine, les vérifications automatisées encore présentes, tests, types et revue automatisée, sont les seules barrières franchies par le code.
 
-_Avoid:_ "vibe coding" as a synonym for "low-quality AI coding" — the term names the review stance, not the resulting code.
+_À éviter :_ employer « programmation au feeling » comme synonyme de « programmation IA de mauvaise qualité ». Le terme désigne une posture de revue, non la qualité du code obtenu.
 
-_Usage:_
+_Utilisation :_
 
-"Did you read what it changed in the auth flow?"
+« As-tu lu ce qu'il a modifié dans le flux d'authentification ? »
 
-"Vibe coded it — login still works, that's all I checked."
+« Je l'ai fait au feeling : la connexion fonctionne encore, c'est tout ce que j'ai vérifié. »
 
-"Read the diff before you push, vibing on auth is how secrets leak into logs."
+« Lis le diff avant de pousser ; faire de l'authentification au feeling est une bonne façon de laisser des secrets fuiter dans les journaux. »
 
 <a id="design-concept"></a>
 ### Concept de conception
 
-The shared understanding of what's being built, held in common between user and [agent](#agent) but separate from any asset. Brooks' term (_The Design of Design_): the conversation, [handoff artifacts](#handoff-artifact), and the code are all assets that try to capture or reach the design concept, but none of them _are_ it. Quality of the design concept is felt through the quality of the conversation that built it.
+La compréhension commune de ce qui est construit, partagée entre l'utilisateur et l'[agent](#agent), mais distincte de tout artefact. C'est le terme de Brooks (_The Design of Design_) : la conversation, les [artefacts de transmission](#handoff-artifact) et le code sont tous des artefacts qui tentent de capter ou d'atteindre le concept de conception, mais aucun ne _l'est_. La qualité du concept de conception se ressent dans la qualité de la conversation qui l'a construit.
 
-The term names the gap behind a familiar frustration: the agent writes exactly what you asked for and it's still wrong. The usual cause is that you hadn't fully figured out what you wanted. The design concept wasn't finished in your own head — your prompt captured the parts you'd worked out, and was silent on the parts you hadn't. The agent filled those silences with its own assumptions, because there was nothing to align with. Nothing malfunctioned. There was no shared design concept, because there wasn't yet a whole one to share.
+Le terme désigne l'écart qui se cache derrière une frustration familière : l'agent écrit exactement ce que vous avez demandé et le résultat reste incorrect. La cause habituelle est que vous n'aviez pas entièrement déterminé ce que vous vouliez. Le concept de conception n'était pas achevé dans votre propre esprit : votre prompt capturait les éléments que vous aviez clarifiés et taisait ceux que vous n'aviez pas encore résolus. L'agent a comblé ces silences avec ses propres hypothèses, car il n'avait rien sur quoi s'aligner. Rien n'a dysfonctionné. Il n'y avait pas de concept de conception partagé, car il n'en existait pas encore un complet à partager.
 
-You can tell a design concept is shared the same way you can with a colleague: the other party starts answering questions you haven't asked yet the way you would. Until then, the work is conversation — [grilling](#grilling) is the deliberate version — and writing a [spec](#spec) too early just captures the misalignment in a more durable asset. The design concept also moves as you learn; assets lag it, which is why a spec faithful to last week's understanding can still mislead this week's session.
+Vous reconnaissez qu'un concept de conception est partagé comme avec un collègue : l'autre partie commence à répondre comme vous l'auriez fait à des questions que vous n'avez pas encore posées. Jusque-là, le travail est une conversation, dont le [questionnement approfondi](#grilling) est la forme délibérée ; écrire une [spécification](#spec) trop tôt ne fait que figer le désalignement dans un artefact plus durable. Le concept de conception évolue aussi à mesure que vous apprenez ; les artefacts le suivent avec retard. C'est pourquoi une spécification fidèle à la compréhension de la semaine passée peut encore induire en erreur la session de cette semaine.
 
-_Usage:_
+_Utilisation :_
 
-"It's writing exactly what I asked for and it's still wrong."
+« Il écrit exactement ce que je lui ai demandé et c'est quand même incorrect. »
 
-"You don't share a design concept yet — it's filling gaps with assumptions. Keep talking until cancellation, refunds, and partial fulfilment all line up between you before you let it write a spec."
+« Vous ne partagez pas encore un concept de conception : il comble les lacunes avec des hypothèses. Continuez à discuter jusqu'à ce que les annulations, remboursements et exécutions partielles soient alignés entre vous avant de le laisser écrire une spécification. »
 
 <a id="grilling"></a>
 ### Questionnement approfondi
 
-A technique for developing a [design concept](#design-concept) with an [agent](#agent): the agent interviews the user Socratically, one decision at a time, proposing a recommended answer for each. Slows the rush to a finished plan — no [handoff artifact](#handoff-artifact) is written until the concept stabilises.
+Une technique pour développer un [concept de conception](#design-concept) avec un [agent](#agent) : l'agent interroge l'utilisateur à la manière socratique, une décision après l'autre, en proposant pour chacune une réponse recommandée. Elle ralentit la course vers un plan terminé : aucun [artefact de transmission](#handoff-artifact) n'est rédigé avant que le concept se stabilise.
 
-The technique exists because agents fill gaps silently. Asked to write a [spec](#spec) from a two-line prompt, the agent doesn't stop at the decisions you haven't made — it picks defaults and writes them in. The result looks complete, and the guesses are indistinguishable from the choices, so you discover them late: at review, or when the built feature handles an edge case in a way you never chose. Grilling inverts this — instead of guessing, the agent has to ask.
+Cette technique existe parce que les agents comblent silencieusement les lacunes. Lorsqu'on demande à l'agent d'écrire une [spécification](#spec) à partir d'un prompt de deux lignes, il ne s'arrête pas aux décisions que vous n'avez pas prises : il choisit des valeurs par défaut et les écrit. Le résultat semble complet et les suppositions sont indiscernables des choix ; vous les découvrez donc tardivement, lors de la revue ou lorsque la fonctionnalité construite gère un cas limite d'une façon que vous n'avez jamais choisie. Le questionnement approfondi inverse ce processus : au lieu de deviner, l'agent doit poser des questions.
 
-It's a [human-in-the-loop](#human-in-the-loop) technique: your answers are the input. When a question can't be answered in conversation — you'd have to see the thing — switch to [prototyping](#prototyping).
+C'est une technique d'[humain dans la boucle](#human-in-the-loop) : vos réponses en sont l'entrée. Lorsqu'une question ne peut être résolue par la conversation, parce qu'il faudrait voir la chose, passez au [prototypage](#prototyping).
 
-_Usage:_
+_Utilisation :_
 
-"It went straight to writing the spec and got the cancellation logic wrong."
+« Il a immédiatement écrit la spécification et s'est trompé dans la logique d'annulation. »
 
-"Grill it first — make it ask you about partial cancels, refunds, and timing before it commits anything to the doc. Cheaper to resolve in conversation than in code."
+« Commencez par le questionner : obligez-le à vous demander ce qu'il en est des annulations partielles, remboursements et délais avant de figer quoi que ce soit dans le document. C'est moins coûteux à résoudre dans une conversation que dans le code. »
 
 <a id="prototyping"></a>
 ### Prototypage
 
-Having the [agent](#agent) build a quick, rough version of something, for when conversation is too low-fidelity and you need a real artifact to talk about.
+Demander à l'[agent](#agent) de créer une version rapide et approximative d'un élément lorsque la conversation manque de fidélité et qu'un véritable artefact est nécessaire à la discussion.
 
-[Grilling](#grilling) resolves design decisions in conversation. Conversation is cheap, but it's low-fidelity: some questions can't be answered in words — how an interaction feels, whether an API shape is ergonomic in real calling code, whether the layout works at real data sizes. The interview hits a question and your honest answer is "I don't know, I'd have to see it." Past that point the discussion circles. Instead, have the agent build the thing, look at it, and come back to the conversation with an answer.
+Le [questionnement approfondi](#grilling) résout les décisions de conception dans la conversation. La conversation est peu coûteuse mais de faible fidélité : certaines questions ne peuvent être résolues avec des mots, comme la sensation d'une interaction, l'ergonomie d'une forme d'API dans du code appelant réel ou le comportement d'une mise en page avec des volumes de données réalistes. L'entretien atteint une question à laquelle votre réponse sincère est : « Je ne sais pas, il faudrait que je le voie. » Au-delà, la discussion tourne en rond. Demandez plutôt à l'agent de construire la chose, examinez-la, puis reprenez la conversation avec une réponse.
 
-Agents lower the cost of building, which is what makes this practical. A rough version that used to take a day to mock up now takes minutes, so it's worth doing routinely. It's a [human-in-the-loop](#human-in-the-loop) technique: the prototype is there for you to react to.
+Les agents réduisent le coût de construction, ce qui rend cela pratique. Une version approximative qui demandait auparavant une journée de maquette prend désormais quelques minutes ; cela vaut donc la peine d'en faire régulièrement. C'est une technique d'[humain dans la boucle](#human-in-the-loop) : le prototype est là pour susciter votre réaction.
 
-You usually don't stop at one look. Iterate with the prototype — react, ask for a change, react again — so each round resolves another decision against the real artifact, at a higher fidelity than conversation allows.
+En général, on ne s'arrête pas à une seule observation. Itérez avec le prototype : réagissez, demandez une modification, réagissez à nouveau. Chaque cycle résout ainsi une décision supplémentaire à partir de l'artefact réel, avec une fidélité supérieure à celle de la conversation.
 
-A prototype doesn't have to be all-scrappy. You can build the pieces you're actually evaluating to production quality, so when the decision lands, the component or API you reacted to can transfer into the real codebase. This makes prototyping essential material for the [spec](#spec) to reference.
+Un prototype n'a pas à être entièrement sommaire. Vous pouvez construire avec une qualité de production les éléments que vous évaluez réellement, afin que, lorsque la décision est prise, le composant ou l'API auquel vous avez réagi puisse être transféré dans la vraie base de code. Cela fait du prototypage un matériau essentiel auquel la [spécification](#spec) doit faire référence.
 
-_Usage:_
+_Utilisation :_
 
-"We've spent half an hour arguing about whether the wizard should be one page or three steps."
+« Nous venons de passer une demi-heure à débattre pour savoir si l'assistant doit comporter une page ou trois étapes. »
 
-"Words won't settle it — have the agent prototype both. We'll click through them and know in five minutes."
+« Les mots ne trancheront pas : demandez à l'agent de prototyper les deux. Nous les parcourrons et le saurons en cinq minutes. »
 
 <a id="dx"></a>
 ### DX
 
-Developer experience — how easy a codebase and its toolchain make it for humans to do good work. Good DX is fast feedback, clear error messages, documentation that answers the question you actually have, and setup that works on the first try. The term long predates AI coding; it's in this dictionary mainly as the contrast for [AX](#ax).
+L'expérience développeur, c'est-à-dire la facilité avec laquelle une base de code et sa chaîne d'outils permettent aux humains de bien travailler. Une bonne DX offre un retour rapide, des messages d'erreur clairs, une documentation qui répond à la question réellement posée et une installation qui fonctionne dès le premier essai. Le terme est bien antérieur à la programmation par IA ; il figure principalement dans ce dictionnaire en contraste avec l'[AX](#ax).
 
-DX is the interaction between the human and the codebase — nothing more. The main difference between the two audiences is that humans are [stateful](#stateful) and agents are [stateless](#stateless). A human learns the codebase once and carries that knowledge into every day after, which is why poor DX is survivable: they route around slow CI by batching their pushes, around missing docs by asking in Slack once, around confusing structure by remembering where things live. The workarounds accumulate, and a team ends up productive in a codebase that fights them.
+La DX est l'interaction entre l'humain et la base de code, rien de plus. La différence principale entre les deux publics est que les humains ont un [état](#stateful), tandis que les agents sont [sans état](#stateless). Un humain apprend une fois la base de code et conserve ensuite cette connaissance chaque jour, ce qui rend une DX médiocre supportable : il contourne une intégration continue lente en regroupant ses envois, une documentation manquante en posant une fois la question sur Slack, une structure confuse en mémorisant l'emplacement des éléments. Les contournements s'accumulent et une équipe finit par être productive dans une base de code qui lui résiste.
 
-[Agents](#agent) face the same codebase with none of that accumulation. Stateless across [sessions](#session), an agent re-learns the codebase from scratch every time — it benefits from the fast test suite and the clear error messages, but anything it figured out yesterday is gone unless it was written into the [environment](#environment), which the agent only perceives through [tool results](#tool-result). That's the gap AX names: the parts of DX that survive when the developer is an agent, plus concerns humans don't have, like keeping the [context window](#context-window) free.
+Les [agents](#agent) affrontent la même base de code sans cette accumulation. Sans état d'une [session](#session) à l'autre, un agent réapprend la base de code depuis zéro à chaque fois. Il bénéficie de la suite de tests rapide et des messages d'erreur clairs, mais tout ce qu'il a compris hier disparaît à moins que cela ait été écrit dans l'[environnement](#environment), que l'agent ne perçoit qu'au travers des [résultats d'outil](#tool-result). C'est l'écart que désigne l'AX : les éléments de DX qui subsistent lorsque le développeur est un agent, complétés de préoccupations absentes chez les humains, telles que préserver de l'espace dans la [fenêtre de contexte](#context-window).
 
-The overlap means DX investment often improves AX for free — strict types, fast tests, and predictable structure help both. The divergence means it doesn't always: a beautiful onboarding doc helps a human for a week and an agent not at all unless it's reachable from [AGENTS.md](#agentsmd).
+Ce recouvrement signifie qu'un investissement en DX améliore souvent l'AX gratuitement : types stricts, tests rapides et structure prévisible aident les deux publics. Leur divergence signifie que ce n'est pas systématique : une excellente documentation d'intégration aide un humain pendant une semaine, mais n'aide pas du tout un agent à moins d'être accessible depuis [AGENTS.md](#agentsmd).
 
-_Usage:_
+_Utilisation :_
 
-"Our DX is fine — new hires are productive in a week."
+« Notre DX est bonne : les nouvelles recrues sont productives en une semaine. »
 
-"Productive because someone sits with them for that week. The agent doesn't get that week; check the AX separately."
+« Elles sont productives parce que quelqu'un les accompagne pendant cette semaine. L'agent ne l'obtient pas : évaluez l'AX séparément. »
 
 <a id="ax"></a>
 ### AX
 
-Agent experience — how well the [environment](#environment) is set up for an [agent](#agent) to do good work in a codebase. The agent-facing counterpart to [DX](#dx). When the same agent performs well in one repo and badly in another — same [model](#model), same [harness](#harness) — the difference is usually AX. The instinct is to blame the model or rewrite the prompt; the fix is more often in the repo.
+L'expérience agent, c'est-à-dire la qualité de préparation de l'[environnement](#environment) pour qu'un [agent](#agent) puisse bien travailler dans une base de code. C'est le pendant de la [DX](#dx) pour les agents. Lorsqu'un même agent est performant dans un dépôt et médiocre dans un autre, avec le même [modèle](#model) et le même [harnais](#harness), la différence vient généralement de l'AX. Le réflexe est d'accuser le modèle ou de réécrire le prompt ; la correction se trouve plus souvent dans le dépôt.
 
-Good AX has three main dimensions:
+Une bonne AX comporte trois dimensions principales :
 
-| Dimension        | What good AX looks like                                                                                                                                                                                                                              |
-| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Automated checks | Fast, deterministic [automated checks](#automated-check) — types, tests, lints — that the agent can self-correct from without a human                                                                                                          |
-| Architecture     | A codebase the agent can navigate without reading everything: predictable structure, a lot of behaviour behind small interfaces, names that say what things do                                                                                       |
-| Free context     | [AGENTS.md](#agentsmd), [skills](#skill), and [tools](#tool) kept lean, so most of the [context window](#context-window) is available for the task and the agent stays in the [smart zone](#smart-zone) instead of drowning |
+| Dimension | Ce qu'est une bonne AX |
+| --------- | --------------------- |
+| Vérifications automatisées | Des [vérifications automatisées](#automated-check) rapides et déterministes, types, tests et linters, à partir desquelles l'agent peut s'autocorriger sans humain |
+| Architecture | Une base de code que l'agent peut parcourir sans tout lire : structure prévisible, beaucoup de comportements derrière de petites interfaces et noms qui indiquent le rôle des éléments |
+| Contexte disponible | Des [AGENTS.md](#agentsmd), [compétences](#skill) et [outils](#tool) maintenus légers, afin que l'essentiel de la [fenêtre de contexte](#context-window) soit disponible pour la tâche et que l'agent reste dans la [zone intelligente](#smart-zone) plutôt que de se noyer |
 
-AX and DX overlap — good checks and clean architecture help both audiences — but they diverge. Humans tolerate tribal knowledge, slow CI, and "ask Sarah about the billing module"; agents can't. Agents don't benefit from IDE tooltips or pretty dashboards; they need failures as text in a [tool result](#tool-result). A codebase can have good DX and poor AX.
+L'AX et la DX se recouvrent, car de bonnes vérifications et une architecture claire aident les deux publics, mais elles divergent. Les humains tolèrent la connaissance tribale, une intégration continue lente et « demandez à Sarah pour le module de facturation » ; les agents ne le peuvent pas. Les agents ne bénéficient pas des infobulles de l'IDE ni de tableaux de bord élégants ; ils ont besoin des échecs sous forme de texte dans un [résultat d'outil](#tool-result). Une base de code peut avoir une bonne DX et une mauvaise AX.
 
-_Avoid:_ treating AX as a synonym for DX — the audiences need different investments.
+_À éviter :_ traiter l'AX comme un synonyme de DX, car les publics exigent des investissements différents.
 
-_Usage:_
+_Utilisation :_
 
-"The agent writes great code in the API repo and garbage in the frontend."
+« L'agent écrit un excellent code dans le dépôt d'API et du code médiocre dans le frontend. »
 
-"The API repo has strict types and a fast test suite; the frontend has neither and forty always-loaded skills. That's an AX gap, not a model problem."
+« Le dépôt d'API possède des types stricts et une suite de tests rapide ; le frontend n'a ni l'un ni l'autre et charge en permanence quarante compétences. C'est un écart d'AX, pas un problème de modèle. »
