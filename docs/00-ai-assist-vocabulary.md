@@ -505,19 +505,19 @@ _Utilisation :_
 <a id="agent"></a>
 ### Agent
 
-A [model](#model) [harnessed](#harness) with [tools](#tool), a [system prompt](#system-prompt), and a [context window](#context-window), that takes [turns](#turn) with a user. _Claude Code is an agent. Cursor is an agent. Claude.ai is an agent._ An agent is what you actually talk to — it's the model in motion, configured for a purpose.
+Un [modèle](#model) entouré par un [harnais](#harness), avec des [outils](#tool), un [prompt système](#system-prompt) et une [fenêtre de contexte](#context-window), qui échange des [tours](#turn) avec un utilisateur. _Claude Code est un agent. Cursor est un agent. Claude.ai est un agent._ L'agent est ce à quoi vous parlez réellement : le modèle en action, configuré dans un but précis.
 
-Unlike most terms in this dictionary, "agent" doesn't name a mechanical part. The model is a file of [parameters](#parameters); the harness is software you can point at. The agent is neither — it's the unit you're speaking to. People anthropomorphize [AI](#ai) constantly, and the agent is the anthropomorphized unit: the thing you delegate to, the thing that reads your message and answers, the "it" in "it broke the build again". When you say the agent did something, you mean the model-plus-harness did it, but you're addressing the combination as a single actor.
+Contrairement à la plupart des termes de ce lexique, « agent » ne désigne pas une pièce mécanique. Le modèle est un fichier de [paramètres](#parameters) ; le harnais est un logiciel que l'on peut configurer. L'agent n'est ni l'un ni l'autre : c'est l'entité à laquelle vous vous adressez. Les humains anthropomorphisent constamment l'[IA](#ai), et l'agent est cette entité anthropomorphisée : ce à quoi vous déléguez une tâche, ce qui lit votre message et répond, le « il » dans « il a encore cassé la compilation ». Dire qu'un agent a fait quelque chose revient à dire que le modèle et le harnais l'ont fait, mais en considérant l'ensemble comme un seul acteur.
 
-The idea is older than this wave of AI. Software agents — programs you delegate a goal to, which act on your behalf — have been a concept for as long as AI has.
+L'idée précède la vague actuelle de l'IA. Les agents logiciels, des programmes auxquels vous déléguez un objectif et qui agissent en votre nom, sont un concept aussi ancien que l'IA.
 
-_Avoid:_ "the AI", "the bot" (too vague — they hide whether you mean the parameters or the harnessed thing).
+_À éviter :_ « l'IA », « le bot » : ces termes sont trop vagues et ne précisent pas si vous parlez des paramètres ou de l'ensemble formé avec le harnais.
 
-_Usage:_
+_Utilisation :_
 
-"Which agent are you using for the migration?"
+« Quel agent utilises-tu pour la migration ? »
 
-"Claude Code locally, Cursor for the UI work — same model underneath, different harnesses."
+« Claude Code en local, Cursor pour l'interface : même modèle sous-jacent, harnais différents. »
 
 <a id="system-prompt"></a>
 ### Prompt système
