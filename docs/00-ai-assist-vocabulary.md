@@ -522,454 +522,454 @@ _Utilisation :_
 <a id="system-prompt"></a>
 ### Prompt système
 
-The instructions the [harness](#harness) prepends to every [model provider request](#model-provider-request) — the [agent](#agent)'s standing brief: who it is, how to behave, which [tools](#tool) it can call, what conventions to follow. Usually stable across a [session](#session).
+Les instructions que le [harnais](#harness) ajoute au début de chaque [requête au fournisseur de modèles](#model-provider-request) : la feuille de route permanente de l'[agent](#agent), qui précise son identité, son comportement, les [outils](#tool) qu'il peut appeler et les conventions à suivre. Il reste généralement stable pendant une [session](#session).
 
-The system prompt is written by the harness vendor, not by you, and in coding harnesses it's big — often tens of thousands of [tokens](#token) of behavioural rules, tool descriptions, and edge-case handling, all paid as [input tokens](#input-tokens) on every [turn](#turn). Your own standing instructions ride along with it: files like [AGENTS.md](#agentsmd) are loaded next to the system prompt at the start of the session, so the [model](#model) reads the vendor's brief and yours together before it ever sees your message.
+Le prompt système est écrit par le fournisseur du harnais, non par vous. Dans les harnais de programmation, il est volumineux : souvent des dizaines de milliers de [jetons](#token) de règles de comportement, de descriptions d'outils et de traitement des cas limites, tous facturés comme [jetons d'entrée](#input-tokens) à chaque [tour](#turn). Vos propres instructions permanentes l'accompagnent : des fichiers comme [AGENTS.md](#agentsmd) sont chargés à côté du prompt système au début de la session, de sorte que le [modèle](#model) lit simultanément les consignes du fournisseur et les vôtres avant même de voir votre message.
 
-Because it's identical on every request, it forms the start of the [prefix cache](#prefix-cache) — which is part of why harnesses keep it fixed for a whole session rather than editing it as they go.
+Comme il est identique dans chaque requête, il constitue le début du [cache de préfixe](#prefix-cache). C'est notamment pour cela que les harnais le maintiennent fixe pendant toute une session plutôt que de le modifier progressivement.
 
-Models are trained to prioritise the system prompt over user messages. So when an agent insists on a convention you never asked for, or formats output in a way you can't shake, it's usually obeying its system prompt — and your message is losing the argument. Some harnesses are customisable: they give you full access to the system prompt, so you can read what the agent is actually being told and change it.
+Les modèles sont entraînés à donner priorité au prompt système plutôt qu'aux messages utilisateur. Lorsqu'un agent insiste sur une convention que vous n'avez jamais demandée ou met en forme sa réponse d'une manière impossible à changer, il obéit généralement à son prompt système, et votre message perd la discussion. Certains harnais sont personnalisables : ils donnent accès au prompt système complet, ce qui permet de lire les consignes réellement données à l'agent et de les modifier.
 
-_Usage:_
+_Utilisation :_
 
-"Two harnesses, same model, totally different behavior on the same prompt."
+« Deux harnais, le même modèle, un comportement totalement différent avec le même prompt. »
 
-"Different system prompts. One's tuned for terse code edits, the other for explaining — that's where the divergence lives, before your message even arrives."
+« Leurs prompts système diffèrent. L'un est réglé pour des modifications de code concises, l'autre pour l'explication : la divergence se produit là, avant même l'arrivée de votre message. »
 
 <a id="session"></a>
 ### Session
 
-One bounded run of interaction with an [agent](#agent). Starts empty, accumulates messages, [tool results](#tool-result), and files read, and ends when [cleared](#clearing), closed, or [compacted](#compaction) into a fresh session. The session is what _fills_ the [context window](#context-window): if the context window is the box, the session is the stuff slowly filling it up. Work too large for a single context window must be split across sessions.
+Une séquence limitée d'interactions avec un [agent](#agent). Elle commence vide, accumule les messages, les [résultats d'outil](#tool-result) et les fichiers lus, puis s'achève lorsqu'elle est [réinitialisée](#clearing), fermée ou [compactée](#compaction) en une nouvelle session. La session est ce qui remplit la [fenêtre de contexte](#context-window) : si la fenêtre est la boîte, la session est le contenu qui s'y accumule peu à peu. Un travail trop grand pour une seule fenêtre de contexte doit être réparti entre plusieurs sessions.
 
-The session's message history is the agent's working memory. The [model](#model) is [stateless](#stateless), so everything it appears to remember — what you asked for, what the tests said, what it decided three turns ago — is in the message history, re-sent with every [model provider request](#model-provider-request). Whatever isn't in the session doesn't exist for the agent.
+L'historique des messages d'une session constitue la mémoire de travail de l'agent. Le [modèle](#model) est [sans état](#stateless), donc tout ce dont il semble se souvenir, ce que vous avez demandé, les résultats des tests ou une décision prise trois tours plus tôt, se trouve dans cet historique, renvoyé à chaque [requête au fournisseur de modèles](#model-provider-request). Ce qui n'est pas dans la session n'existe pas pour l'agent.
 
-That memory ends with the session. A new session starts from nothing: the agent that knew your codebase well at the end of yesterday's session knows none of it this morning. What survives is the [filesystem](#filesystem) — files written during one session can be read by the next, which is what [handoffs](#handoff), [memory systems](#memory-system), and [AGENTS.md](#agentsmd) rely on.
+Cette mémoire s'arrête avec la session. Une nouvelle session recommence sans rien : l'agent qui connaissait très bien votre base de code à la fin de la session d'hier n'en sait plus rien ce matin. Ce qui perdure est le [système de fichiers](#filesystem) : les fichiers écrits durant une session peuvent être lus par la suivante, sur quoi reposent les [passages de relais](#handoff), les [systèmes de mémoire](#memory-system) et [AGENTS.md](#agentsmd).
 
-You choose where a session ends. Everything in a session influences every later [turn](#turn), so unrelated tasks done in one session leave residue that colours the next answer. One task per session keeps the context relevant; finishing a task is a natural point to clear.
+Vous choisissez où une session s'arrête. Tout ce qu'elle contient influence les [tours](#turn) ultérieurs ; des tâches sans rapport, réalisées dans une même session, laissent donc des résidus qui colorent la réponse suivante. Une tâche par session maintient le contexte pertinent ; terminer une tâche est un moment naturel pour réinitialiser.
 
-_Usage:_
+_Utilisation :_
 
-"How long can one session run before it falls apart?"
+« Combien de temps une session peut-elle durer avant de se dégrader ? »
 
-"Depends on the work — a focused refactor stays sharp longer than open-ended research. Once the session bloats, hand off or compact, don't push through."
+« Cela dépend du travail : une refactorisation ciblée reste nette plus longtemps qu'une recherche ouverte. Quand la session devient trop volumineuse, faites un passage de relais ou compactez-la, n'insistez pas. »
 
 <a id="turn"></a>
 ### Tour
 
-One user message plus everything the [agent](#agent) does in response, up until it yields back to the user. Contains one or more [model provider requests](#model-provider-request) — many, if the agent calls [tools](#tool). A clarifying question closes the turn; your reply opens the next one. The hierarchy is [session](#session) **> Turn > Model provider request**.
+Un message utilisateur et tout ce que l'[agent](#agent) fait en réponse, jusqu'à ce qu'il vous rende la main. Il contient une ou plusieurs [requêtes au fournisseur de modèles](#model-provider-request), et souvent beaucoup si l'agent appelle des [outils](#tool). Une question de clarification clôt le tour ; votre réponse ouvre le suivant. La hiérarchie est [session](#session) **> Tour > Requête au fournisseur de modèles**.
 
-What makes the turn worth naming is that its length is the agent's decision, not yours. You hand over one message; the agent decides how many tool calls to chain before yielding. A turn can be a one-sentence answer or twenty minutes of reading, editing, and running tests. That's the same property from two angles: long turns are what make [AFK](#afk) work possible, and long turns are also where things go wrong unsupervised — by the time the agent yields, it may have drifted a long way from what you meant.
+Ce qui rend utile de nommer le tour est que sa durée dépend de l'agent, non de vous. Vous lui transmettez un message ; il décide combien d'appels d'outil enchaîner avant de rendre la main. Un tour peut être une réponse d'une phrase ou vingt minutes de lecture, de modifications et d'exécution de tests. Cette propriété a deux faces : les longs tours rendent possible le travail [AFK](#afk), mais c'est aussi durant eux que les choses se dégradent sans supervision. Au moment où l'agent vous rend la main, il peut avoir largement dérivé de votre intention.
 
-The turn is also the natural unit for steering. Everything inside a turn happens without you; the gaps between turns are where you redirect. Most [harnesses](#harness) soften this: you can interrupt mid-turn to stop the agent and redirect it, or type a message while it works, which gets read once the turn completes. If you find yourself repeatedly unhappy with where turns end up, the fix is usually to ask for smaller ones — a plan first, one step at a time — trading autonomy for more frequent gaps to steer in.
+Le tour est aussi l'unité naturelle de pilotage. Tout ce qui s'y déroule se produit sans vous ; les intervalles entre les tours sont les moments où vous réorientez l'agent. La plupart des [harnais](#harness) atténuent cette séparation : vous pouvez interrompre l'agent en plein tour pour le rediriger, ou écrire un message pendant qu'il travaille, qui sera lu à la fin du tour. Si le résultat des tours vous déplaît régulièrement, la solution consiste généralement à demander des tours plus courts, avec un plan d'abord et une étape à la fois, en échangeant une part d'autonomie contre davantage d'occasions de réorienter.
 
-_Usage:_
+_Utilisation :_
 
-"One turn took two minutes?"
+« Un tour a pris deux minutes ? »
 
-"It made fourteen [tool calls](#tool-call) inside that turn — each one is a separate model provider request. Latency stacks up before the agent finally yields back to you."
+« L'agent a effectué quatorze [appels d'outil](#tool-call) durant ce tour : chacun est une requête distincte au fournisseur de modèles. La latence s'accumule avant qu'il vous rende enfin la main. »
 
 ## Section 3 — Outils et environnement
 
 <a id="environment"></a>
 ### Environnement
 
-The world the [agent](#agent) acts on — anything outside the [harness](#harness) that the agent perceives through [tool results](#tool-result) and changes through [tool calls](#tool-call). The harness _runs_ the agent; the environment is what the agent _works in_. A file like [`AGENTS.md`](#agentsmd) lives in the environment; the harness is what loads it into the [context window](#context-window). A [filesystem](#filesystem) is the most common kind of environment, but not the only one (a database, a remote API, a browser session can all be environments).
+Le monde sur lequel agit l'[agent](#agent) : tout ce qui est hors du [harnais](#harness), que l'agent perçoit au moyen des [résultats d'outil](#tool-result) et modifie par des [appels d'outil](#tool-call). Le harnais _exécute_ l'agent ; l'environnement est ce dans quoi l'agent _travaille_. Un fichier comme [AGENTS.md](#agentsmd) vit dans l'environnement ; le harnais le charge dans la [fenêtre de contexte](#context-window). Un [système de fichiers](#filesystem) est la forme d'environnement la plus courante, mais pas la seule : une base de données, une API distante ou une session de navigateur peuvent aussi être des environnements.
 
-The agent only sees the environment when it looks. Everything it knows about the environment arrived through a tool result, so its picture is a collection of snapshots, each accurate at the moment it was taken. If a file changes after the agent read it — you edit it by hand, a build step regenerates it — the agent keeps reasoning from the stale copy until something prompts a re-read. An agent confidently describing a file that no longer looks like that is usually this: the environment moved, the snapshot didn't.
+L'agent ne voit l'environnement que lorsqu'il l'examine. Tout ce qu'il en sait lui est arrivé par un résultat d'outil ; son image est donc une collection d'instantanés, exacts au moment où ils ont été capturés. Si un fichier change après avoir été lu par l'agent, parce que vous le modifiez à la main ou qu'une étape de compilation le régénère, l'agent continue de raisonner à partir de sa copie périmée jusqu'à ce qu'il le relise. Lorsqu'un agent décrit avec assurance un fichier qui ne ressemble plus à cela, c'est généralement ce qui s'est passé : l'environnement a changé, pas l'instantané.
 
-The environment is also the layer that persists — the only one that is always [stateful](#stateful). A [session](#session)'s context is gone when the session ends, but files written to the environment remain for the next session to read — which is what [memory systems](#memory-system), [handoff artifacts](#handoff-artifact), and `AGENTS.md` rely on. Anything an agent should still know tomorrow has to end up in the environment.
+L'environnement est aussi la couche qui persiste, la seule qui soit toujours [avec état](#stateful). Le contexte d'une [session](#session) disparaît à sa fin, mais les fichiers écrits dans l'environnement restent disponibles pour la session suivante. C'est sur cela que reposent les [systèmes de mémoire](#memory-system), les [artefacts de passage de relais](#handoff-artifact) et `AGENTS.md`. Tout ce qu'un agent devra encore savoir demain doit aboutir dans l'environnement.
 
-You decide how big the environment is. A [sandbox](#sandbox) shrinks it, limiting what the agent can reach; adding a [tool](#tool) extends it, bringing a database or an API into reach. What's inside the boundary is what the agent can perceive and change; everything outside it doesn't exist for the agent. How well the environment is set up to support the agent's work is the codebase's [AX](#ax).
+Vous décidez de la taille de l'environnement. Un [bac à sable](#sandbox) le réduit en limitant ce que l'agent peut atteindre ; ajouter un [outil](#tool) l'étend en mettant une base de données ou une API à sa portée. Ce qui est à l'intérieur de la frontière est ce que l'agent peut percevoir et modifier ; tout ce qui est à l'extérieur n'existe pas pour lui. La qualité de la préparation de l'environnement pour soutenir le travail de l'agent correspond à l'[AX](#ax) de la base de code.
 
-_Avoid:_ using "environment" for the runtime or the harness itself — the harness is the wrapper, the environment is the workspace.
+_À éviter :_ employer « environnement » pour désigner le runtime ou le harnais lui-même : le harnais est l'enveloppe, l'environnement est l'espace de travail.
 
-_Usage:_
+_Utilisation :_
 
-"The agent can't see the staging DB schema."
+« L'agent ne voit pas le schéma de la base de données de préproduction. »
 
-"Wire it into the environment — give it a `psql` tool scoped to read-only on staging. The harness is fine, it just has nothing to act on."
+« Intégrez-le à l'environnement : donnez-lui un outil `psql` limité à la lecture seule en préproduction. Le harnais est correct ; il n'a simplement rien sur quoi agir. »
 
 <a id="filesystem"></a>
 ### Système de fichiers
 
-A tree of files and directories the [agent](#agent) reads from, writes to, and executes within — the default kind of [environment](#environment) for a coding agent. [AGENTS.md](#agentsmd), [skills](#skill), source code, build scripts, and [tool](#tool) configs all live in a filesystem. When a [harness](#harness) "starts in your project," it's pointing the agent at a filesystem.
+Une arborescence de fichiers et de répertoires que l'[agent](#agent) lit, modifie et dans laquelle il exécute des commandes : la forme d'[environnement](#environment) par défaut d'un agent de programmation. [AGENTS.md](#agentsmd), les [compétences](#skill), le code source, les scripts de compilation et les configurations d'[outils](#tool) résident tous dans un système de fichiers. Lorsqu'un [harnais](#harness) « démarre dans votre projet », il oriente l'agent vers un système de fichiers.
 
-The agent touches it only through [tool calls](#tool-call) — reading a file, writing one, running a shell command. Nothing on disk is in the [context window](#context-window) until a tool call loads it, which is what lets the agent work in a repository far larger than the window: the filesystem holds everything, the context holds only what the current task has read. Some harnesses do load the current directory's filenames into the context window by default — not the contents, just the tree — which act as [context pointers](#context-pointer): the agent sees what exists and reads the files it needs.
+L'agent n'y accède qu'au moyen d'[appels d'outil](#tool-call) : lire ou écrire un fichier, exécuter une commande shell. Rien de ce qui est sur le disque n'entre dans la [fenêtre de contexte](#context-window) avant qu'un appel d'outil ne le charge. C'est ce qui permet à l'agent de travailler dans un dépôt bien plus grand que la fenêtre : le système de fichiers contient tout, tandis que le contexte ne contient que ce que la tâche actuelle a lu. Certains harnais chargent par défaut les noms des fichiers du répertoire courant, mais non leur contenu, dans la fenêtre de contexte. Ils servent alors de [pointeurs de contexte](#context-pointer) : l'agent voit ce qui existe et lit les fichiers nécessaires.
 
-And it's shared with you. The files the agent edits are the same ones you open in your editor and diff in git — the filesystem is the common workspace where you review what the agent did.
+Il est partagé avec vous. Les fichiers modifiés par l'agent sont les mêmes que vous ouvrez dans votre éditeur et comparez avec Git : le système de fichiers est l'espace de travail commun où vous examinez ce que l'agent a fait.
 
-_Usage:_
+_Utilisation :_
 
-"Why isn't it picking up my AGENTS.md?"
+« Pourquoi ne prend-il pas en compte mon AGENTS.md ? »
 
-"It's running against a different filesystem — the [sandbox](#sandbox) mounted the parent dir, not the project root. Repoint the harness."
+« Il s'exécute dans un autre système de fichiers : le [bac à sable](#sandbox) a monté le répertoire parent au lieu de la racine du projet. Reconfigurez le harnais. »
 
 <a id="tool"></a>
 ### Outil
 
-A function the [harness](#harness) exposes for the [agent](#agent) to call — Read, Write, Bash, Search. Tools are how an agent perceives and acts on the [environment](#environment): it can't see the environment except through [tool results](#tool-result), and can't change it except through [tool calls](#tool-call). Each tool call costs an extra [model provider request](#model-provider-request), since the result has to go back to the model before it can decide what to do next.
+Une fonction que le [harnais](#harness) expose à l'[agent](#agent) : Read, Write, Bash ou Search, par exemple. Les outils permettent à l'agent de percevoir l'[environnement](#environment) et d'y agir : il ne peut le voir qu'au moyen des [résultats d'outil](#tool-result) ni le modifier autrement que par des [appels d'outil](#tool-call). Chaque appel d'outil entraîne une [requête au fournisseur de modèles](#model-provider-request) supplémentaire, car le résultat doit revenir au modèle avant qu'il décide de la suite.
 
-Tools most coding agents ship with:
+Les outils livrés par la plupart des agents de programmation :
 
-| Tool   | What it does                                                 |
-| ------ | ------------------------------------------------------------ |
-| Read   | Returns a file's contents as a tool result                   |
-| Write  | Creates or edits a file in the [filesystem](#filesystem) |
-| Bash   | Runs a shell command and returns its output                  |
-| Search | Finds files or text matching a pattern across the codebase   |
+| Outil | Ce qu'il fait |
+| ----- | ------------- |
+| Read | Renvoie le contenu d'un fichier sous forme de résultat d'outil |
+| Write | Crée ou modifie un fichier dans le [système de fichiers](#filesystem) |
+| Bash | Exécute une commande shell et renvoie sa sortie |
+| Search | Trouve dans la base de code les fichiers ou le texte correspondant à un motif |
 
-A tool is defined by three things: a name, a description of what it does, and a schema for its parameters. The harness sends these definitions to the [model](#model) with every request, and the model chooses a tool the same way it produces everything else — by writing [tokens](#token), in this case a structured call with arguments. The model never executes anything itself; the harness reads the call, runs the function, and sends back the result.
+Un outil se définit par trois éléments : un nom, une description de son rôle et un schéma de paramètres. Le harnais transmet ces définitions au [modèle](#model) avec chaque requête, et le modèle choisit un outil comme il produit tout le reste : en écrivant des [jetons](#token), ici un appel structuré avec des arguments. Le modèle n'exécute jamais rien lui-même ; le harnais lit l'appel, exécute la fonction et renvoie le résultat.
 
-The tool list sets what the agent can do. A capable model with a narrow tool set is a narrow agent: it will route everything through whatever it has, which is why agents lean so heavily on Bash — a shell is one tool that reaches most of the system. To give an agent a capability cleanly, add a tool for it; [MCP](#mcp) is the standard for plugging in tools from outside the harness.
+La liste des outils détermine ce que l'agent peut faire. Un modèle capable disposant d'un jeu d'outils étroit reste un agent limité : il fera tout passer par les moyens dont il dispose, d'où l'usage intensif de Bash par les agents, car un shell est un seul outil qui atteint la majeure partie du système. Pour donner proprement une capacité à un agent, ajoutez-lui un outil ; [MCP](#mcp) est la norme permettant d'intégrer des outils externes au harnais.
 
-Tool definitions occupy [context](#context) on every request, so a large tool set has a standing cost before any tool is called — and many similarly-described tools make the model worse at picking the right one.
+Les définitions d'outils occupent du [contexte](#context) à chaque requête ; un ensemble étendu entraîne donc un coût fixe avant le moindre appel, et de nombreux outils aux descriptions similaires rendent le modèle moins apte à choisir le bon.
 
-_Usage:_
+_Utilisation :_
 
-"Can the agent query staging directly?"
+« L'agent peut-il interroger directement la préproduction ? »
 
-"Add a `psql` tool to the harness, scoped read-only on staging. Without a tool for it, the agent's blind to anything outside the filesystem."
+« Ajoutez au harnais un outil `psql` limité à la lecture seule en préproduction. Sans outil adapté, l'agent est aveugle à tout ce qui se trouve hors du système de fichiers. »
 
 <a id="tool-call"></a>
 ### Appel d'outil
 
-The [model](#model)'s output naming a [tool](#tool) and its arguments — just structured text. It doesn't do anything on its own; the [harness](#harness) has to read it and execute. Produced by the model in one [model provider request](#model-provider-request).
+La sortie du [modèle](#model) qui désigne un [outil](#tool) et ses arguments : simplement du texte structuré. Elle ne fait rien par elle-même ; le [harnais](#harness) doit la lire et l'exécuter. Elle est produite par le modèle au cours d'une [requête au fournisseur de modèles](#model-provider-request).
 
-The lifecycle of a tool call:
+Le cycle de vie d'un appel d'outil :
 
-| Step | Who     | What happens                                                                            |
-| ---- | ------- | --------------------------------------------------------------------------------------- |
-| 1    | Model   | Learns which tools exist from descriptions in the [system prompt](#system-prompt) |
-| 2    | Model   | Emits a call — tool name plus arguments, usually JSON — and stops                       |
-| 3    | Harness | Parses the call and checks it against the [permission mode](#permission-mode)     |
-| 4    | Harness | Executes it if allowed                                                                  |
-| 5    | Harness | Sends the outcome back as a [tool result](#tool-result) in the next request       |
+| Étape | Acteur | Ce qui se produit |
+| ----- | ------ | ----------------- |
+| 1 | Modèle | Apprend les outils disponibles à partir des descriptions du [prompt système](#system-prompt) |
+| 2 | Modèle | Émet un appel, nom de l'outil et arguments, généralement en JSON, puis s'arrête |
+| 3 | Harnais | Analyse l'appel et le vérifie selon le [mode d'autorisation](#permission-mode) |
+| 4 | Harnais | L'exécute s'il est autorisé |
+| 5 | Harnais | Renvoie le résultat comme [résultat d'outil](#tool-result) dans la requête suivante |
 
-One [turn](#turn) of [agent](#agent) work is usually many of these round trips chained together.
+Un [tour](#turn) de travail d'[agent](#agent) enchaîne généralement plusieurs de ces allers-retours.
 
-Because the call is generated by [next-token prediction](#next-token-prediction) like everything else, it can be wrong the way any model output can be wrong: a path that doesn't exist, a flag the command doesn't have, arguments that are plausible rather than correct. The harness executes what was written, not what was meant — a mistyped path doesn't error gracefully, it edits the wrong file.
+Comme l'appel est produit par [prédiction du jeton suivant](#next-token-prediction), comme toute autre sortie, il peut se tromper de la même façon : chemin inexistant, option que la commande ne connaît pas, arguments plausibles plutôt qu'exacts. Le harnais exécute ce qui a été écrit, non ce qui était voulu : un chemin mal saisi ne provoque pas nécessairement une erreur élégante, il peut modifier le mauvais fichier.
 
-_Usage:_
+_Utilisation :_
 
-"It said it ran the tests but the file timestamps haven't changed."
+« Il a dit avoir lancé les tests, mais les horodatages des fichiers n'ont pas changé. »
 
-"Look at the transcript — did it actually emit a tool call, or just describe running them? The model produces the call, but if the harness didn't execute it, nothing happened."
+« Regardez la transcription : a-t-il réellement émis un appel d'outil ou s'est-il seulement décrit en train de les lancer ? Le modèle produit l'appel, mais si le harnais ne l'a pas exécuté, rien ne s'est produit. »
 
 <a id="tool-result"></a>
 ### Résultat d'outil
 
-What the [harness](#harness) sends back after executing a [tool call](#tool-call) — the file contents, the command output, the error. The [agent](#agent)'s only view of the [environment](#environment). Travels back to the [model](#model) in the _next_ [model provider request](#model-provider-request), where the model decides what to do with it. Tool call and tool result are two ends of the same exchange, both inside one [turn](#turn).
+Ce que le [harnais](#harness) renvoie après l'exécution d'un [appel d'outil](#tool-call) : le contenu d'un fichier, la sortie d'une commande ou une erreur. C'est l'unique vue de l'[agent](#agent) sur l'[environnement](#environment). Le résultat revient au [modèle](#model) dans la [requête au fournisseur de modèles](#model-provider-request) _suivante_, où le modèle décide quoi en faire. L'appel et le résultat d'outil sont les deux extrémités d'un même échange, à l'intérieur d'un [tour](#turn).
 
-The lifecycle of a tool result:
+Le cycle de vie d'un résultat d'outil :
 
-| Step | Who     | What happens                                                               |
-| ---- | ------- | -------------------------------------------------------------------------- |
-| 1    | Harness | Executes the tool call — runs the command, reads the file                  |
-| 2    | Harness | Captures the outcome: output, contents, or error                           |
-| 3    | Harness | Appends it to the [context](#context) as a message                     |
-| 4    | Harness | Sends the whole context to the provider in the next model provider request |
-| 5    | Model   | Reads the result and decides: another tool call, or a final answer         |
+| Étape | Acteur | Ce qui se produit |
+| ----- | ------ | ----------------- |
+| 1 | Harnais | Exécute l'appel d'outil : lance la commande ou lit le fichier |
+| 2 | Harnais | Capture le résultat : sortie, contenu ou erreur |
+| 3 | Harnais | L'ajoute au [contexte](#context) sous forme de message |
+| 4 | Harnais | Envoie tout le contexte au fournisseur dans la requête suivante |
+| 5 | Modèle | Lit le résultat et choisit un nouvel appel d'outil ou une réponse finale |
 
-The result stays in the context for the rest of the [session](#session). Tool results are usually the bulk of a coding session's context: every file read, every test run, every search lands in full and keeps occupying [tokens](#token) long after it stopped being useful. A few large results — a verbose test log, a generated file read whole — can push a session toward the edge of the [context window](#context-window) faster than the conversation itself does.
+Le résultat reste dans le contexte pour le reste de la [session](#session). Les résultats d'outil constituent généralement l'essentiel du contexte d'une session de programmation : chaque fichier lu, chaque test exécuté et chaque recherche y arrivent intégralement et continuent d'occuper des [jetons](#token) longtemps après avoir cessé d'être utiles. Quelques résultats volumineux, un journal de test verbeux ou un fichier généré lu en entier, peuvent rapprocher une session du bord de la [fenêtre de contexte](#context-window) plus vite que la conversation elle-même.
 
-Because the result is all the model sees, the model has no way to check the environment behind it. If the output was truncated, the command silently failed, or the harness returned an error instead of the contents, the model reasons from what it was given. When the agent's picture of your system seems wrong, the tool results are where to look: somewhere in the transcript is a result that says something different from what you know to be true.
+Puisque le résultat est tout ce que voit le modèle, celui-ci ne peut pas vérifier l'environnement qui se trouve derrière. Si la sortie a été tronquée, que la commande a échoué silencieusement ou que le harnais a renvoyé une erreur à la place du contenu, le modèle raisonne à partir de ce qu'il a reçu. Lorsque la représentation de votre système par l'agent paraît erronée, les résultats d'outil sont le premier endroit à examiner : quelque part dans la transcription, un résultat affirme autre chose que ce que vous savez vrai.
 
-_Usage:_
+_Utilisation :_
 
-"It's reasoning about the file like it's empty."
+« Il raisonne sur le fichier comme s'il était vide. »
 
-"The tool result came back as a permission denial, not the contents. The model only saw the error string — it has no other way to see the file."
+« Le résultat d'outil a renvoyé un refus d'autorisation, pas le contenu. Le modèle n'a vu que le message d'erreur ; il n'a aucun autre moyen de voir le fichier. »
 
 <a id="mcp"></a>
 ### MCP
 
-**Model Context Protocol.** A protocol for plugging external tool servers into a [harness](#harness) — how an [agent](#agent) gets [tools](#tool) beyond what the harness ships with. The agent never "calls MCP"; it calls a tool, and the harness happens to have gotten that tool from an MCP server. Also exposes resources (read-only data) and prompts (reusable templates), but tool provision is the primary use.
+**Model Context Protocol.** Un protocole qui permet d'intégrer des serveurs d'outils externes à un [harnais](#harness), afin qu'un [agent](#agent) obtienne des [outils](#tool) au-delà de ceux fournis par le harnais. L'agent ne « appelle jamais MCP » : il appelle un outil que le harnais a obtenu d'un serveur MCP. Le protocole expose aussi des ressources, des données en lecture seule, et des prompts, des modèles réutilisables, mais son usage principal est de fournir des outils.
 
-The protocol solves an integration problem. Without a standard, every harness would need its own Linear integration, its own Slack integration, its own database integration — written and maintained separately for each. With MCP, the integration is written once as a server, and any MCP-compatible harness can use it. The harness connects to the server, the server advertises what tools it offers, and those tools become available to the agent alongside the built-in ones.
+Le protocole résout un problème d'intégration. Sans norme, chaque harnais devrait disposer de sa propre intégration Linear, Slack ou base de données, écrite et maintenue séparément. Avec MCP, l'intégration est écrite une seule fois sous forme de serveur et tout harnais compatible MCP peut l'utiliser. Le harnais se connecte au serveur, le serveur annonce les outils qu'il propose et ces outils deviennent disponibles pour l'agent à côté des outils intégrés.
 
-The cost is paid in [context](#context). Every tool a server advertises arrives as a definition — name, description, parameter schema — and the [model](#model) can only call tools it knows about. The naive approach loads every definition into the [context window](#context-window) up front: install a few generous servers and a [session](#session) starts with thousands of [tokens](#token) of tool schemas before you've typed anything, spending [attention budget](#attention-budget) on tools the task will never use.
+Le coût se paie en [contexte](#context). Chaque outil annoncé par un serveur arrive avec une définition, nom, description et schéma de paramètres, et le [modèle](#model) ne peut appeler que les outils qu'il connaît. L'approche naïve charge toutes les définitions dans la [fenêtre de contexte](#context-window) dès le départ : installez quelques serveurs généreux, et une [session](#session) commence avec des milliers de [jetons](#token) de schémas d'outils avant même que vous ayez saisi quoi que ce soit, consommant un [budget d'attention](#attention-budget) pour des outils que la tâche n'utilisera jamais.
 
-Many harnesses now mitigate this with tool search: instead of the full definitions, the context holds a [context pointer](#context-pointer) to the available tools — the agent searches for a tool by name or purpose and loads its definition only when it needs it. If your harness doesn't do this, the up-front cost still applies, and it's worth enabling only the servers a project actually needs.
+De nombreux harnais atténuent désormais ce problème avec une recherche d'outils : au lieu des définitions complètes, le contexte contient un [pointeur de contexte](#context-pointer) vers les outils disponibles. L'agent cherche un outil par nom ou par objectif et ne charge sa définition qu'au moment où il en a besoin. Si votre harnais ne le fait pas, le coût initial reste présent ; il est alors préférable de n'activer que les serveurs réellement nécessaires au projet.
 
-_Usage:_
+_Utilisation :_
 
-"The agent needs to read tickets from Linear."
+« L'agent doit lire les tickets Linear. »
 
-"Configure the harness to use the Linear MCP server — it exposes the Linear API as tools the agent can call. Saves you writing custom tool wrappers."
+« Configurez le harnais pour utiliser le serveur MCP Linear : il expose l'API Linear comme des outils appelables par l'agent. Vous évitez ainsi d'écrire des adaptateurs d'outils sur mesure. »
 
 <a id="permission-request"></a>
 ### Demande d'autorisation
 
-What the [harness](#harness) shows the user before executing a [tool call](#tool-call) that isn't pre-approved. The [model](#model) produces a tool call; instead of running it immediately, the harness pauses and asks. Approve and it runs; deny and the harness reports the denial back to the model as a [tool result](#tool-result). The mechanism by which a harness puts a human in the [loop](#human-in-the-loop) for risky or sensitive actions.
+Ce que le [harnais](#harness) montre à l'utilisateur avant d'exécuter un [appel d'outil](#tool-call) qui n'est pas préapprouvé. Le [modèle](#model) produit un appel d'outil ; au lieu de l'exécuter immédiatement, le harnais se met en pause et demande une décision. En cas d'approbation, l'appel est exécuté ; en cas de refus, le harnais rapporte le refus au modèle sous forme de [résultat d'outil](#tool-result). C'est le mécanisme par lequel un harnais place un humain dans la [boucle](#human-in-the-loop) pour les actions risquées ou sensibles.
 
-The lifecycle of a permission request:
+Le cycle de vie d'une demande d'autorisation :
 
-| Step | Who     | What happens                                                                            |
-| ---- | ------- | --------------------------------------------------------------------------------------- |
-| 1    | Model   | Produces a tool call                                                                    |
-| 2    | Harness | Checks it against the [permission mode](#permission-mode) and any saved approvals |
-| 3    | Harness | Pre-approved: executes immediately. Otherwise: pauses and shows the request             |
-| 4    | User    | Approves once, approves for the rest of the [session](#session), or denies          |
-| 5    | Harness | Executes the call, or sends the denial back as a tool result                            |
+| Étape | Acteur | Ce qui se produit |
+| ----- | ------ | ----------------- |
+| 1 | Modèle | Produit un appel d'outil |
+| 2 | Harnais | Le vérifie selon le [mode d'autorisation](#permission-mode) et les approbations enregistrées |
+| 3 | Harnais | S'il est préapprouvé, l'exécute immédiatement ; sinon, se met en pause et affiche la demande |
+| 4 | Utilisateur | Approuve une fois, approuve pour le reste de la [session](#session) ou refuse |
+| 5 | Harnais | Exécute l'appel ou renvoie le refus comme résultat d'outil |
 
-Denying a request steers the agent. The model reads the denial like any other tool result and reacts to it — it tries a different approach, or asks what you'd prefer. Most harnesses let you attach a message to the denial, which turns the request into a steering point: "not like that, use the migration script instead" lands exactly when the model is deciding what to do next.
+Refuser une demande permet de réorienter l'agent. Le modèle lit le refus comme n'importe quel autre résultat d'outil et réagit : il essaie une autre approche ou demande ce que vous préférez. La plupart des harnais permettent d'ajouter un message au refus, ce qui transforme la demande en point de pilotage : « pas comme ça, utilise plutôt le script de migration » arrive précisément au moment où le modèle décide de la suite.
 
-The cost is that every request is a synchronous wait on you. The [agent](#agent) sits blocked until you answer, which is fine while you're watching and a problem when you're not — an agent that triggers requests constantly can't be left to work [AFK](#afk). The permission mode is the dial: which calls run freely, which ask first, ideally with a [sandbox](#sandbox) making it safe to widen the free set.
+Le coût est que chaque demande impose une attente synchrone de votre part. L'[agent](#agent) reste bloqué jusqu'à votre réponse, ce qui est acceptable tant que vous le surveillez et problématique lorsque ce n'est pas le cas. Un agent qui déclenche constamment des demandes ne peut pas être laissé à travailler [AFK](#afk). Le mode d'autorisation sert de réglage : quels appels sont libres, lesquels demandent d'abord une décision, idéalement avec un [bac à sable](#sandbox) qui rend plus sûre l'extension des appels libres.
 
-_Usage:_
+_Utilisation :_
 
-"It's been blocked on a permission request for ten minutes — I was in a meeting."
+« Il est bloqué sur une demande d'autorisation depuis dix minutes : j'étais en réunion. »
 
-"That's the cost of human-in-the-loop. Pre-approve the safe [tools](#tool) so the request only fires on the actually-risky calls."
+« C'est le coût de l'humain dans la boucle. Préapprouvez les [outils](#tool) sûrs pour que la demande ne se déclenche que pour les appels réellement risqués. »
 
 <a id="permission-mode"></a>
 ### Mode d'autorisation
 
-The permission-gating slice of an [agent mode](#agent-mode) — which [tool calls](#tool-call) trigger a [permission request](#permission-request) and which run automatically. The original purpose of mode systems before [harnesses](#harness) started bundling behavioral instructions on top.
+La composante de contrôle des autorisations d'un [mode agent](#agent-mode) : elle détermine quels [appels d'outil](#tool-call) déclenchent une [demande d'autorisation](#permission-request) et lesquels s'exécutent automatiquement. C'était l'objectif originel des systèmes de modes avant que les [harnais](#harness) y ajoutent des instructions de comportement.
 
-Harnesses ship a ladder of these modes:
+Les harnais proposent une échelle de ces modes :
 
-| Mode               | Reads | Writes & shell         | Typical use                                     |
-| ------------------ | ----- | ---------------------- | ----------------------------------------------- |
-| Read-only / plan   | Auto  | Blocked                | Research, planning, reviewing                   |
-| Default            | Auto  | Ask                    | Day-to-day supervised work                      |
-| Auto-edit          | Auto  | Edits auto, shell asks | Trusted repos, mechanical changes               |
-| "Yolo" / full-auto | Auto  | Auto                   | [Sandboxes](#sandbox), [AFK](#afk) runs |
+| Mode | Lectures | Écritures et shell | Usage typique |
+| ---- | -------- | ------------------ | ------------- |
+| Lecture seule / plan | Automatiques | Bloquées | Recherche, planification, revue |
+| Par défaut | Automatiques | Demandent une autorisation | Travail quotidien supervisé |
+| Modification automatique | Automatiques | Modifications automatiques, shell sur demande | Dépôts fiables, changements mécaniques |
+| « Yolo » / entièrement automatique | Automatiques | Automatiques | [Bacs à sable](#sandbox), exécutions [AFK](#afk) |
 
-Choosing a rung is a trade between safety and interruption, and both failure modes are felt. Too tight, and you become the bottleneck: the [agent](#agent) stops every few seconds for harmless reads, you click approve on autopilot, and the approvals stop meaning anything — rubber-stamping is the worst of both worlds, all the interruption with none of the protection. Too loose, and the agent edits files and runs commands you'd have wanted to see first.
+Choisir un niveau implique un compromis entre sécurité et interruptions, et les deux extrêmes ont un coût. Trop restrictif, vous devenez le goulot d'étranglement : l'[agent](#agent) s'arrête toutes les quelques secondes pour des lectures inoffensives, vous cliquez sur approuver machinalement et les approbations perdent tout leur sens. L'approbation automatique systématique cumule les défauts : toutes les interruptions sans aucune protection. Trop permissif, l'agent modifie des fichiers et exécute des commandes que vous auriez voulu examiner d'abord.
 
-The loose end is most defensible inside a sandbox, where the blast radius of a bad [tool](#tool) call is contained. Outside one, most people settle on auto-approving reads and keeping a [human in the loop](#human-in-the-loop) for anything irreversible.
+Le réglage permissif se défend surtout dans un bac à sable, où le rayon d'action d'un mauvais appel d'[outil](#tool) est contenu. Hors de ce cadre, la plupart des personnes approuvent automatiquement les lectures et maintiennent un [humain dans la boucle](#human-in-the-loop) pour tout ce qui est irréversible.
 
-_Usage:_
+_Utilisation :_
 
-"It paused on every grep — totally killed the AFK run."
+« Il s'est arrêté sur chaque recherche `grep` : l'exécution AFK a été complètement gâchée. »
 
-"Loosen the permission mode for read-only tools, keep prompting on writes and shell. Most permission requests on a research [session](#session) are noise."
+« Assouplissez le mode d'autorisation pour les outils en lecture seule, mais continuez à demander une confirmation pour les écritures et le shell. Dans une [session](#session) de recherche, la plupart des demandes d'autorisation sont du bruit. »
 
 <a id="agent-mode"></a>
 ### Mode agent
 
-A preset that shapes how the [agent](#agent) operates at runtime — bundles a [permission mode](#permission-mode) with behavioral instructions injected into the [system prompt](#system-prompt). Examples: a default that prompts on risky calls, a **plan mode** that blocks edits and steers the agent toward research, an **accept-edits** mode that auto-approves edits, a **bypass permissions** mode (colloquially **YOLO mode**) that auto-approves everything. Can flip [mid-session](#session).
+Un préréglage qui définit le fonctionnement de l'[agent](#agent) à l'exécution : il associe un [mode d'autorisation](#permission-mode) à des instructions de comportement injectées dans le [prompt système](#system-prompt). Par exemple : un mode par défaut qui demande une confirmation pour les appels risqués, un **mode plan** qui bloque les modifications et oriente l'agent vers la recherche, un mode **accepter les modifications** qui les préapprouve, ou un mode **contourner les autorisations** appelé couramment **mode YOLO**, qui préapprouve tout. Il peut changer au cours d'une [session](#session).
 
-The bundling is what distinguishes a mode from a bare permission setting. A permission mode is only a gate: it decides which [tool calls](#tool-call) go through. A gate alone produces an agent that wants to edit but can't — it proposes the write, gets blocked, and tries another way. The injected instructions remove the want: plan mode doesn't just block edits, it tells the agent it's in a planning phase, so it reads, asks, and proposes instead of straining against the gate. Gate and steer point the same direction.
+Cette association distingue un mode d'un simple réglage d'autorisation. Un mode d'autorisation n'est qu'une barrière : il décide quels [appels d'outil](#tool-call) passent. Une barrière seule produit un agent qui souhaite modifier mais ne le peut pas : il propose l'écriture, est bloqué, puis essaie autrement. Les instructions injectées suppriment cette intention : le mode plan ne se contente pas de bloquer les modifications, il indique à l'agent qu'il est en phase de planification afin qu'il lise, pose des questions et propose une approche plutôt que de lutter contre la barrière. La barrière et l'orientation vont dans le même sens.
 
-In practice, you change mode as your trust changes over the course of a task. The same task can pass through several modes: plan mode while the approach is still being shaped, the prompting default for the first delicate edits, accept-edits once the agent has shown it understands the change, bypass for an [AFK](#afk) run inside a [sandbox](#sandbox). Changing mode costs you nothing: the conversation continues exactly where it was, with new permissions and new instructions. If you find yourself approving every prompt without reading it, the mode is set tighter than your actual trust; if you keep rejecting edits, it's set looser.
+En pratique, vous changez de mode à mesure que votre confiance évolue au cours de la tâche. Une même tâche peut traverser plusieurs modes : le mode plan pendant que l'approche prend forme, le mode par défaut avec confirmation pour les premières modifications délicates, l'acceptation des modifications lorsque l'agent a montré qu'il comprend le changement, puis le contournement lors d'une exécution [AFK](#afk) dans un [bac à sable](#sandbox). Changer de mode ne coûte rien : la conversation continue exactement où elle en était, avec de nouvelles autorisations et instructions. Si vous approuvez chaque demande sans la lire, le mode est plus restrictif que votre confiance réelle ; si vous refusez constamment des modifications, il est trop permissif.
 
-_Vendor terms:_ Claude Code calls these "permission modes," Codex calls them "approval modes" — both predate behavioral bundling.
+_Termes des fournisseurs :_ Claude Code appelle cela des « modes d'autorisation », Codex des « modes d'approbation » ; les deux expressions sont antérieures à l'ajout des consignes de comportement.
 
-_Usage:_
+_Utilisation :_
 
-"It keeps editing files when I just want a plan."
+« Il continue de modifier des fichiers alors que je veux seulement un plan. »
 
-"Switch to plan mode — it'll block writes and stay in research."
+« Passez au mode plan : il bloquera les écritures et restera dans la recherche. »
 
-"What about for the AFK run later?"
+« Et pour l'exécution AFK plus tard ? »
 
-"Bypass mode, but only inside the sandbox."
+« Le mode contournement, mais uniquement dans le bac à sable. »
 
 <a id="sandbox"></a>
 ### Bac à sable
 
-An isolated [environment](#environment) the [agent](#agent) runs inside — a container, VM, ephemeral [filesystem](#filesystem), or restricted-permission shell. Limits the blast radius of agent actions: even if the agent runs destructive commands or fetches something malicious, the damage is contained. The safety substrate that makes [AFK](#afk) practical.
+Un [environnement](#environment) isolé dans lequel s'exécute l'[agent](#agent) : conteneur, machine virtuelle, [système de fichiers](#filesystem) éphémère ou shell aux autorisations restreintes. Il limite le rayon d'action des actes de l'agent : même s'il exécute des commandes destructrices ou récupère un contenu malveillant, les dégâts restent contenus. C'est le socle de sécurité qui rend le travail [AFK](#afk) praticable.
 
-The sandbox and the [permission mode](#permission-mode) solve the same problem from opposite ends. Permissions ask before an action runs; a sandbox limits what the action can reach if it does run. Permissions need you running [in the loop](#human-in-the-loop) — every prompt is an interruption — and a session that asks constantly is barely autonomous. A sandbox spends infrastructure instead of attention: the stronger the isolation, the fewer questions need asking.
+Le bac à sable et le [mode d'autorisation](#permission-mode) résolvent le même problème par deux voies opposées. Les autorisations demandent une décision avant l'exécution d'une action ; le bac à sable limite ce que l'action peut atteindre si elle est exécutée. Les autorisations vous imposent de rester dans la [boucle](#human-in-the-loop), chaque demande est une interruption, et une session qui en demande constamment n'est presque plus autonome. Un bac à sable mobilise de l'infrastructure plutôt que votre attention : plus l'isolation est forte, moins il faut poser de questions.
 
-Isolation comes in grades:
+L'isolation se décline en plusieurs niveaux :
 
-| Grade            | What it is                                                 | What it contains                           |
-| ---------------- | ---------------------------------------------------------- | ------------------------------------------ |
-| Restricted shell | OS-level confinement around each command                   | Writes outside the project, network access |
-| Container        | Fresh filesystem, no credentials mounted, discarded after  | Anything the agent does to its own machine |
-| VM / cloud       | A separate machine entirely, often provided by the harness | Everything, including kernel-level escapes |
+| Niveau | Ce que c'est | Ce que cela contient |
+| ------ | ------------ | -------------------- |
+| Shell restreint | Confinement au niveau du système d'exploitation autour de chaque commande | Écritures hors du projet, accès réseau |
+| Conteneur | Système de fichiers neuf, sans identifiants montés, détruit ensuite | Tout ce que l'agent fait sur sa propre machine |
+| VM / cloud | Machine entièrement séparée, souvent fournie par le harnais | Tout, y compris les sorties au niveau du noyau |
 
-What no sandbox contains: actions that leave it legitimately. An agent with your git credentials can push; one with network access can call production APIs. Decide what crosses the boundary before deciding how thick to make it.
+Ce qu'aucun bac à sable ne contient : les actions qui en sortent légitimement. Un agent doté de vos identifiants Git peut pousser du code ; un agent qui a accès au réseau peut appeler des API de production. Décidez ce qui franchit la frontière avant de choisir son niveau d'étanchéité.
 
-_Usage:_
+_Utilisation :_
 
-"I want to let it run [bypass-permissions](#agent-mode) overnight but I'm not ready for that."
+« Je veux le laisser s'exécuter toute la nuit en [contournant les autorisations](#agent-mode), mais je ne suis pas encore prêt à cela. »
 
-"Put it in a sandbox — fresh container, no credentials mounted, no network out. Worst case it nukes its own filesystem and you discard the container."
+« Placez-le dans un bac à sable : conteneur neuf, aucun identifiant monté, aucune sortie réseau. Au pire, il détruit son propre système de fichiers et vous jetez le conteneur. »
 
 ## Section 4 — Modes de défaillance
 
 <a id="sycophancy"></a>
 ### Sycophantie
 
-Confidently agreeable [model](#model) output. Caused by [training](#training): the model was shaped to favor answers humans liked, and humans tend to like agreement more than they like being told they're wrong. So the model learned that agreeing is rewarded — even when the agreement is incorrect.
+Une sortie de [modèle](#model) qui acquiesce avec assurance. Elle provient de l'[entraînement](#training) : le modèle a été façonné pour privilégier les réponses appréciées par les humains, et les humains préfèrent souvent l'accord au fait qu'on leur dise qu'ils ont tort. Le modèle a donc appris que l'approbation est récompensée, même lorsqu'elle est incorrecte.
 
-_Surfaces as:_
+_Se manifeste par :_
 
-- _Caving under pushback_ — reverses a correct answer when you say "are you sure?".
-- _Praising bad input_ — agrees your broken plan is brilliant before analysing it.
-- _Biased framing_ — review skews positive when you signal you wrote it; negative when you signal someone else did. Same artifact, different verdict.
-- _Mimicry_ — repeats your mistakes back to you as confirmation.
+- _Céder face à une objection_ : abandonne une réponse correcte lorsque vous demandez « êtes-vous sûr ? ».
+- _Faire l'éloge d'une mauvaise proposition_ : déclare votre plan défaillant excellent avant de l'analyser.
+- _Cadrage biaisé_ : une revue devient positive lorsque vous indiquez en être l'auteur, négative lorsque vous dites que quelqu'un d'autre l'a écrite. Même artefact, verdict différent.
+- _Mimétisme_ : répète vos erreurs pour vous les présenter comme une confirmation.
 
-_Diagnostic test:_ would the model have said this without your steer? If the only thing that changed was your tone or framing, it's sycophancy, not a real shift in analysis.
+_Test de diagnostic :_ le modèle aurait-il dit cela sans votre influence ? Si seul votre ton ou votre cadrage a changé, il s'agit de sycophantie, non d'un véritable changement d'analyse.
 
-_Fix:_ hide your preferences. Phrase prompts neutrally — "review this code" not "is this code good?".
+_Correction :_ cachez vos préférences. Formulez les prompts de façon neutre : « examine ce code » plutôt que « ce code est-il bon ? ».
 
-_Avoid:_ using "sycophancy" for any wrong answer that happens to please you. Without the diagnostic test, the term has no more value than "wrong."
+_À éviter :_ employer « sycophantie » pour toute mauvaise réponse qui vous plaît. Sans le test de diagnostic, ce terme n'a pas plus de valeur que « faux ».
 
-_Usage:_
+_Utilisation :_
 
-"It said my refactor plan looked great, then I asked 'are you sure?' and it walked the whole thing back."
+« Il a dit que mon plan de refactorisation était excellent, puis j'ai demandé “êtes-vous sûr ?” et il a entièrement changé d'avis. »
 
-"Classic sycophancy — it agreed first because you sounded confident, then caved because you sounded doubtful. The plan's quality didn't change, your tone did. [Clear](#clearing) and re-ask without signalling either way."
+« C'est de la sycophantie classique : il a d'abord approuvé parce que vous paraissiez sûr de vous, puis il a cédé parce que vous sembliez douter. La qualité du plan n'a pas changé, seulement votre ton. [Réinitialisez](#clearing) et reposez la question sans orienter la réponse. »
 
 <a id="hallucination"></a>
 ### Hallucination
 
-Confidently-wrong [model](#model) output. Two flavors with different causes and fixes:
+Une sortie de [modèle](#model) assurée mais erronée. Elle prend deux formes aux causes et aux corrections différentes :
 
-| Flavor         | What goes wrong                                                                                                        | Cause                                                                                                                | Fix                                                                |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| _Factuality_   | Invented or wrong facts about the world — a function that doesn't exist, a wrong API signature, a fake citation        | [Parametric knowledge](#parametric-knowledge) gaps, often past the [knowledge cutoff](#knowledge-cutoff) | Load the right [contextual knowledge](#contextual-knowledge) |
-| _Faithfulness_ | Output drifts from the contextual knowledge that's loaded, the user's instructions, or the model's own prior reasoning | [Attention degradation](#attention-degradation); worsens in the [dumb zone](#smart-zone)                 | [Clear](#clearing) or [compact](#compaction)               |
+| Forme | Ce qui échoue | Cause | Correction |
+| ----- | ------------- | ----- | ---------- |
+| _Exactitude factuelle_ | Faits inventés ou faux sur le monde : fonction inexistante, signature d'API erronée, citation fictive | Lacunes de [connaissance paramétrique](#parametric-knowledge), souvent au-delà de la [date limite des connaissances](#knowledge-cutoff) | Charger la bonne [connaissance contextuelle](#contextual-knowledge) |
+| _Fidélité_ | La sortie dérive des connaissances contextuelles chargées, des instructions utilisateur ou du raisonnement antérieur du modèle | [Dégradation de l'attention](#attention-degradation), aggravée dans la [zone stupide](#smart-zone) | [Réinitialiser](#clearing) ou [compacter](#compaction) |
 
-[Next-token prediction](#next-token-prediction) produces fluent output whether or not the underlying fact is real — the model has no internal signal that it doesn't know something, so an invented method arrives in the same assured register as a correct one. Hallucinated code is plausible by construction: it's what the API _would_ look like if it existed, which is exactly what makes it slip past a skim-level review and fail only when run.
+La [prédiction du jeton suivant](#next-token-prediction) produit un texte fluide, que le fait sous-jacent soit réel ou non. Le modèle ne dispose d'aucun signal interne lui indiquant qu'il ignore quelque chose ; une méthode inventée est donc formulée avec la même assurance qu'une méthode correcte. Le code halluciné est plausible par construction : c'est l'apparence qu'aurait l'API si elle existait, ce qui lui permet de passer une revue superficielle et de n'échouer qu'à l'exécution.
 
-You need to know which flavor you're looking at, because the fix for one makes the other worse. Factuality means missing knowledge: the fix is adding context — the docs, the type definitions, the file. Faithfulness means the knowledge is present but losing the competition for attention: the fix is removing context. Misdiagnose faithfulness as factuality and you paste in more docs, which grows the context and makes the drift worse. When the agent gets something wrong, check whether the correct information was already in context before deciding which problem you have.
+Il faut déterminer quelle forme est en cause, car la correction de l'une aggrave l'autre. Un problème d'exactitude indique une connaissance manquante : il faut ajouter du contexte, la documentation, les définitions de types ou le fichier. Un problème de fidélité indique que la connaissance est présente mais perd la concurrence de l'attention : il faut retirer du contexte. Diagnostiquer la fidélité comme un problème d'exactitude conduit à coller davantage de documentation, ce qui augmente le contexte et aggrave la dérive. Lorsqu'un agent se trompe, vérifiez d'abord si l'information correcte était déjà dans le contexte.
 
-_Avoid:_ "hallucination" as a bare synonym for "wrong" — without naming the flavor, the term has no diagnostic value.
+_À éviter :_ employer « hallucination » comme simple synonyme de « faux ». Sans préciser la forme, le terme n'a aucune valeur de diagnostic.
 
-_Usage:_
+_Utilisation :_
 
-"It hallucinated a `parseAsync` method on the schema."
+« Il a halluciné une méthode `parseAsync` sur le schéma. »
 
-"Factuality or faithfulness?"
+« Problème d'exactitude ou de fidélité ? »
 
-"The method exists in the docs I pasted — it just stopped reading them after [turn](#turn) forty."
+« La méthode figure dans la documentation que j'ai collée, mais il a cessé de la lire après le quarantième [tour](#turn). »
 
-"Faithfulness then. Compact and reload, don't bother adding more docs."
+« C'est donc un problème de fidélité. Compactez et rechargez, n'ajoutez pas davantage de documentation. »
 
 <a id="parametric-knowledge"></a>
 ### Connaissance paramétrique
 
-What the [model](#model) "knows" from [training](#training), stored in its [parameters](#parameters). Frozen at training time — the model can't see its own parameters or update them. Detail is lost in the squeeze: billions of facts cram into a fixed number of parameters, and the rare ones blur. Source of fluency on common topics, and of fabrication on uncommon ones. Counterpart to [contextual knowledge](#contextual-knowledge).
+Ce que le [modèle](#model) « sait » grâce à l'[entraînement](#training), stocké dans ses [paramètres](#parameters). Cette connaissance est figée lors de l'entraînement : le modèle ne peut ni voir ses propres paramètres ni les mettre à jour. Les détails se perdent dans la compression : des milliards de faits sont condensés dans un nombre fixe de paramètres et les faits rares deviennent flous. Elle explique la fluidité sur les sujets courants et les inventions sur les sujets peu fréquents. C'est le pendant de la [connaissance contextuelle](#contextual-knowledge).
 
-Parametric knowledge is not stored as facts. Training never gives the model a database to look things up in; it adjusts parameters until the model predicts text well, and a model that predicts text about a topic well behaves as if it knows the topic. How reliable the knowledge is tracks how often something appeared in the training data: a topic with millions of examples is reproduced accurately, for a topic with only a handful, the model guesses based on what similar topics look like. Reproducing and guessing are the same process to the model, so it can't tell which one it's doing. A fabricated answer arrives with the same fluency as a correct one. [Hallucination](#hallucination) is the model guessing wrong.
+La connaissance paramétrique n'est pas stockée sous forme de faits. L'entraînement ne donne jamais au modèle une base de données dans laquelle chercher ; il ajuste les paramètres jusqu'à ce que le modèle prédise bien le texte, et un modèle qui prédit bien le texte d'un sujet se comporte comme s'il connaissait ce sujet. La fiabilité dépend de la fréquence d'apparition dans les données d'entraînement : un sujet avec des millions d'exemples est reproduit correctement, tandis que pour un sujet avec seulement quelques exemples, le modèle devine à partir de l'apparence de sujets similaires. Reproduire et deviner sont le même processus pour le modèle, qui ne peut pas savoir lequel il effectue. Une réponse inventée est aussi fluide qu'une réponse correcte. Une [hallucination](#hallucination) est simplement une erreur de devinette du modèle.
 
-Parametric knowledge also ages. The parameters stop changing at the [knowledge cutoff](#knowledge-cutoff), so a library released or renamed after that date doesn't exist in them, and an API that changed is remembered in its old form.
+La connaissance paramétrique vieillit également. Les paramètres cessent de changer à la [date limite des connaissances](#knowledge-cutoff) ; une bibliothèque publiée ou renommée après cette date n'y existe donc pas et une API modifiée y est mémorisée sous son ancienne forme.
 
-For both gaps — too rare and too recent — the remedy is the same: the knowledge can't be added to the parameters, so it has to be supplied as contextual knowledge instead.
+Pour les deux lacunes, trop rare ou trop récent, la correction est la même : la connaissance ne peut pas être ajoutée aux paramètres et doit être fournie sous forme de connaissance contextuelle.
 
-_Usage:_
+_Utilisation :_
 
-"It writes flawless React but invents methods on our internal SDK."
+« Il écrit du React impeccable, mais invente des méthodes sur notre SDK interne. »
 
-"React is dense in the parametric knowledge — millions of training examples. Your SDK isn't, so the model fills in plausible-looking shapes. Load the SDK docs into [context](#context)."
+« React est très présent dans la connaissance paramétrique, avec des millions d'exemples d'entraînement. Votre SDK ne l'est pas ; le modèle complète donc avec des structures plausibles. Chargez la documentation du SDK dans le [contexte](#context). »
 
 <a id="knowledge-cutoff"></a>
 ### Date limite des connaissances
 
-The date past which a [model](#model) has no [parametric knowledge](#parametric-knowledge). Libraries, APIs, and events from after the cutoff are fabrication traps unless their docs are loaded as [contextual knowledge](#contextual-knowledge). Each model release ships with its own cutoff.
+La date au-delà de laquelle un [modèle](#model) ne possède plus de [connaissance paramétrique](#parametric-knowledge). Les bibliothèques, API et événements postérieurs à cette limite sont propices aux inventions, à moins que leur documentation ne soit chargée comme [connaissance contextuelle](#contextual-knowledge). Chaque version d'un modèle possède sa propre date limite.
 
-The cutoff exists because of how models are made: [training](#training) bakes a snapshot of text into the model's [parameters](#parameters), and after that the parameters are frozen. The model doesn't know its knowledge has an edge — asked about something past the cutoff, it doesn't refuse, it extrapolates from the nearest thing it does know. That's what makes the trap quiet: code written against an old version of a library looks plausible, often compiles, and fails on the parts that changed.
+Cette limite existe du fait de la fabrication des modèles : l'[entraînement](#training) incorpore un instantané de texte dans les [paramètres](#parameters) du modèle, qui restent ensuite figés. Le modèle ne sait pas que ses connaissances ont une frontière : interrogé sur un élément postérieur, il ne refuse pas, il extrapole depuis l'élément le plus proche qu'il connaît. C'est ce qui rend le piège discret : un code écrit pour une ancienne version d'une bibliothèque paraît plausible, compile souvent et échoue dans les parties qui ont changé.
 
-The fix is always the same: get current information into [context](#context). Load the changelog, point at the installed version's type definitions, or have the agent read the docs from the web. Anything in context outranks nothing-in-parameters.
+La correction est toujours la même : placer l'information actuelle dans le [contexte](#context). Chargez le journal des modifications, indiquez les définitions de types de la version installée ou faites lire la documentation web à l'agent. Toute information présente dans le contexte l'emporte sur l'absence d'information dans les paramètres.
 
-_Usage:_
+_Utilisation :_
 
-"It keeps writing the v3 SDK syntax — we're on v5."
+« Il continue d'écrire la syntaxe du SDK v3, alors que nous utilisons la v5. »
 
-"v5 shipped after the knowledge cutoff. Load the v5 changelog as contextual knowledge, otherwise it'll keep fabricating from the older parametric version."
+« La v5 est sortie après la date limite des connaissances. Chargez son journal des modifications comme connaissance contextuelle, sinon il continuera d'inventer à partir de la version paramétrique plus ancienne. »
 
 <a id="contextual-knowledge"></a>
 ### Connaissance contextuelle
 
-Facts the [agent](#agent) can read directly from the [context](#context) right now — the user's task, files the agent has read in, [tool results](#tool-result), [AGENTS.md](#agentsmd) content loaded at [session](#session) start. Counterpart to [parametric knowledge](#parametric-knowledge): parametric is _recalled_ from the parameters; contextual is _read_ from the [window](#context-window). [Hallucinations](#hallucination) are much less common when the agent works from contextual knowledge — the answer is right in front of it, not dredged up from a blurred memory.
+Les faits que l'[agent](#agent) peut lire directement dans le [contexte](#context) à cet instant : la tâche de l'utilisateur, les fichiers lus par l'agent, les [résultats d'outil](#tool-result) et le contenu d'[AGENTS.md](#agentsmd) chargé au début de la [session](#session). C'est le pendant de la [connaissance paramétrique](#parametric-knowledge) : la première est _rappelée_ depuis les paramètres, la seconde est _lue_ dans la [fenêtre](#context-window). Les [hallucinations](#hallucination) sont bien moins fréquentes lorsque l'agent travaille à partir de connaissances contextuelles : la réponse se trouve devant lui, au lieu d'être extraite d'un souvenir flou.
 
-Of the two kinds of knowledge, only contextual knowledge is in your control. The parameters are frozen, so the only way to give the [model](#model) knowledge it lacks — an internal SDK, a library released after the [knowledge cutoff](#knowledge-cutoff), a decision made yesterday — is to put it in the context. A lot of practical [AI](#ai) coding work reduces to this: getting the right facts in front of the model at the moment it needs them.
+Parmi les deux formes de connaissance, seule la connaissance contextuelle est sous votre contrôle. Les paramètres sont figés ; l'unique moyen de donner au [modèle](#model) une information qui lui manque, SDK interne, bibliothèque sortie après la [date limite des connaissances](#knowledge-cutoff) ou décision prise hier, est de la placer dans le contexte. Une grande part du travail pratique de programmation avec l'[IA](#ai) revient à mettre les bons faits devant le modèle au moment où il en a besoin.
 
-When contextual and parametric knowledge conflict, the contextual usually wins. Paste the current API docs and the model follows them rather than its stale memory of the old API — though the old version can still bleed through, especially deep into a long session. If the agent keeps reverting to an outdated pattern despite the docs being loaded, that's parametric knowledge leaking past the contextual; restating the correction or moving it closer to the work helps.
+Lorsque connaissance contextuelle et connaissance paramétrique se contredisent, la première l'emporte généralement. Collez la documentation actuelle d'une API et le modèle la suivra plutôt que son souvenir périmé de l'ancienne API, même si cette ancienne version peut encore ressurgir, surtout au cœur d'une longue session. Si l'agent revient constamment à un motif obsolète malgré le chargement de la documentation, la connaissance paramétrique déborde sur la contextuelle ; répéter la correction ou la rapprocher du travail aide.
 
-Unlike parametric knowledge, contextual knowledge costs something to use. Everything loaded into the window spends [tokens](#token) and competes for the model's [attention budget](#attention-budget), so loading more is not automatically better — the aim is the relevant facts in the window, not all the facts.
+À la différence de la connaissance paramétrique, la connaissance contextuelle a un coût d'utilisation. Tout ce qui est chargé dans la fenêtre consomme des [jetons](#token) et entre en concurrence pour le [budget d'attention](#attention-budget) du modèle ; charger davantage n'est donc pas automatiquement meilleur. L'objectif est de placer les faits pertinents dans la fenêtre, non tous les faits.
 
-_Reach for this term_ only when contrasting with parametric knowledge; otherwise just say **context**.
+_Employez ce terme_ uniquement pour le distinguer de la connaissance paramétrique ; sinon, dites simplement **contexte**.
 
-_Avoid:_ "working memory" — contextual knowledge is what's in the window _now_; a [memory system](#memory-system) is what gets cross-session content into it. Different scales, don't conflate.
+_À éviter :_ « mémoire de travail » : la connaissance contextuelle est ce qui se trouve dans la fenêtre _maintenant_, tandis qu'un [système de mémoire](#memory-system) y place le contenu qui traverse les sessions. Les échelles sont différentes ; ne les confondez pas.
 
-_Usage:_
+_Utilisation :_
 
-"Why does it nail the API when I paste the docs and fabricate it when I don't?"
+« Pourquoi maîtrise-t-il l'API quand je colle la documentation et l'invente-t-il quand je ne le fais pas ? »
 
-"With the docs in, it's contextual knowledge — reading off the page. Without, it's parametric and the rare endpoints blur."
+« Avec la documentation, il s'agit de connaissance contextuelle : il lit la réponse. Sans elle, il s'appuie sur la connaissance paramétrique, et les points de terminaison rares deviennent flous. »
 
 <a id="attention-relationship"></a>
 ### Relation d'attention
 
-When predicting each [token](#token), the [model](#model) factors in every other token in the [context](#context) — some heavily, others barely at all. The pairing between two tokens is an **attention relationship**, and meaningful pairs ("her" with "Sarah", or a `getUser()` call with its `function getUser` definition) influence each other more than unrelated ones. A context of N tokens has on the order of N² relationships.
+Lorsqu'il prédit chaque [jeton](#token), le [modèle](#model) prend en compte tous les autres jetons du [contexte](#context), certains fortement, d'autres à peine. Le couplage entre deux jetons est une **relation d'attention** ; les paires significatives, comme « elle » et « Sarah » ou un appel `getUser()` et la définition `function getUser`, s'influencent davantage que les paires sans rapport. Un contexte de N jetons comporte de l'ordre de N² relations.
 
-The pairings are where the model's apparent understanding lives. When it resolves a pronoun, it's because the attention relationship between "her" and "Sarah" is strong. When it calls a function with the right arguments, the relationship between the call site and the definition it read earlier is doing the work. None of this is looked up — it's computed fresh on every [model provider request](#model-provider-request), for every pair.
+Ces couplages sont le lieu de la compréhension apparente du modèle. Lorsqu'il résout un pronom, c'est parce que la relation d'attention entre « elle » et « Sarah » est forte. Lorsqu'il appelle une fonction avec les bons arguments, la relation entre le site d'appel et la définition lue auparavant effectue le travail. Rien n'est recherché : tout est calculé à nouveau, pour chaque paire, dans chaque [requête au fournisseur de modèles](#model-provider-request).
 
-The N² figure is worth sitting with, because it grows faster than intuition suggests:
+La valeur N² mérite attention, car elle croît plus vite que ne le suggère l'intuition :
 
-| Context size   | Pairings (~N²) |
-| -------------- | -------------- |
-| 1,000 tokens   | ~1 million     |
-| 10,000 tokens  | ~100 million   |
-| 100,000 tokens | ~10 billion    |
+| Taille du contexte | Couplages (~N²) |
+| ------------------ | --------------- |
+| 1 000 jetons | ~1 million |
+| 10 000 jetons | ~100 millions |
+| 100 000 jetons | ~10 milliards |
 
-Each pairing is also computed more than once. Models have multiple attention heads — exact counts for frontier models are unpublished, but fifty to a hundred is a reasonable guess — and each head computes its own version of every relationship. So every pairing in the table above is duplicated across every head. That's a lot of pairings.
+Chaque couplage est calculé plus d'une fois. Les modèles possèdent plusieurs têtes d'attention, dont le nombre exact pour les modèles de pointe n'est pas publié, mais dont une estimation de cinquante à cent est raisonnable ; chaque tête calcule sa propre version de chaque relation. Chaque couplage du tableau précédent est donc dupliqué dans chaque tête. Cela représente beaucoup de couplages.
 
-Only a small number of these relationships matter for any given task. The pairing between your instruction and the code it governs is one of a handful that count; almost everything else in the pool is noise. And the two grow at different rates: the relationships that matter stay roughly constant, while the total pool grows quadratically with context size. At 1,000 tokens, the pairing you care about is one in a million; at 100,000 tokens, it's one in ten billion. This is the arithmetic underneath the [attention budget](#attention-budget), and [attention degradation](#attention-degradation) is what it feels like when the relationships that matter get too thin a share.
+Seul un petit nombre de ces relations compte pour une tâche donnée. La relation entre votre instruction et le code qu'elle régit fait partie de celles qui importent ; presque tout le reste du bassin est du bruit. Or les deux ensembles ne croissent pas au même rythme : les relations importantes restent à peu près constantes, tandis que le volume total augmente quadratiquement avec la taille du contexte. Avec 1 000 jetons, la relation qui vous importe est une parmi un million ; avec 100 000 jetons, une parmi dix milliards. C'est l'arithmétique sous-jacente au [budget d'attention](#attention-budget), et la [dégradation de l'attention](#attention-degradation) est ce qui se produit lorsque les relations importantes reçoivent une part trop faible.
 
-_Usage:_
+_Utilisation :_
 
-"It keeps confusing the two `user` symbols across the diff — sounds like we're in the [dumb zone](#smart-zone)."
+« Il confond constamment les deux symboles `user` dans le diff : on dirait que nous sommes dans la [zone stupide](#smart-zone). »
 
-"Yeah, the attention relationship between each call site and its declaration is fighting the other one — same token shape, different bindings. Rename one and the pairings sharpen."
+« Oui, la relation d'attention entre chaque site d'appel et sa déclaration est en concurrence avec l'autre : même forme de jeton, liaisons différentes. Renommez l'un des deux et les relations deviendront plus nettes. »
 
 <a id="attention-budget"></a>
 ### Budget d'attention
 
-Each [token](#token) has a finite amount of influence to distribute across the rest of the [context](#context). Heavy influence on [one relationship](#attention-relationship) leaves less for others. The budget is per-token and doesn't grow when the context does, which is why long [sessions](#session) dilute.
+Chaque [jeton](#token) dispose d'une quantité finie d'influence à répartir sur le reste du [contexte](#context). Une forte influence sur [une relation](#attention-relationship) en laisse moins aux autres. Le budget est propre à chaque jeton et ne croît pas avec le contexte, ce qui explique la dilution dans les longues [sessions](#session).
 
-Think of it as signal and noise. Your instruction is a signal at fixed volume; every other token in the [context window](#context-window) is competing sound. The instruction never gets quieter — it's still there, character for character — but as the context grows, the room gets louder around it, and the signal-to-noise ratio drops. An instruction that was the loudest thing at 10k tokens of context is background hum at 150k. This is the mechanism behind [attention degradation](#attention-degradation): the model doesn't forget; the signal gets lost in the noise.
+On peut l'imaginer comme un rapport signal-bruit. Votre instruction est un signal de volume fixe ; tous les autres jetons de la [fenêtre de contexte](#context-window) sont des sons concurrents. L'instruction ne devient jamais plus faible, elle est toujours présente caractère pour caractère, mais à mesure que le contexte grandit, la pièce devient plus bruyante et le rapport signal-bruit diminue. Une instruction qui dominait un contexte de 10 000 jetons devient un bruit de fond à 150 000. C'est le mécanisme de la [dégradation de l'attention](#attention-degradation) : le modèle n'oublie pas, le signal se perd dans le bruit.
 
-The symptom reads as disobedience — the agent agreed to a constraint early on and then drifts from it, and re-pasting the constraint helps only briefly. The cause isn't the instruction; it's everything else in the window competing with it.
+Le symptôme ressemble à de la désobéissance : l'agent accepte une contrainte au début puis s'en éloigne, et recoller la contrainte ne l'aide que brièvement. La cause n'est pas l'instruction, mais tout ce qui entre en concurrence avec elle dans la fenêtre.
 
-What you can control is what goes into the context. Content that doesn't serve the task isn't neutral — it's noise over everything that does. Keep the window small, [clear](#clearing) when the accumulated context stops paying for itself, and restate the constraints that matter instead of trusting their early mention to hold.
+Ce que vous maîtrisez est ce qui entre dans le contexte. Un contenu qui ne sert pas la tâche n'est pas neutre : il ajoute du bruit par-dessus ce qui la sert. Gardez la fenêtre réduite, [réinitialisez](#clearing) lorsque le contexte accumulé ne compense plus son coût et reformulez les contraintes importantes plutôt que de compter sur le fait qu'elles aient été exprimées tôt.
 
-_Usage:_
+_Utilisation :_
 
-"Why does it keep ignoring the schema I pasted at the top?"
+« Pourquoi continue-t-il d'ignorer le schéma que j'ai collé au début ? »
 
-"We're well into the [dumb zone](#smart-zone) — every token's attention budget is fixed, but the context kept growing. The signal on the schema is now competing with thousands of newer tokens."
+« Nous sommes déjà bien dans la [zone stupide](#smart-zone) : le budget d'attention de chaque jeton est fixe, mais le contexte a continué de grandir. Le signal du schéma est maintenant en concurrence avec des milliers de jetons plus récents. »
 
 <a id="attention-degradation"></a>
 ### Dégradation de l'attention
 
-As a [session](#session) grows, each [token](#token)'s [attention budget](#attention-budget) is spread across more competitors. The signal on any one [meaningful relationship](#attention-relationship) shrinks; noise from irrelevant [context](#context) crowds in. Same [model](#model), same [parameters](#parameters) — just more mouths to feed from the same plate. Cause of the smart zone / dumb [zone effect](#smart-zone).
+À mesure qu'une [session](#session) grandit, le [budget d'attention](#attention-budget) de chaque [jeton](#token) se répartit entre davantage de concurrents. Le signal porté par une [relation significative](#attention-relationship) donnée faiblit, tandis que le bruit d'un [contexte](#context) non pertinent s'impose. Même [modèle](#model), mêmes [paramètres](#parameters), mais davantage d'éléments à nourrir avec les mêmes ressources. C'est la cause de l'effet des [zones](#smart-zone) intelligente et stupide.
 
-It presents as the model getting worse mid-session: constraints it followed for an hour start slipping, it re-asks things it was told, it writes code that ignores a file it read earlier. Nothing about the model changed — the only variable is how much context it's now attending over.
+Elle se manifeste par une dégradation du modèle au cours de la session : des contraintes respectées pendant une heure commencent à être oubliées, il redemande des choses qui lui ont été dites ou écrit du code qui ignore un fichier lu précédemment. Rien dans le modèle n'a changé ; la seule variable est le volume de contexte auquel il doit maintenant prêter attention.
 
-It's gradual, which is what makes it hard to catch from inside the session. There's no error and no threshold; each [turn](#turn) is only slightly worse than the last, and by the time the slips are obvious you've been in the dumb zone for a while.
+Le phénomène est progressif, ce qui rend sa détection difficile de l'intérieur d'une session. Il n'existe ni erreur ni seuil : chaque [tour](#turn) est à peine moins bon que le précédent et, quand les écarts deviennent évidents, vous êtes déjà dans la zone stupide depuis un moment.
 
-You recover by removing context, not adding more. Re-pasting the ignored instruction adds another competitor to the same crowded window and helps only briefly. What works: [clear](#clearing) and reload only what the task needs, or [compact](#compaction), or [hand off](#handoff) to a fresh session. Treat declining instruction-following as a signal about context length, not about the model.
+La récupération passe par le retrait de contexte, non par son ajout. Recoller l'instruction ignorée ajoute un concurrent dans la même fenêtre surchargée et n'aide que brièvement. Ce qui fonctionne : [réinitialiser](#clearing) et ne recharger que ce dont la tâche a besoin, [compacter](#compaction) ou faire un [passage de relais](#handoff) vers une session neuve. Interprétez le recul du suivi des instructions comme un signal sur la longueur du contexte, pas sur le modèle.
 
-_Usage:_
+_Utilisation :_
 
-"It's deep in the dumb zone — inventing generics that aren't in the type file."
+« Il est profondément dans la zone stupide : il invente des génériques qui n'existent pas dans le fichier de types. »
 
-"Attention degradation. The type definitions are still in context, but the signal on them is buried under everything we've added since. Clear and reload."
+« C'est de la dégradation de l'attention. Les définitions de types sont toujours dans le contexte, mais leur signal est enfoui sous tout ce que nous avons ajouté depuis. Réinitialisez et rechargez. »
 
 <a id="smart-zone"></a>
 ### Zone intelligente
 
-Early in a [session](#session) the [agent](#agent) is in a "smart zone" — sharp, focused, recall is good. As the session grows it drifts into a "dumb zone": sloppier, forgetful, more mistakes — and more faithfulness [hallucinations](#hallucination). Same [model](#model), same [harness](#harness) — just more [context](#context). The felt effect of [attention degradation](#attention-degradation). On frontier models, the dumb zone commonly begins around 125K-150K [tokens](#token) — though this is debated. [Clear](#clearing) or [compact](#compaction) when the session bloats; don't push through.
+Au début d'une [session](#session), l'[agent](#agent) se trouve dans une « zone intelligente » : il est vif, concentré et se rappelle bien les éléments pertinents. À mesure que la session grandit, il dérive vers une « zone stupide » : il devient moins rigoureux, oublie davantage, fait plus d'erreurs et produit plus d'[hallucinations](#hallucination) de fidélité. Même [modèle](#model), même [harnais](#harness), seulement davantage de [contexte](#context). C'est l'effet ressenti de la [dégradation de l'attention](#attention-degradation). Pour les modèles de pointe, la zone stupide commence souvent autour de 125 000 à 150 000 [jetons](#token), même si cette estimation est discutée. [Réinitialisez](#clearing) ou [compactez](#compaction) lorsque la session enfle ; n'insistez pas.
 
-The decline is gradual, which makes it easy to miss. There's no error message and no visible boundary; the agent just starts performing slightly worse, then noticeably worse. Common signs: it forgets an instruction you gave twenty turns ago, repeats a mistake it had already corrected, or confidently asserts something the context contradicts. Because the slide is smooth, the usual response is to push through and re-explain — which adds more context and makes the problem worse.
+La dégradation est graduelle, donc facile à manquer. Aucun message d'erreur ni frontière visible n'apparaît ; l'agent commence simplement à être un peu moins performant, puis nettement moins performant. Les signes courants sont l'oubli d'une instruction donnée vingt tours plus tôt, la répétition d'une erreur déjà corrigée ou l'affirmation assurée d'une chose contredite par le contexte. Comme la pente est douce, la réaction habituelle est de continuer et de réexpliquer, ce qui ajoute du contexte et aggrave le problème.
 
-The zones don't track the [context window](#context-window) limit. A session can be deep in the dumb zone with most of the window still free: the limit is where the harness refuses to continue, but quality falls off long before that. Plan around the smart zone, not the window — the practical budget for a task is the tokens the agent works well within, not the tokens it can technically hold.
+Les zones ne suivent pas la limite de la [fenêtre de contexte](#context-window). Une session peut être profondément dans la zone stupide alors que la majeure partie de la fenêtre est encore disponible : la limite est le point où le harnais refuse de continuer, mais la qualité diminue bien avant. Planifiez selon la zone intelligente, non selon la fenêtre. Le budget pratique d'une tâche est le nombre de jetons dans lequel l'agent travaille bien, pas celui qu'il peut techniquement contenir.
 
-The smart zone is a budget, and unrelated work spends it. Every task done in a session uses up tokens, so starting a second task in the same session means starting it closer to the dumb zone. Doing one task per session gives each task the sharpest part of the session. When a single task is bigger than one smart zone, split it: [hand off](#handoff) or compact at a natural boundary, and let a fresh session do the next piece.
+La zone intelligente est un budget, et le travail sans rapport le dépense. Chaque tâche effectuée dans une session consomme des jetons ; commencer une seconde tâche dans cette session revient donc à la commencer plus près de la zone stupide. Une tâche par session donne à chacune la partie la plus vive de la session. Lorsqu'une seule tâche dépasse la taille d'une zone intelligente, découpez-la : faites un [passage de relais](#handoff) ou compactez à une frontière naturelle, puis laissez une session neuve traiter la suite.
 
-_Usage:_
+_Utilisation :_
 
-"It nailed the first three components and just butchered the fourth."
+« Il a parfaitement réussi les trois premiers composants et a complètement raté le quatrième. »
 
-"You're out of the smart zone — same model, just deep into the dumb zone now. Compact and reload the plan, the next component will land."
+« Vous avez quitté la zone intelligente : c'est le même modèle, mais il est maintenant profond dans la zone stupide. Compactez et rechargez le plan ; le composant suivant sera mieux traité. »
 
 ## Section 5 — Passages de relais
 
