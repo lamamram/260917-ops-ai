@@ -464,19 +464,19 @@ _Utilisation :_
 <a id="context-window"></a>
 ### Fenêtre de contexte
 
-Everything the [model](#model) sees on each [model provider request](#model-provider-request). Finite, model-specific, and the _only_ surface through which the model perceives anything.
+Tout ce que le [modèle](#model) voit lors de chaque [requête au fournisseur de modèles](#model-provider-request). Elle est finie, propre à chaque modèle, et constitue la seule surface par laquelle le modèle perçoit quoi que ce soit.
 
-It's a single sequence of [tokens](#token): the [system prompt](#system-prompt), the conversation so far, every [tool result](#tool-result) the [harness](#harness) has fed back in. If something is in that sequence, the model can use it; if it isn't, the model doesn't know it exists — not your codebase, not the file you edited yesterday, not the instruction you gave three sessions ago. Anything outside the window has to be brought in, usually via a [tool call](#tool-call), before it can affect anything.
+C'est une séquence unique de [jetons](#token) : le [prompt système](#system-prompt), la conversation jusqu'alors et chaque [résultat d'outil](#tool-result) que le [harnais](#harness) a réinjecté. Si un élément se trouve dans cette séquence, le modèle peut l'utiliser ; sinon, il ignore son existence, qu'il s'agisse de votre base de code, du fichier modifié hier ou d'une instruction donnée trois sessions auparavant. Tout ce qui est hors de la fenêtre doit y être introduit, généralement par un [appel d'outil](#tool-call), avant de pouvoir influer sur quoi que ce soit.
 
-Finite means it fills up. Every turn appends more — your messages, the model's responses, tool results — and a long [session](#session) will eventually hit the limit, forcing [compaction](#compaction) or [clearing](#clearing). It also means everything in the window competes: each token you load is one less available for the rest, and content you didn't need still occupies the model's [attention](#attention-budget). The practical stance is to treat the window as a budget — load what the task needs, leave the rest out.
+Le caractère fini implique qu'elle se remplit. Chaque tour ajoute du contenu, vos messages, les réponses du modèle et les résultats d'outil, et une longue [session](#session) finit par atteindre la limite, imposant une [compaction](#compaction) ou une [réinitialisation](#clearing). Cela signifie aussi que tous les éléments de la fenêtre sont en concurrence : chaque jeton chargé laisse une place de moins au reste, et le contenu inutile occupe malgré tout le [budget d'attention](#attention-budget) du modèle. Considérez donc la fenêtre comme un budget : chargez ce dont la tâche a besoin et laissez le reste de côté.
 
-_Avoid:_ "memory" — the context window is working state and doesn't persist across sessions. [Memory](#memory-system) is a separate concept layered on top.
+_À éviter :_ « mémoire » : la fenêtre de contexte est un état de travail et ne persiste pas entre les sessions. La [mémoire](#memory-system) est un concept distinct, ajouté par-dessus.
 
-_Usage:_
+_Utilisation :_
 
-"Can I just paste the whole monorepo into the prompt?"
+« Puis-je simplement coller tout le monorepo dans le prompt ? »
 
-"The context window's 200k tokens — that's maybe a fifth of the repo. Pick the files the task touches, leave the rest behind a tool call."
+« La fenêtre de contexte contient 200 000 jetons, soit peut-être un cinquième du dépôt. Choisissez les fichiers concernés par la tâche et laissez les autres derrière un appel d'outil. »
 
 <a id="stateful"></a>
 ### Avec état
