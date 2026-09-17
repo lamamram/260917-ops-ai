@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="430" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Workflow plan / implémente / vérifie avec sous-agents</text>
+
+  <!-- Cadrage -->
+  <rect x="40" y="70" width="180" height="90" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="130" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#1f883d">1. Cadrage</text>
+  <text x="130" y="118" text-anchor="middle" font-size="11" fill="#57606a">besoin, limites, critères</text>
+  <text x="130" y="134" text-anchor="middle" font-size="11" fill="#57606a">d'acceptation</text>
+  <text x="130" y="152" text-anchor="middle" font-size="11" fill="#57606a">lecture seule</text>
+
+  <line x1="220" y1="115" x2="260" y2="115" stroke="#57606a" stroke-width="2"/>
+  <polygon points="260,115 250,109 250,121" fill="#57606a"/>
+
+  <!-- Plan -->
+  <rect x="265" y="70" width="180" height="90" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="355" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#1f883d">2. Plan</text>
+  <text x="355" y="118" text-anchor="middle" font-size="11" fill="#57606a">étapes, tests prévus,</text>
+  <text x="355" y="134" text-anchor="middle" font-size="11" fill="#57606a">aucune modification</text>
+  <text x="355" y="152" text-anchor="middle" font-size="11" fill="#57606a">validé par l'humain</text>
+
+  <line x1="445" y1="115" x2="485" y2="115" stroke="#57606a" stroke-width="2"/>
+  <polygon points="485,115 475,109 475,121" fill="#57606a"/>
+
+  <!-- Génération -->
+  <rect x="490" y="70" width="180" height="90" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <text x="580" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#bc4c00">3. Implémentation</text>
+  <text x="580" y="118" text-anchor="middle" font-size="11" fill="#57606a">sous-agent de génération,</text>
+  <text x="580" y="134" text-anchor="middle" font-size="11" fill="#57606a">skill bash défensif,</text>
+  <text x="580" y="152" text-anchor="middle" font-size="11" fill="#57606a">écriture dans le dépôt</text>
+
+  <line x1="670" y1="115" x2="710" y2="115" stroke="#57606a" stroke-width="2"/>
+  <polygon points="710,115 700,109 700,121" fill="#57606a"/>
+
+  <!-- Consolidation -->
+  <rect x="715" y="70" width="130" height="90" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="780" y="98" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">4. Consolidation</text>
+  <text x="780" y="118" text-anchor="middle" font-size="11" fill="#57606a">l'agent principal</text>
+  <text x="780" y="134" text-anchor="middle" font-size="11" fill="#57606a">applique les</text>
+  <text x="780" y="150" text-anchor="middle" font-size="11" fill="#57606a">corrections retenues</text>
+
+  <!-- Revues parallèles -->
+  <rect x="240" y="200" width="430" height="90" rx="10" fill="#f0f6ff" stroke="#0969da" stroke-width="2"/>
+  <text x="455" y="226" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">5. Revue parallèle — sous-agents en lecture seule</text>
+
+  <rect x="255" y="238" width="120" height="42" rx="6" fill="#ffffff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="315" y="263" text-anchor="middle" font-size="11" fill="#57606a">portabilité POSIX</text>
+
+  <rect x="390" y="238" width="120" height="42" rx="6" fill="#ffffff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="450" y="263" text-anchor="middle" font-size="11" fill="#57606a">tests Bats</text>
+
+  <rect x="525" y="238" width="120" height="42" rx="6" fill="#ffffff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="585" y="263" text-anchor="middle" font-size="11" fill="#57606a">ShellCheck</text>
+
+  <text x="663" y="263" font-size="11" fill="#57606a">…</text>
+
+  <!-- Flèches verticales -->
+  <line x1="580" y1="160" x2="455" y2="196" stroke="#57606a" stroke-width="2"/>
+  <polygon points="455,196 465,192 462,204" fill="#57606a"/>
+  <line x1="780" y1="160" x2="700" y2="196" stroke="#57606a" stroke-width="2"/>
+  <polygon points="700,196 710,192 707,204" fill="#57606a"/>
+
+  <!-- Validation -->
+  <rect x="240" y="330" width="430" height="70" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="455" y="356" text-anchor="middle" font-size="13" font-weight="700" fill="#1f883d">6. Validation finale</text>
+  <text x="455" y="378" text-anchor="middle" font-size="11" fill="#57606a">bash -n · shellcheck · bats · cible isolée — puis revue humaine du diff</text>
+
+  <line x1="455" y1="290" x2="455" y2="326" stroke="#57606a" stroke-width="2"/>
+  <polygon points="455,326 449,316 461,316" fill="#57606a"/>
+
+  <!-- Boucle itération -->
+  <path d="M 130 160 C 130 300 200 340 236 336" fill="none" stroke="#bc4c00" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <polygon points="236,336 227,330 224,342" fill="#bc4c00"/>
+  <text x="150" y="290" font-size="11" fill="#bc4c00">itération : corrections,</text>
+  <text x="150" y="306" font-size="11" fill="#bc4c00">nouveau cycle</text>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 360" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">La boucle copilote : proposition, vérification, tests</text>
+
+  <!-- Administrateur (à gauche) -->
+  <rect x="40" y="140" width="170" height="90" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="125" y="172" text-anchor="middle" font-size="14" font-weight="700" fill="#1f883d">Administrateur</text>
+  <text x="125" y="192" text-anchor="middle" font-size="12" fill="#57606a">décide, arbitre, valide</text>
+  <text x="125" y="210" text-anchor="middle" font-size="11" fill="#57606a">garde sécurité et architecture</text>
+
+  <!-- Flèche 1 : besoin -> IA -->
+  <line x1="215" y1="160" x2="320" y2="160" stroke="#57606a" stroke-width="2"/>
+  <polygon points="320,160 310,154 310,166" fill="#57606a"/>
+  <text x="267" y="148" text-anchor="middle" font-size="11" fill="#57606a">1. besoin exprimé</text>
+
+  <!-- IA (au centre) -->
+  <rect x="325" y="130" width="230" height="110" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <rect x="325" y="130" width="10" height="110" rx="5" fill="#f0883e"/>
+  <text x="445" y="158" text-anchor="middle" font-size="14" font-weight="700" fill="#bc4c00">Assistant IA</text>
+  <text x="445" y="178" text-anchor="middle" font-size="12" fill="#57606a">propose un script, un correctif,</text>
+  <text x="445" y="194" text-anchor="middle" font-size="12" fill="#57606a">de la documentation, un refactoring</text>
+  <text x="445" y="216" text-anchor="middle" font-size="11" fill="#57606a">jamais de décision seule</text>
+
+  <!-- Flèche 2 : proposition -> vérification -->
+  <line x1="560" y1="160" x2="665" y2="160" stroke="#57606a" stroke-width="2"/>
+  <polygon points="665,160 655,154 655,166" fill="#57606a"/>
+  <text x="612" y="148" text-anchor="middle" font-size="11" fill="#57606a">2. proposition</text>
+
+  <!-- Vérification (à droite) -->
+  <rect x="670" y="130" width="170" height="50" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="755" y="151" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">3. vérification</text>
+  <text x="755" y="169" text-anchor="middle" font-size="11" fill="#57606a">lecture, revue du diff</text>
+
+  <rect x="670" y="190" width="170" height="50" rx="10" fill="#ffffff" stroke="#8250df" stroke-width="2"/>
+  <text x="755" y="211" text-anchor="middle" font-size="13" font-weight="700" fill="#8250df">4. tests</text>
+  <text x="755" y="229" text-anchor="middle" font-size="11" fill="#57606a">bash -n, ShellCheck, Bats</text>
+
+  <!-- Flèche verticale tests -> admin -->
+  <path d="M 670 215 C 480 300 300 300 125 235" fill="none" stroke="#1f883d" stroke-width="2"/>
+  <polygon points="125,235 135,231 132,245" fill="#1f883d"/>
+  <text x="400" y="310" text-anchor="middle" font-size="12" font-weight="600" fill="#1f883d">5. décision : adopter, ajuster ou refuser</text>
+
+  <!-- Boucle retour vers l'IA -->
+  <path d="M 125 140 C 300 60 460 60 445 125" fill="none" stroke="#57606a" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <polygon points="445,125 438,115 452,116" fill="#57606a"/>
+  <text x="290" y="78" text-anchor="middle" font-size="11" fill="#57606a">6. consignes de correction, nouvelle itération</text>
+
+  <!-- Légende -->
+  <rect x="40" y="330" width="800" height="18" fill="none"/>
+  <text x="440" y="344" text-anchor="middle" font-size="12" fill="#57606a">L'IA propose ; l'administrateur dispose. Les opérations sensibles restent sous contrôle humain.</text>
+</svg>

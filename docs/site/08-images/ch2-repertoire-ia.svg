@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="430" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Le répertoire « ia/ » : patrimoine de prompts de l'équipe</text>
+
+  <!-- Dépôt de l'équipe -->
+  <rect x="20" y="60" width="840" height="360" rx="12" fill="#ffffff" stroke="#1f2328" stroke-width="2"/>
+  <text x="440" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2328">depot-equipe/ (versionné, revu, ouvert à tous)</text>
+
+  <!-- Colonne ia/prompts -->
+  <rect x="45" y="110" width="250" height="290" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="170" y="136" text-anchor="middle" font-size="13" font-weight="700" fill="#1f883d">ia/prompts/</text>
+  <text x="60" y="166" font-size="12" fill="#57606a" font-family="Consolas, monospace">nouveau-script.md</text>
+  <text x="60" y="184" font-size="11" fill="#57606a">gabarit de script défensif</text>
+  <text x="60" y="208" font-size="12" fill="#57606a" font-family="Consolas, monospace">revue-shell.md</text>
+  <text x="60" y="226" font-size="11" fill="#57606a">rapport fichier/problème/impact</text>
+  <text x="60" y="250" font-size="12" fill="#57606a" font-family="Consolas, monospace">doc-script.md</text>
+  <text x="60" y="268" font-size="11" fill="#57606a">en-tête standard du dépôt</text>
+  <text x="60" y="292" font-size="12" fill="#57606a" font-family="Consolas, monospace">diagnostic-service.md</text>
+  <text x="60" y="310" font-size="11" fill="#57606a">plan de diagnostic guidé</text>
+  <text x="60" y="346" font-size="11" fill="#1f883d">un prompt = un cas d'usage</text>
+  <text x="60" y="362" font-size="11" fill="#1f883d">l'argument $ARGUMENTS</text>
+  <text x="60" y="378" font-size="11" fill="#1f883d">reste le seul point libre</text>
+
+  <!-- Colonne gabarits -->
+  <rect x="320" y="110" width="250" height="290" rx="10" fill="#f0f6ff" stroke="#0969da" stroke-width="2"/>
+  <text x="445" y="136" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">ia/gabarits/</text>
+  <text x="335" y="166" font-size="12" fill="#57606a" font-family="Consolas, monospace">ticket-intervention.md</text>
+  <text x="335" y="184" font-size="11" fill="#57606a">symptôme, cause, action, retour</text>
+  <text x="335" y="208" font-size="12" fill="#57606a" font-family="Consolas, monospace">pull-request.md</text>
+  <text x="335" y="226" font-size="11" fill="#57606a">contexte, changements, tests</text>
+  <text x="335" y="250" font-size="12" fill="#57606a" font-family="Consolas, monospace">doc-runbook.md</text>
+  <text x="335" y="268" font-size="11" fill="#57606a">procédure d'exploitation</text>
+  <text x="335" y="292" font-size="12" fill="#57606a" font-family="Consolas, monospace">postmortem.md</text>
+  <text x="335" y="310" font-size="11" fill="#57606a">chronologie, causes, mesures</text>
+  <text x="335" y="346" font-size="11" fill="#0969da">générés par l'agent, relus</text>
+  <text x="335" y="362" font-size="11" fill="#0969da">par un humain, versionnés</text>
+  <text x="335" y="378" font-size="11" fill="#0969da">comme du code</text>
+
+  <!-- Colonne CI/CD -->
+  <rect x="595" y="110" width="240" height="290" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <text x="715" y="136" text-anchor="middle" font-size="13" font-weight="700" fill="#bc4c00">Qualité continue (CI/CD)</text>
+  <text x="610" y="166" font-size="11" fill="#57606a">• ShellCheck à chaque commit</text>
+  <text x="610" y="188" font-size="11" fill="#57606a">• bash -n sur tous les scripts</text>
+  <text x="610" y="210" font-size="11" fill="#57606a">• tests Bats du dépôt</text>
+  <text x="610" y="232" font-size="11" fill="#57606a">• revue de PR (humaine)</text>
+  <text x="610" y="254" font-size="11" fill="#57606a">• hooks locaux identiques</text>
+  <text x="610" y="276" font-size="11" fill="#57606a">  à la CI — mêmes verdicts</text>
+  <text x="610" y="310" font-size="11" fill="#bc4c00">Le dépôt reste la source</text>
+  <text x="610" y="326" font-size="11" fill="#bc4c00">de vérité : ce qui n'est pas</text>
+  <text x="610" y="342" font-size="11" fill="#bc4c00">dans ia/ n'existe pas pour</text>
+  <text x="610" y="358" font-size="11" fill="#bc4c00">l'équipe.</text>
+
+  <!-- Flèches -->
+  <line x1="295" y1="255" x2="320" y2="255" stroke="#57606a" stroke-width="2"/>
+  <polygon points="320,255 310,249 310,261" fill="#57606a"/>
+  <line x1="570" y1="255" x2="595" y2="255" stroke="#57606a" stroke-width="2"/>
+  <polygon points="595,255 585,249 585,261" fill="#57606a"/>
+</svg>

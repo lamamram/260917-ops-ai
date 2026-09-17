@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 430" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="430" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Dépôt d'administration préparé pour l'agent</text>
+
+  <!-- Racine du dépôt -->
+  <rect x="60" y="60" width="760" height="350" rx="12" fill="#ffffff" stroke="#1f2328" stroke-width="2"/>
+  <text x="440" y="86" text-anchor="middle" font-size="14" font-weight="700" fill="#1f2328">depot-admin/</text>
+
+  <!-- Colonne gauche : code et docs -->
+  <rect x="85" y="105" width="230" height="280" rx="8" fill="#f0f6ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="200" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">Le travail réel</text>
+  <text x="100" y="160" font-size="12" fill="#57606a" font-family="Consolas, monospace">scripts/</text>
+  <text x="115" y="178" font-size="11" fill="#57606a">scripts Bash, Playbooks…</text>
+  <text x="100" y="200" font-size="12" fill="#57606a" font-family="Consolas, monospace">tests/</text>
+  <text x="115" y="218" font-size="11" fill="#57606a">tests Bats, fixtures</text>
+  <text x="100" y="240" font-size="12" fill="#57606a" font-family="Consolas, monospace">docs/</text>
+  <text x="115" y="258" font-size="11" fill="#57606a">procédures, runbooks</text>
+  <text x="100" y="280" font-size="12" fill="#57606a" font-family="Consolas, monospace">README.md</text>
+  <text x="115" y="298" font-size="11" fill="#57606a">but du dépôt, prise en main</text>
+  <text x="100" y="320" font-size="12" fill="#57606a" font-family="Consolas, monospace">.gitignore</text>
+  <text x="115" y="338" font-size="11" fill="#57606a">.env exclu du versionnement</text>
+
+  <!-- Colonne centre : fichiers de contexte -->
+  <rect x="340" y="105" width="230" height="280" rx="8" fill="#eaf5ea" stroke="#1f883d" stroke-width="1.5"/>
+  <text x="455" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#1f883d">Contexte de l'agent</text>
+  <text x="355" y="160" font-size="12" fill="#57606a" font-family="Consolas, monospace">CLAUDE.md</text>
+  <text x="370" y="178" font-size="11" fill="#57606a">feuille de route permanente :</text>
+  <text x="370" y="192" font-size="11" fill="#57606a">commandes, conventions, interdits</text>
+  <text x="355" y="216" font-size="12" fill="#57606a" font-family="Consolas, monospace">.claude/settings.json</text>
+  <text x="370" y="234" font-size="11" fill="#57606a">permissions allow / ask / deny</text>
+  <text x="355" y="258" font-size="12" fill="#57606a" font-family="Consolas, monospace">.claude/commands/*.md</text>
+  <text x="370" y="276" font-size="11" fill="#57606a">prompts standardisés d'équipe</text>
+  <text x="370" y="292" font-size="11" fill="#57606a">(commandes /slash maison)</text>
+  <text x="355" y="316" font-size="12" fill="#57606a" font-family="Consolas, monospace">.mcp.json</text>
+  <text x="370" y="334" font-size="11" fill="#57606a">serveurs MCP du projet</text>
+
+  <!-- Colonne droite : règles de conception -->
+  <rect x="595" y="105" width="200" height="280" rx="8" fill="#fff4e5" stroke="#f0883e" stroke-width="1.5"/>
+  <text x="695" y="130" text-anchor="middle" font-size="13" font-weight="700" fill="#bc4c00">Règles de conception</text>
+  <text x="610" y="160" font-size="11" fill="#57606a">CLAUDE.md court et déclaratif,</text>
+  <text x="610" y="176" font-size="11" fill="#57606a">pas de documentation collée</text>
+  <text x="610" y="200" font-size="11" fill="#57606a">Détails derrière des pointeurs :</text>
+  <text x="610" y="216" font-size="11" fill="#57606a">« voir docs/runbook-deploy.md »</text>
+  <text x="610" y="240" font-size="11" fill="#57606a">Nommage explicite :</text>
+  <text x="610" y="256" font-size="11" fill="#57606a">un nom = un rôle</text>
+  <text x="610" y="280" font-size="11" fill="#57606a">Secrets hors du dépôt,</text>
+  <text x="610" y="296" font-size="11" fill="#57606a">toujours via l'environnement</text>
+  <text x="610" y="320" font-size="11" fill="#57606a">README par sous-dossier</text>
+
+  <!-- Flèches entre colonnes -->
+  <line x1="315" y1="245" x2="340" y2="245" stroke="#57606a" stroke-width="2"/>
+  <polygon points="340,245 330,239 330,251" fill="#57606a"/>
+  <line x1="570" y1="245" x2="595" y2="245" stroke="#57606a" stroke-width="2"/>
+  <polygon points="595,245 585,239 585,251" fill="#57606a"/>
+</svg>

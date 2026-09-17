@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Claude Code pour les administrateurs : 📎 — Annexes">
+<title>📎 — Annexes</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Claude Code pour les administrateurs</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">📎</span><span class="txt">Annexes</span>
+  </a>
+  <div class="topbar-links">
+    
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('ressources-claude-code-pour-les-administrateurs')">Ressources — Claude Code pour les administrateurs</button>
+  <button class="" onclick="showTab('cheat-sheet-claude-code-pour-les-administrateurs')">Cheat sheet — Claude Code pour les administrateurs</button>
+  <button class="" onclick="showTab('glossaire-claude-code-pour-les-administrateurs')">Glossaire — Claude Code pour les administrateurs</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-ressources-claude-code-pour-les-administrateurs" class="tab-content active">
+<p>Documentation officielle uniquement, vérifiée au moment de la rédaction.
+Organisation par thème, dans l'ordre du support de cours.</p>
+<h2>Documentation Claude Code (Anthropic)</h2>
+<ul>
+<li>📖 Documentation officielle de Claude Code — https://code.claude.com/docs</li>
+<li>
+<p>📖 Configurer les permissions (règles allow / ask / deny, modes, portée) —
+  https://code.claude.com/docs/en/permissions</p>
+</li>
+<li>
+<p>📖 Fichiers de réglages et référence des paramètres —
+  https://code.claude.com/docs/en/settings et
+  https://code.claude.com/docs/en/settings-reference</p>
+</li>
+<li>
+<p>📖 Configurer le réseau et les proxys d'entreprise —
+  https://code.claude.com/docs/en/network-config</p>
+</li>
+<li>
+<p>📖 Dépannage de l'installation —
+  https://code.claude.com/docs/en/troubleshoot-install</p>
+</li>
+<li>
+<p>📖 Choisir et configurer le modèle —
+  https://code.claude.com/docs/en/model-config</p>
+</li>
+<li>
+<p>📖 Connecter une passerelle LLM d'entreprise —
+  https://code.claude.com/docs/en/llm-gateway-connect</p>
+</li>
+</ul>
+<h2>Isolation et bac à sable (jour 2)</h2>
+<ul>
+<li>
+<p>📖 Bac à sable intégré de Claude Code —
+  https://code.claude.com/docs/en/sandboxing</p>
+</li>
+<li>
+<p>📖 Choisir un environnement d'isolation (bac à sable intégré, runtime,
+  conteneurs, VM) — https://code.claude.com/docs/en/sandbox-environments</p>
+</li>
+<li>
+<p>📖 Docker Sandboxes (<code>sbx</code>) : installation officielle (macOS, Windows,
+  Ubuntu, KVM, winget) — https://docs.docker.com/ai/sandboxes/install/</p>
+</li>
+</ul>
+<h2>Extensions : skills, agents, plugins, MCP</h2>
+<ul>
+<li>📖 Skills de Claude Code — https://code.claude.com/docs/en/skills</li>
+<li>📖 Agents et sous-agents — https://code.claude.com/docs/en/sub-agents</li>
+<li>
+<p>📖 Plugins (skills, agents, commandes, hooks, MCP groupés) —
+  https://code.claude.com/docs/en/plugins</p>
+</li>
+<li>
+<p>📖 Modèle Context Protocol (MCP) — https://modelcontextprotocol.io</p>
+</li>
+<li>📖 Norme ouverte des Agent Skills (format SKILL.md) — https://agentskills.io</li>
+</ul>
+<h2>Qualité des scripts Bash</h2>
+<ul>
+<li>
+<p>📖 ShellCheck : analyse statique de scripts shell —
+  https://github.com/koalaman/shellcheck (en ligne :
+  https://www.shellcheck.net)</p>
+</li>
+<li>
+<p>📖 Bats : tests automatisés pour Bash —
+  https://github.com/bats-core/bats-core (documentation :
+  https://bats-core.readthedocs.io)</p>
+</li>
+</ul>
+</div>
+
+<div id="tab-cheat-sheet-claude-code-pour-les-administrateurs" class="tab-content">
+<h2>Installation et diagnostic (jour 1)</h2>
+<div class="code-block"><pre><code class="language-bash"># Installation
+curl -fsSL https://claude.ai/install.sh | bash       # natif (recommandé)
+npm install -g @anthropic-ai/claude-code             # voie npm
+
+# Environnement
+export ANTHROPIC_API_KEY=&quot;sk-ant-…&quot;
+export HTTPS_PROXY=http://proxy.entreprise.example:8080
+export NO_PROXY=&quot;localhost,127.0.0.1,.entreprise.example&quot;
+export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/entreprise-ca.pem
+export ANTHROPIC_BASE_URL=http://llm-gateway.entreprise.example:4000  # passerelle
+
+# Vérifications
+claude --version
+claude doctor
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h2>Commandes de session</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Commande</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/init</code></td>
+<td>génère un premier CLAUDE.md</td>
+</tr>
+<tr>
+<td><code>/model</code></td>
+<td>change de modèle (léger / intermédiaire / supérieur)</td>
+</tr>
+<tr>
+<td><code>/context</code></td>
+<td>remplissage de la fenêtre</td>
+</tr>
+<tr>
+<td><code>/compact</code></td>
+<td>compacter à une frontière de phase</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>repart de zéro</td>
+</tr>
+<tr>
+<td><code>/cost</code></td>
+<td>jetons et coût de la session</td>
+</tr>
+<tr>
+<td><code>/status</code></td>
+<td>compte, modèle, santé MCP</td>
+</tr>
+<tr>
+<td><code>/memory</code></td>
+<td>éditer CLAUDE.md et fichiers de contexte</td>
+</tr>
+<tr>
+<td><code>/mcp</code></td>
+<td>état des serveurs MCP</td>
+</tr>
+<tr>
+<td><code>/skills</code></td>
+<td>compétences disponibles</td>
+</tr>
+</tbody>
+</table></div>
+<p>Règle des modèles : léger pour corriger/expliquer, intermédiaire par défaut,
+le plus capable pour concevoir et relire la sécurité.</p>
+<h2>Permissions (settings.json)</h2>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [&quot;Bash(bash -n *)&quot;, &quot;Bash(shellcheck *)&quot;],
+    &quot;ask&quot;:   [&quot;Bash(git commit *)&quot;],
+    &quot;deny&quot;:  [&quot;Read(.env)&quot;, &quot;Read(.env.*)&quot;,
+              &quot;Bash(git push *)&quot;, &quot;Bash(docker system prune*)&quot;]
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Hiérarchie : <code>deny</code> &gt; <code>ask</code> &gt; <code>allow</code> &gt; mode courant.
+Jamais <code>--dangerously-skip-permissions</code>.</p>
+<h2>Bac à sable intégré</h2>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;sandbox&quot;: {
+    &quot;enabled&quot;: true,
+    &quot;autoAllowBashIfSandboxed&quot;: true,
+    &quot;filesystem&quot;: { &quot;allowWrite&quot;: [&quot;/tmp/build&quot;], &quot;denyRead&quot;: [&quot;~/.ssh&quot;] },
+    &quot;network&quot;: { &quot;allowedDomains&quot;: [&quot;github.com&quot;, &quot;pypi.org&quot;] }
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h2>Sandbox Docker (jour 2)</h2>
+<div class="code-block"><pre><code class="language-bash"># Variante Compose
+cp custom_sbx/.env.example custom_sbx/.env
+docker compose --env-file ./custom_sbx/.env \
+  -f ./custom_sbx/docker-compose.yml run --rm claude
+
+# Variante microVM sbx
+bash ./scripts/run-claude-sandbox.sh --dry-run   # vérifier d'abord
+bash ./scripts/run-claude-sandbox.sh             # créer/rejoindre
+sbx ls &amp;&amp; sbx exec -it claude-admin-lab bash
+sbx stop claude-admin-lab &amp;&amp; sbx rm claude-admin-lab
+sbx policy log                                   # tentative réseau bloquée
+sbx secret set github &amp;&amp; sbx secret ls           # secrets injectés
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h2>Le workflow en six phases</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Action</th>
+<th>Droits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Cadrage</td>
+<td>besoin, limites, critères d'acceptation</td>
+<td>lecture</td>
+</tr>
+<tr>
+<td>2. Plan</td>
+<td>étapes et tests, validé par l'humain</td>
+<td>lecture seule</td>
+</tr>
+<tr>
+<td>3. Implémentation</td>
+<td>script défensif (skill)</td>
+<td>écriture</td>
+</tr>
+<tr>
+<td>4. Consolidation</td>
+<td>corrections retenues, écarts consignés</td>
+<td>écriture</td>
+</tr>
+<tr>
+<td>5. Revue parallèle</td>
+<td>portabilité / Bats / ShellCheck / cible</td>
+<td>rapports</td>
+</tr>
+<tr>
+<td>6. Validation</td>
+<td>preuves puis revue humaine du diff</td>
+<td>exécution</td>
+</tr>
+</tbody>
+</table></div>
+<p>Prompts d'amorçage :</p>
+<div class="code-block"><pre><code class="language-text">&gt; Lis CLAUDE.md, puis définis entrées, sorties, OS cibles, droits requis,
+  données sensibles, conditions d'échec, journalisation et critères
+  d'acceptation. Propose un plan de mise en œuvre et de test. Ne modifie rien.
+
+&gt; Utilise des sous-agents en parallèle, sans modifier de fichier :
+  1. portabilité POSIX ; 2. tests Bats ; 3. ShellCheck ; 4. inventaire cible.
+  Retourne fichier, problème, impact, correctif proposé.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h2>Contrôles minimaux avant livraison</h2>
+<div class="code-block"><pre><code class="language-bash">bash -n scripts/mon-script.sh
+shellcheck scripts/mon-script.sh
+bats tests/
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Puis <code>--dry-run</code> sur cible isolée, puis exécution réelle validée.</p>
+<h2>Gabarit d'en-tête de script</h2>
+<div class="code-block"><pre><code class="language-bash">#!/usr/bin/env bash
+#
+# mon-script.sh — Une phrase : ce que fait le script.
+# Usage     : mon-script.sh [options] [cible]
+# Effets    : lecture seule / écrit dans /var/log/…
+# Sorties   : 0 OK, 1 anomalie, 2 erreur d'usage.
+# Contexte  : origine assistée, revue, tests bats associés.
+#
+set -euo pipefail
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<h2>Interdits permanents</h2>
+<ul>
+<li>Aucun secret dans un prompt, un script, un fichier versionné.</li>
+<li>Aucune commande destructive sans <code>--dry-run</code> et cible de test.</li>
+<li>Jamais de suppression non bornée (<code>rm -rf</code> sans racine explicite).</li>
+<li>Jamais de session en contournement global de permissions.</li>
+<li>Toujours relire le diff, jamais seulement le résumé de l'agent.</li>
+</ul>
+</div>
+
+<div id="tab-glossaire-claude-code-pour-les-administrateurs" class="tab-content">
+<h2>A</h2>
+<p><strong>AFK (away from keyboard)</strong> — Mode de travail où l'utilisateur lance une
+session puis laisse l'agent travailler sans surveillance. Les vérifications
+automatisées et la revue humaine finale du diff remplacent l'attention
+humaine pendant l'exécution.</p>
+<p><strong>Agent</strong> — Le modèle + son harnais + ses outils : l'entité qui lit, écrit et
+exécute pendant une session.</p>
+<p><strong>Artefact de transfert (handoff artifact)</strong> — Document écrit dans
+l'environnement par une session et lu par une autre : spécification, ticket,
+plan. Il compense le fait que le modèle est sans état.</p>
+<p><strong>AX (expérience agent)</strong> — Qualité de préparation d'une base de code pour
+qu'un agent y travaille bien : vérifications rapides, structure prévisible,
+contexte toujours chargé mais court. Pendant de la DX pour les humains.</p>
+<h2>B</h2>
+<p><strong>Bac à sable (sandbox)</strong> — Frontière système qui limite ce que les commandes
+exécutées par l'agent peuvent atteindre : fichiers, réseau, capacités du
+noyau. Complète les permissions, qui elles contrôlent la décision.</p>
+<p><strong>Bash strict</strong> — Ensemble d'options <code>set -euo pipefail</code> : échouer vite et
+fort plutôt que de continuer à moitié. Exigence de base des scripts du dépôt.</p>
+<p><strong>Bats</strong> — Cadre de tests automatisés pour scripts Bash : cas nominal,
+options invalides, fichiers absents, codes de retour.</p>
+<h2>C</h2>
+<p><strong>CLAUDE.md</strong> — Fichier chargé au début de chaque session par Claude Code :
+la feuille de route permanente du projet pour l'agent (commandes,
+conventions, interdits). Court et déclaratif.</p>
+<p><strong>Compactage (/compact)</strong> — Résumé de l'historique de session qui amorce une
+nouvelle fenêtre de contexte. Avec perte : ce que le résumé omet disparaît.
+À déclencher manuellement aux frontières de phase.</p>
+<p><strong>Contexte</strong> — Tout ce que le modèle voit : instructions système, CLAUDE.md,
+historique, fichiers lus, résultats de commandes.</p>
+<p><strong>Contexte, fenêtre de</strong> — Taille maximale du contexte, exprimée en jetons.
+Au-delà : compactage ou réinitialisation.</p>
+<h2>D</h2>
+<p><strong>Divulgation progressive</strong> — Ne charger que le contexte dont l'agent a
+besoin à cet instant, le reste derrière des pointeurs. Économise des jetons
+et évite la dilution des instructions.</p>
+<p><strong>DX (expérience développeur)</strong> — Facilité avec laquelle une base de code
+permet aux humains de bien travailler. Se recouvre en partie avec l'AX,
+diverge sur la connaissance tribale.</p>
+<h2>F</h2>
+<p><strong>Frontière de phase</strong> — Moment naturel d'une session (plan établi, script
+généré, tests passés) où compacter perd le moins. L'opposé : le milieu d'un
+refactoring.</p>
+<h2>H</h2>
+<p><strong>Harnais (harness)</strong> — L'outil qui enrobe le modèle : découpage du contexte,
+appel des outils, affichage. Claude Code est un harnais.</p>
+<p><strong>Hook</strong> — Commande locale exécutée à un événement précis du cycle de
+l'agent (avant ou après un appel d'outil). Sert à journaliser et à lancer
+automatiquement les contrôles.</p>
+<p><strong>Humain dans la boucle</strong> — Mode de travail où l'utilisateur suit la session
+en temps réel et réoriente en une phrase. S'oppose au mode AFK.</p>
+<h2>J</h2>
+<p><strong>Jeton (token)</strong> — Unité de découpage du texte, facturée et consommée. Les
+jetons d'entrée se paient à chaque tour ; un contexte long se repaie tant
+qu'il n'est pas compacté.</p>
+<h2>K</h2>
+<p><strong>Kit (sbx)</strong> — Dossier déclaratif qui étend l'agent de base d'un bac à
+sable microVM : variables, liste blanche de domaines, secrets, installation
+et démarrage.</p>
+<h2>M</h2>
+<p><strong>Modèle</strong> — Le réseau de neurones entraîné qui génère le texte. Sans état :
+il ne se souvient de rien entre deux sessions. Gammes courantes : léger
+(tâches simples), intermédiaire (défaut), le plus capable (conception).</p>
+<p><strong>MCP (Model Context Protocol)</strong> — Protocole qui connecte l'agent à des
+sources d'outils externes : SSH, documentation, forges. Déclaré dans
+<code>.mcp.json</code> ; les autorisations ciblent l'outil (<code>mcp__serveur__outil</code>).</p>
+<p><strong>microVM (sbx)</strong> — Machine virtuelle complète pilotée par hyperviseur, avec
+son système de fichiers et son propre démon Docker. Niveau d'isolation le
+plus solide.</p>
+<h2>P</h2>
+<p><strong>Permission (allow / ask / deny)</strong> — Règle qui contrôle l'usage d'un outil
+par l'agent. <code>deny</code> prévaut sur <code>allow</code>, qui prévaut sur le mode courant.</p>
+<p><strong>Pointeur de contexte</strong> — Mention d'une ligne qui renvoie vers un document
+sans l'intégrer : « publication : lire d'abord docs/runbook-deploy.md ».
+Unité de base de la divulgation progressive.</p>
+<p><strong>Prompt</strong> — La demande adressée à l'agent, avec son contexte. Ne contient
+jamais de secret ni de donnée nominative non anonymisée.</p>
+<h2>R</h2>
+<p><strong>Revue automatisée</strong> — Rapport d'un agent sur le travail d'un autre. C'est
+un jugement, pas une vérification : elle peut se tromper et se vérifie sur
+la source primaire (le code).</p>
+<p><strong>Revue humaine</strong> — Lecture du diff produit par l'agent. Lire le résumé de
+l'agent ne compte pas : la narration n'est pas l'artefact.</p>
+<h2>S</h2>
+<p><strong>Session</strong> — Une conversation continue avec l'assistant, du démarrage
+jusqu'à la sortie.</p>
+<p><strong>Skill (compétence)</strong> — Unité de savoir-faire (fichier <code>SKILL.md</code> + annexes)
+chargée seulement quand la tâche la concerne. Seuls nom et description
+occupent le contexte par défaut.</p>
+<p><strong>Source primaire / secondaire</strong> — La source primaire est le code, le test,
+la transcription. La source secondaire (rapport, résumé, documentation)
+la raconte et peut dériver ou omettre : les faits importants se vérifient
+sur la primaire.</p>
+<p><strong>Spécification</strong> — Artefact de transfert décrivant un travail sur plusieurs
+sessions : objectif, contraintes, décisions, tickets. Se découpe en tickets
+tenables chacun dans une session.</p>
+<p><strong>Sous-agent</strong> — Agent lancé par l'agent principal, avec sa propre fenêtre de
+contexte, qui rend un rapport. Ne peut pas lancer d'autres sous-agents.</p>
+<p><strong>sbx</strong> — Outil d'orchestration des microVM Docker : création (<code>sbx run</code>),
+liste, exécution, arrêt, destruction, politique réseau, secrets.</p>
+<h2>T</h2>
+<p><strong>Ticket</strong> — Artefact de transfert qui délimite une session de travail :
+objectif, critères d'acceptation, pointeurs de contexte. Taille maximale :
+une session.</p>
+<p><strong>Trap (Bash)</strong> — Gestionnaire de nettoyage appelé à la sortie du script :
+aucun fichier temporaire orphelin après interruption.</p>
+<h2>V</h2>
+<p><strong>Vérification automatisée</strong> — Contrôle déterministe (test, linter,
+compilation) : même entrée, même verdict. Le seul signal qui permet à
+l'agent de s'autocorriger sans humain.</p>
+<p><strong>--dry-run</strong> — Option de simulation : la commande affiche ce qu'elle ferait
+sans le faire. Par défaut sur toute commande destructive du dépôt.</p>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>

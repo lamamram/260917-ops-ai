@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="400" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Chaîne de connexion : poste, proxy d'entreprise, API Anthropic</text>
+
+  <!-- Poste administrateur -->
+  <rect x="40" y="80" width="200" height="150" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="140" y="110" text-anchor="middle" font-size="14" font-weight="700" fill="#1f883d">Poste administrateur</text>
+  <text x="140" y="132" text-anchor="middle" font-size="12" fill="#57606a">Claude Code (CLI)</text>
+  <text x="140" y="150" text-anchor="middle" font-size="12" fill="#57606a">export ANTHROPIC_API_KEY=…</text>
+  <text x="140" y="168" text-anchor="middle" font-size="12" fill="#57606a">export HTTPS_PROXY=…</text>
+  <text x="140" y="186" text-anchor="middle" font-size="12" fill="#57606a">export NODE_EXTRA_CA_CERTS=…</text>
+  <text x="140" y="212" text-anchor="middle" font-size="11" fill="#57606a">clé jamais versionnée</text>
+
+  <!-- Flèche poste -> proxy -->
+  <line x1="245" y1="150" x2="350" y2="150" stroke="#57606a" stroke-width="2"/>
+  <polygon points="350,150 340,144 340,156" fill="#57606a"/>
+  <text x="297" y="138" text-anchor="middle" font-size="11" fill="#57606a">HTTPS</text>
+
+  <!-- Proxy d'entreprise -->
+  <rect x="355" y="95" width="180" height="120" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <rect x="355" y="95" width="10" height="120" rx="5" fill="#f0883e"/>
+  <text x="450" y="125" text-anchor="middle" font-size="14" font-weight="700" fill="#bc4c00">Proxy d'entreprise</text>
+  <text x="450" y="147" text-anchor="middle" font-size="12" fill="#57606a">filtrage des domaines</text>
+  <text x="450" y="165" text-anchor="middle" font-size="12" fill="#57606a">journalisation des flux</text>
+  <text x="450" y="183" text-anchor="middle" font-size="12" fill="#57606a">certificat racine interne</text>
+  <text x="450" y="205" text-anchor="middle" font-size="11" fill="#57606a">NO_PROXY pour le local</text>
+
+  <!-- Flèche proxy -> API -->
+  <line x1="540" y1="150" x2="645" y2="150" stroke="#57606a" stroke-width="2"/>
+  <polygon points="645,150 635,144 635,156" fill="#57606a"/>
+  <text x="592" y="138" text-anchor="middle" font-size="11" fill="#57606a">TLS</text>
+
+  <!-- API Anthropic -->
+  <rect x="650" y="95" width="190" height="120" rx="10" fill="#ffffff" stroke="#8250df" stroke-width="2"/>
+  <text x="745" y="125" text-anchor="middle" font-size="14" font-weight="700" fill="#8250df">API Anthropic</text>
+  <text x="745" y="147" text-anchor="middle" font-size="12" fill="#57606a">api.anthropic.com</text>
+  <text x="745" y="165" text-anchor="middle" font-size="12" fill="#57606a">ou passerelle LLM interne</text>
+  <text x="745" y="183" text-anchor="middle" font-size="12" fill="#57606a">ANTHROPIC_BASE_URL</text>
+
+  <!-- Variantes de contrôle réseau -->
+  <rect x="40" y="265" width="250" height="90" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="165" y="290" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">Politique de sortie</text>
+  <text x="165" y="310" text-anchor="middle" font-size="11" fill="#57606a">liste blanche de domaines</text>
+  <text x="165" y="326" text-anchor="middle" font-size="11" fill="#57606a">interdiction des registres non mandatés</text>
+  <text x="165" y="342" text-anchor="middle" font-size="11" fill="#57606a">journal des connexions sortantes</text>
+
+  <rect x="315" y="265" width="250" height="90" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="440" y="290" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">Secrets</text>
+  <text x="440" y="310" text-anchor="middle" font-size="11" fill="#57606a">clé API dans l'environnement du shell</text>
+  <text x="440" y="326" text-anchor="middle" font-size="11" fill="#57606a">jamais dans un fichier du dépôt</text>
+  <text x="440" y="342" text-anchor="middle" font-size="11" fill="#57606a">rotation possible sans toucher au code</text>
+
+  <rect x="590" y="265" width="250" height="90" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="2"/>
+  <text x="715" y="290" text-anchor="middle" font-size="13" font-weight="700" fill="#0969da">Vérifications</text>
+  <text x="715" y="310" text-anchor="middle" font-size="11" fill="#57606a">claude doctor</text>
+  <text x="715" y="326" text-anchor="middle" font-size="11" fill="#57606a">/status dans la session</text>
+  <text x="715" y="342" text-anchor="middle" font-size="11" fill="#57606a">un prompt test : « Bonjour, réponds OK »</text>
+</svg>

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 380" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Remplissage de la fenêtre de contexte d'une session</text>
+
+  <!-- Fenêtre de contexte (cadre) -->
+  <rect x="60" y="70" width="760" height="270" rx="12" fill="#ffffff" stroke="#1f2328" stroke-width="2"/>
+  <text x="440" y="96" text-anchor="middle" font-size="13" font-weight="700" fill="#1f2328">Fenêtre de contexte (capacity limitée, exprimée en jetons)</text>
+
+  <!-- Bloc système -->
+  <rect x="85" y="110" width="710" height="36" rx="6" fill="#eaf5ea" stroke="#1f883d" stroke-width="1.5"/>
+  <text x="100" y="133" font-size="12" fill="#1f883d">Instructions système + CLAUDE.md + fichiers de contexte chargés au démarrage</text>
+  <text x="770" y="133" font-size="11" fill="#57606a" text-anchor="end">coût payé à chaque tour</text>
+
+  <!-- Historique tour 1 -->
+  <rect x="85" y="154" width="710" height="36" rx="6" fill="#f0f6ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="100" y="177" font-size="12" fill="#0969da">Tour 1 : demande de l'administrateur + réponse de l'assistant</text>
+
+  <!-- Résultats d'outils -->
+  <rect x="85" y="198" width="710" height="36" rx="6" fill="#f0f6ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="100" y="221" font-size="12" fill="#0969da">Tour 2 : lectures de fichiers, sorties de commandes — le contenu s'accumule</text>
+
+  <!-- Tour 3 -->
+  <rect x="85" y="242" width="710" height="36" rx="6" fill="#f0f6ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="100" y="265" font-size="12" fill="#0969da">Tour 3 : corrections, faux pas, explorations — tout reste dans l'historique</text>
+
+  <!-- Zone restante -->
+  <rect x="85" y="286" width="710" height="42" rx="6" fill="#fff4e5" stroke="#f0883e" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="100" y="311" font-size="12" fill="#bc4c00">Espace restant : au-delà d'un seuil (~80 %), compactage automatique</text>
+
+  <!-- Leviers -->
+  <rect x="60" y="70" width="760" height="270" rx="12" fill="none" stroke="none"/>
+
+  <!-- /compact -->
+  <rect x="40" y="150" width="0" height="0"/>
+  <rect x="620" y="360" width="0" height="0"/>
+
+  <!-- Bandeau leviers -->
+  <rect x="60" y="352" width="760" height="20" fill="none"/>
+
+  <!-- /compact note -->
+  <line x1="440" y1="328" x2="440" y2="352" stroke="#8250df" stroke-width="2"/>
+  <polygon points="440,352 434,342 446,342" fill="#8250df"/>
+  <text x="452" y="350" font-size="12" font-weight="600" fill="#8250df">/compact : résume l'historique à une frontière de phase — /clear : repart de zéro</text>
+</svg>

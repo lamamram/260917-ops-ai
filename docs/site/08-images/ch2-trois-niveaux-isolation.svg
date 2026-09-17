@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 400" font-family="Segoe UI, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="400" rx="12" fill="#f6f8fa" stroke="#d0d7de"/>
+  <text x="440" y="34" text-anchor="middle" font-size="18" font-weight="700" fill="#1f2328">Trois niveaux d'isolation pour l'assistant</text>
+  <text x="440" y="58" text-anchor="middle" font-size="12" fill="#57606a">Plus le niveau monte, plus la frontière est solide — et plus la mise en place coûte</text>
+
+  <!-- Niveau 1 : sandbox intégré -->
+  <rect x="40" y="90" width="245" height="230" rx="10" fill="#eaf5ea" stroke="#1f883d" stroke-width="2"/>
+  <text x="162" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#1f883d">1. Bac à sable intégré</text>
+  <text x="162" y="142" text-anchor="middle" font-size="12" fill="#57606a">sandbox dans settings.json</text>
+  <line x1="60" y1="158" x2="265" y2="158" stroke="#d0d7de"/>
+  <text x="60" y="180" font-size="11" fill="#57606a">• commandes Bash filtrées à l'OS</text>
+  <text x="60" y="198" font-size="11" fill="#57606a">• écritures limitées à des chemins</text>
+  <text x="60" y="216" font-size="11" fill="#57606a">• lectures interdites (credentials)</text>
+  <text x="60" y="234" font-size="11" fill="#57606a">• domaines réseau autorisés</text>
+  <text x="60" y="262" font-size="11" fill="#1f883d">Mise en place : un fichier JSON</text>
+  <text x="60" y="280" font-size="11" fill="#1f883d">Poste quelconque, tâches courantes</text>
+  <text x="60" y="302" font-size="11" fill="#bc4c00">Frontière : processus du poste</text>
+
+  <!-- Niveau 2 : conteneur Docker -->
+  <rect x="318" y="90" width="245" height="230" rx="10" fill="#fff4e5" stroke="#f0883e" stroke-width="2"/>
+  <text x="440" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#bc4c00">2. Conteneur Docker</text>
+  <text x="440" y="142" text-anchor="middle" font-size="12" fill="#57606a">Compose : claude + cible SSH</text>
+  <line x1="338" y1="158" x2="543" y2="158" stroke="#d0d7de"/>
+  <text x="338" y="180" font-size="11" fill="#57606a">• cap_drop ALL, no-new-privileges</text>
+  <text x="338" y="198" font-size="11" fill="#57606a">• système de fichiers cible read-only</text>
+  <text x="338" y="216" font-size="11" fill="#57606a">• réseau interne sans port publié</text>
+  <text x="338" y="234" font-size="11" fill="#57606a">• répertoire personnel isolé (volume)</text>
+  <text x="338" y="262" font-size="11" fill="#1f883d">Mise en place : un docker-compose.yml</text>
+  <text x="338" y="280" font-size="11" fill="#1f883d">Ateliers, tests de scripts distants</text>
+  <text x="338" y="302" font-size="11" fill="#bc4c00">Frontière : le conteneur</text>
+
+  <!-- Niveau 3 : microVM -->
+  <rect x="596" y="90" width="245" height="230" rx="10" fill="#f0f6ff" stroke="#0969da" stroke-width="2"/>
+  <text x="718" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="#0969da">3. MicroVM sbx</text>
+  <text x="718" y="142" text-anchor="middle" font-size="12" fill="#57606a">hyperviseur + proxy + kit</text>
+  <line x1="616" y1="158" x2="821" y2="158" stroke="#d0d7de"/>
+  <text x="616" y="180" font-size="11" fill="#57606a">• machine virtuelle complète</text>
+  <text x="616" y="198" font-size="11" fill="#57606a">• liste blanche de domaines (proxy)</text>
+  <text x="616" y="216" font-size="11" fill="#57606a">• secrets injectés, jamais copiés</text>
+  <text x="616" y="234" font-size="11" fill="#57606a">• démon Docker interne à la VM</text>
+  <text x="616" y="262" font-size="11" fill="#1f883d">Mise en place : sbx + kit du dépôt</text>
+  <text x="616" y="280" font-size="11" fill="#1f883d">Travail sensible, exécutions AFK</text>
+  <text x="616" y="302" font-size="11" fill="#bc4c00">Frontière : l'hyperviseur</text>
+
+  <!-- Flèches de progression -->
+  <line x1="285" y1="205" x2="318" y2="205" stroke="#57606a" stroke-width="2"/>
+  <polygon points="318,205 308,199 308,211" fill="#57606a"/>
+  <line x1="563" y1="205" x2="596" y2="205" stroke="#57606a" stroke-width="2"/>
+  <polygon points="596,205 586,199 586,211" fill="#57606a"/>
+  <text x="440" y="348" text-anchor="middle" font-size="12" fill="#57606a">Les trois niveaux se combinent : permissions (jour 1) + bac à sable = défense en profondeur</text>
+  <text x="440" y="370" text-anchor="middle" font-size="12" font-weight="600" fill="#1f2328">Le bon niveau est le plus léger qui couvre le risque de la tâche.</text>
+</svg>

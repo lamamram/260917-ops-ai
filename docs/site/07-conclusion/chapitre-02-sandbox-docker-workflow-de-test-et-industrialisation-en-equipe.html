@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Claude Code pour les administrateurs : 02 — Sandbox Docker, workflow de test et industrialisation en équipe">
+<title>02 — Sandbox Docker, workflow de test et industrialisation en équipe</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Claude Code pour les administrateurs</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">02</span><span class="txt">Sandbox Docker, workflow de test et industrialisation en équipe</span>
+  </a>
+  <div class="topbar-links">
+    <a href="annexes.html" class="topbar-link">Annexes ↗</a>
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="objectifs"><span class="objectifs-label">Objectifs</span><ul><li>Isoler l&#x27;assistant dans un bac à sable Docker adapté au risque de la tâche</li><li>Limiter l&#x27;exposition des données sensibles, des secrets et du réseau sortant</li><li>Construire un workflow itératif plan / implémente / vérifie avec sous-agents et contrôles</li><li>Documenter les scripts générés ou modifiés par l&#x27;IA pour assurer leur reprise</li><li>Standardiser prompts, gabarits et intégration Git et CI/CD au niveau de l&#x27;équipe</li><li>Créer un répertoire « ia/ » partagé avec les prompts maîtres de l&#x27;équipe</li></ul></div>
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('isoler-l-assistant-dans-un-sandbox-docker')">Isoler l&#x27;assistant dans un sandbox Docker</button>
+  <button class="" onclick="showTab('limiter-l-exposition-des-donnees-et-du-reseau')">Limiter l&#x27;exposition des données et du réseau</button>
+  <button class="" onclick="showTab('construire-un-workflow-iteratif-plan-implemente-verifie')">Construire un workflow itératif : plan, implémente, vérifie</button>
+  <button class="" onclick="showTab('documenter-les-scripts-generes-ou-modifies-par-l-ia')">Documenter les scripts générés ou modifiés par l&#x27;IA</button>
+  <button class="" onclick="showTab('industrialiser-l-usage-en-equipe')">Industrialiser l&#x27;usage en équipe</button>
+  <button class="" onclick="showTab('atelier-repertoire-ia-partage-et-workflow-sandboxe')">Atelier — répertoire « ia/ » partagé et workflow sandboxé</button>
+  <button class="" onclick="showTab('quiz')">Quiz</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-isoler-l-assistant-dans-un-sandbox-docker" class="tab-content active">
+<p>Une session Claude Code exécute des commandes Bash : lectures, écritures,
+appels réseau, installations de paquets. Sur un poste d'administration, ces
+exécutions touchent des données d'exploitation. Les permissions du jour 1
+contrôlent ce que l'agent <strong>demande</strong> ; l'isolation contrôle ce que les
+commandes <strong>peuvent faire</strong> même quand une demande malveillante ou un message
+piégé contournent la vigilance de l'agent.</p>
+<h3>Pourquoi les permissions ne suffisent pas</h3>
+<p>Les permissions sont une couche de décision : l'agent choisit de demander, un
+humain accepte. Deux limites subsistent :</p>
+<ul>
+<li>
+<p>une <strong>injection de prompt</strong> — un texte piégé dans un fichier lu par
+  l'agent — peut pousser l'agent à exécuter une commande en apparence anodine
+  aux effets réels graves ;</p>
+</li>
+<li>
+<p>une commande acceptée pour une bonne raison (installer un paquet de test)
+  déclenche des effets en cascade que la confirmation ne montre pas (script
+  d'installation qui touche au-delà du répertoire de travail).</p>
+</li>
+</ul>
+<p>La réponse est la <strong>défense en profondeur</strong> : permissions pour la décision,
+bac à sable (sandbox) pour la frontière. Le bac à sable limite au niveau du
+système d'exploitation ce que les commandes peuvent atteindre, quelle que soit
+l'intention derrière elles.</p>
+<h3>Trois niveaux d'isolation</h3>
+<p><img alt="Les trois niveaux d'isolation : bac à sable intégré (settings), conteneur Docker Compose, microVM sbx — du plus léger au plus solide." src="../08-images/ch2-trois-niveaux-isolation.svg" /></p>
+<p>Le schéma se lit de gauche à droite, du niveau le plus léger au plus solide. Le
+choix ne cherche pas « le maximum de sécurité » : il cherche le niveau le plus
+léger qui couvre le risque de la tâche. Corriger un script le matin se satisfera
+du bac à sable intégré ; générer un playbook Ansible qui s'exécute sur une
+cible justifie le conteneur avec cible SSH dédiée ; une longue exécution sans
+surveillance (mode AFK) exige la microVM avec liste blanche de domaines.</p>
+<h4>Niveau 1 : le bac à sable intégré</h4>
+<p>Claude Code embarque un bac à sable pour les commandes Bash, activé dans
+les réglages du projet ou de l'utilisateur :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;sandbox&quot;: {
+    &quot;enabled&quot;: true,
+    &quot;autoAllowBashIfSandboxed&quot;: true,
+    &quot;excludedCommands&quot;: [&quot;docker *&quot;],
+    &quot;filesystem&quot;: {
+      &quot;allowWrite&quot;: [&quot;/tmp/build&quot;, &quot;./scripts&quot;],
+      &quot;denyRead&quot;: [&quot;~/.ssh&quot;, &quot;~/.aws/credentials&quot;, &quot;./.env&quot;]
+    },
+    &quot;network&quot;: {
+      &quot;allowedDomains&quot;: [&quot;github.com&quot;, &quot;*.npmjs.org&quot;, &quot;pypi.org&quot;]
+    }
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Lecture du bloc :</p>
+<ul>
+<li><code>enabled</code> active l'isolation des commandes Bash et de leurs sous-processus ;</li>
+<li>
+<p><code>autoAllowBashIfSandboxed</code> supprime la confirmation pour les commandes
+  s'exécutant dans le bac à sable — la frontière remplace le cliquodrome ;</p>
+</li>
+<li>
+<p><code>excludedCommands</code> sort volontairement certaines commandes du bac à sable
+  (ici Docker, qui reste soumis aux permissions classiques) ;</p>
+</li>
+<li>
+<p><code>filesystem.allowWrite</code> borne les écritures à quelques chemins ; <code>denyRead</code>
+  interdit les lectures sensibles ;</p>
+</li>
+<li>
+<p><code>network.allowedDomains</code> borne les destinations réseau.</p>
+</li>
+</ul>
+<div class="callout tip"><div class="callout-title">Complémentarité des couches</div><p>Les règles <code>deny</code> du jour 1 et le bac à sable se combinent : les <code>deny</code>
+empêchent l'agent de tenter l'accès, le bac à sable empêche la commande de
+réussir même si la tentative passe. Les restrictions de fichiers des deux
+couches fusionnent en une frontière unique — c'est exactement le modèle
+« permissions pour la décision, bac à sable pour l'exécution ».</p></div>
+<h4>Niveau 2 : le conteneur Docker Compose</h4>
+<p>Le niveau suivant exécute l'assistant et une cible d'exercice dans un projet
+Docker Compose : deux conteneurs, un réseau interne, un réseau sortant. Ce
+mode convient aux ateliers : la cible SSH est un conteneur Debian jetable,
+recréé à chaque session, sans aucun port publié sur l'hôte.</p>
+<h4>Niveau 3 : la microVM sbx</h4>
+<p>Le niveau le plus solide exécute Claude Code dans une microVM pilotée par un
+hyperviseur, avec son propre système de fichiers, ses paquets et son démon
+Docker interne. L'outil <code>sbx</code> orchestre la machine, et un <strong>kit</strong> décrit la
+politique de la formation ou de l'équipe : domaines autorisés, secrets
+injectés, installation de départ. C'est le mode des travaux sensibles et des
+exécutions longues sans surveillance.</p>
+<div class="callout note"><div class="callout-title">Le bac à sable indépendant de Docker</div><p>Entre le conteneur et la microVM, un paquet optionnel applique les mêmes
+frontières système de fichiers et de réseau que le bac à sable intégré,
+sans exiger Docker : <code>npm install @anthropic-ai/sandbox-runtime</code>, puis
+<code>npx @anthropic-ai/sandbox-runtime claude</code>. Utile sur un poste sans Docker
+(poste d'administration verrouillé), pour les frontières de l'OS avec une
+mise en place d'une commande.</p></div>
+<h3>Choisir son variante d'isolement : le tableau de décision</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Critère</th>
+<th>Bac à sable intégré</th>
+<th>Compose</th>
+<th>microVM sbx</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mise en place</td>
+<td>un bloc JSON</td>
+<td>un docker-compose.yml</td>
+<td>sbx + kit du dépôt</td>
+</tr>
+<tr>
+<td>Prérequis matériel</td>
+<td>aucun</td>
+<td>Docker</td>
+<td>virtualisation (KVM/hyperviseur)</td>
+</tr>
+<tr>
+<td>Cible d'exercice</td>
+<td>le poste, via tmpfs autorisés</td>
+<td>conteneur SSH jetable</td>
+<td>cible SSH interne au kit</td>
+</tr>
+<tr>
+<td>Liste blanche réseau</td>
+<td>domaines déclarés</td>
+<td>via réseau <code>egress</code> + proxy</td>
+<td>proxy hôte + <code>sbx policy log</code></td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>denyRead + environnement</td>
+<td><code>.env</code> local injecté</td>
+<td>injection par le proxy, valeur jamais copiée</td>
+</tr>
+<tr>
+<td>Persistance</td>
+<td>celle du poste</td>
+<td>volumes Docker</td>
+<td>état conservé jusqu'à <code>sbx rm</code></td>
+</tr>
+<tr>
+<td>Cas d'usage</td>
+<td>correction, refactoring quotidiens</td>
+<td>ateliers, tests sur cible</td>
+<td>travaux sensibles, AFK longs</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Installer l'environnement sbx</h3>
+<p><strong>Sous Windows 11</strong> : activer le support d'hyperviseur puis installer le
+client :</p>
+<div class="code-block"><pre><code class="language-powershell">Enable-WindowsOptionalFeature -Online -FeatureName HypervisorPlatform -All
+# redémarrer, puis :
+winget install -h Docker.sbx
+sbx login
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p><strong>Sous Ubuntu</strong> : vérifier KVM, ajouter l'utilisateur au groupe, installer :</p>
+<div class="code-block"><pre><code class="language-bash">lsmod | grep kvm                      # doit afficher kvm_intel, kvm_amd ou kvm
+sudo usermod -aG kvm $USER &amp;&amp; newgrp kvm
+curl -fsSL https://get.docker.com | sudo SBX=1 sh
+sbx login
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="callout warn"><div class="callout-title">Prérequis matériels</div><p>La microVM exige la virtualisation : KVM actif sous Linux, hyperviseur sous
+Windows. Dans une machine virtuelle de formation, la virtualisation imbriquée
+doit être disponible. Si <code>lsmod | grep kvm</code> ne renvoie rien, <code>kvm-ok</code> diagnostique
+le support avant toute installation — inutile d'aller plus loin sans lui.</p></div>
+<h3>Le kit : la politique du bac à sable</h3>
+<p>Le kit est un dossier déclaratif, <code>spec.yaml</code>, qui étend l'agent de base.
+Extrait représentatif :</p>
+<div class="code-block"><pre><code class="language-yaml">schemaVersion: &quot;2&quot;
+kind: mixin
+name: claude-admin
+requires:
+  agent: claude
+
+environment:
+  variables:
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: &quot;1&quot;
+    TARGET_HOST: &quot;127.0.0.1&quot;
+    TARGET_PORT: &quot;2222&quot;
+    TARGET_USER: &quot;sandbox&quot;
+
+permissions:
+  network:
+    allow:
+      - api.github.com
+      - gitlab.com
+      - registry.npmjs.org
+      - pypi.org
+      - registry-1.docker.io
+      - deb.debian.org
+
+setup:
+  install:
+    - command: |
+        apt-get update
+        apt-get install -y --no-install-recommends ansible git openssh-client
+      user: &quot;0&quot;
+  startup:
+    - command: [sh, -c, &quot;…génère la clé SSH, construit et démarre la cible…&quot;]
+      user: &quot;0&quot;
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Quatre sections font tout le travail :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Rôle</th>
+<th>Exemple</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>requires</code></td>
+<td>l'agent de base étendu par le kit</td>
+<td><code>claude</code></td>
+</tr>
+<tr>
+<td><code>environment.variables</code></td>
+<td>variables posées dans la microVM</td>
+<td>cible SSH, télémétrie coupée</td>
+</tr>
+<tr>
+<td><code>permissions.network.allow</code></td>
+<td>liste blanche des domaines sortants</td>
+<td>forges, registres, miroirs de paquets</td>
+</tr>
+<tr>
+<td><code>setup.install</code> / <code>setup.startup</code></td>
+<td>installation une fois, démarrage à chaque session</td>
+<td>Ansible, clé SSH, cible Debian</td>
+</tr>
+</tbody>
+</table></div>
+<p>Tout ce qui n'est pas dans <code>allow</code> est bloqué par le proxy de l'hôte. La
+liste blanche est la politique réseau de l'équipe, écrite une fois, appliquée
+à chaque session.</p>
+<h3>Le cycle de vie d'un sandbox sbx</h3>
+<div class="code-block"><pre><code class="language-bash"># Créer / rejoindre le bac à sable avec le kit et les plugins utilisateur
+bash ./scripts/run-claude-sandbox.sh
+
+# Voir la commande sbx générée sans créer la microVM
+bash ./scripts/run-claude-sandbox.sh --dry-run
+
+# Gérer le cycle de vie
+sbx ls                          # lister
+sbx exec -it claude-admin-lab bash   # ouvrir un shell dedans
+sbx stop claude-admin-lab       # arrêter sans détruire
+sbx rm claude-admin-lab         # détruire (les paquets et fichiers internes disparaissent)
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le bac à sable <strong>persiste</strong> après la fermeture de la session : paquets
+installés, images Docker internes et historique de l'agent sont conservés
+jusqu'à <code>sbx rm</code>. Le dépôt de travail, lui, reste monté depuis l'hôte en
+lecture-écriture — les modifications de l'agent apparaissent immédiatement
+dans le dépôt réel. L'option <code>--clone</code> va plus loin : l'agent travaille dans
+un clone privé, le dépôt d'origine reste intact jusqu'à la recopie.</p>
+<p><img alt="Architecture sbx : la microVM porte Claude Code et une cible SSH jetable ; le proxy de l'hôte filtre tout le trafic sortant ; les secrets sont injectés, jamais copiés." src="../08-images/ch2-architecture-sandbox.svg" /></p>
+<p>Ce schéma montre les trois garanties du niveau microVM. D'abord la
+séparation : la VM possède son système de fichiers ; le poste hôte n'est
+pas dans le périmètre d'exécution. Ensuite le réseau : toute la sortie passe
+par le proxy de l'hôte, qui n'ouvre que les domaines de la liste blanche
+(<code>sbx policy log</code> diagnostique un blocage). Enfin les secrets : la valeur
+n'entre jamais dans la VM ; le proxy l'injecte dans les requêtes autorisées —
+un compromis du poste n'expose pas les credentials.</p>
+<h3>La variante Docker Compose</h3>
+<p>Quand la microVM n'est pas disponible, un projet Compose fournit une
+isolation raisonnable : un conteneur <code>claude</code> et un conteneur <code>target</code>
+(Debian SSH), sans démon Docker côté assistant. Les propriétés de sécurité
+sont dans le fichier, à lire ligne par ligne :</p>
+<div class="code-block"><pre><code class="language-yaml">services:
+  claude:
+    build: .
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ..:/workspace                 # le dépôt, monté
+      - ${CLAUDE_PLUGIN_ROOT}:/home/agent/.claude/plugins:ro
+      - claude-home:/home/agent        # répertoire personnel persistant
+    networks: [admin, egress]
+
+  target:
+    build: ./target
+    read_only: true
+    tmpfs: [/run, /tmp, /home/sandbox/.ssh]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE, SETGID, SETUID, SYS_CHROOT]
+    security_opt: [no-new-privileges:true]
+    networks: [admin]
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;test -f /ssh-keys/id_ed25519&quot;]
+
+networks:
+  admin:
+    internal: true          # aucune sortie : la cible n'est jointe que par claude
+  egress:                   # sortie contrôlée pour l'API et les MCP HTTP
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Six choix à savoir commenter :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Ligne</th>
+<th>Garantie</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cap_drop: [ALL]</code></td>
+<td>le conteneur part sans aucune capacité Linux, n'ajoute que le strict nécessaire</td>
+</tr>
+<tr>
+<td><code>no-new-privileges:true</code></td>
+<td>aucun processus enfant ne peut élever ses privilèges</td>
+</tr>
+<tr>
+<td><code>read_only</code> sur la cible</td>
+<td>le système de fichiers de la cible est figé ; seuls les <code>tmpfs</code> sont écrits</td>
+</tr>
+<tr>
+<td>réseau <code>admin</code> interne</td>
+<td>la cible SSH n'a aucune route sortante, aucun port publié sur l'hôte</td>
+</tr>
+<tr>
+<td>volume <code>claude-home</code></td>
+<td>l'état de l'assistant persiste sans polluer le dépôt</td>
+</tr>
+<tr>
+<td><code>healthcheck</code></td>
+<td>l'orchestration attend que la cible soit prête avant de lancer l'assistant</td>
+</tr>
+</tbody>
+</table></div>
+<p>Démarrage et arrêt :</p>
+<div class="code-block"><pre><code class="language-bash"># Préparer les variables locales (jamais versionnées)
+cp custom_sbx/.env.example custom_sbx/.env
+# renseigner CLAUDE_PLUGIN_ROOT et les clés dedans
+
+# Lancer
+docker compose --env-file ./custom_sbx/.env \
+  -f ./custom_sbx/docker-compose.yml run --rm claude
+
+# Arrêter en conservant l'état / tout détruire
+docker compose -f ./custom_sbx/docker-compose.yml down
+docker compose -f ./custom_sbx/docker-compose.yml down -v
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Dans cette variante, l'assistant joint la cible par <code>sandbox@target:2222</code>
+avec la clé partagée par volume — aucun port n'est publié sur l'hôte, la
+cible est inaccessible depuis l'extérieur du projet Compose.</p>
+<p>Deux options sbx complètent le tableau du cycle de vie, utiles en atelier :
+la <strong>publication de ports</strong> (<code>sbx run --publish 8080:3000</code> à la création,
+<code>sbx ports</code> ensuite) quand un service de la microVM doit être joint depuis
+l'hôte, et les <strong>MCP fixés</strong> (<code>--static-mcp nom-serveur</code>) quand l'équipe
+veut imposer un ensemble de serveurs MCP gérés par sbx plutôt que le
+<code>.mcp.json</code> du dépôt. Les deux se posent à la création : un bac à sable
+existant se recrée pour changer ses montages ou son kit.</p>
+<div class="callout warn"><div class="callout-title">Ce que Compose ne garantit pas</div><p>Contrairement au kit sbx, Compose n'applique pas de liste blanche de
+domaines : le réseau <code>egress</code> laisse sortir vers l'API et les MCP HTTP
+selon la politique réseau de l'hôte ou de l'entreprise. Pour une politique
+de sortie stricte, la faire appliquer par le proxy d'entreprise ou des
+règles réseau Docker — ou passer au niveau microVM.</p></div>
+</div>
+
+<div id="tab-limiter-l-exposition-des-donnees-et-du-reseau" class="tab-content">
+<p>L'isolation cadre l'exécution ; reste la question des <strong>échanges</strong> : chaque
+prompt part vers le moteur d'inférence, chaque fichier lu peut s'y retrouver.
+Cette section établit les règles de circulation des données, secrets et flux
+réseau assistés.</p>
+<h3>Ce qui ne part jamais dans un prompt</h3>
+<p>Un prompt et son contexte transitent vers l'API. Trois catégories n'y
+figurent jamais :</p>
+<ol>
+<li><strong>les secrets</strong> : mots de passe, clés d'API, tokens, certificats privés ;</li>
+<li>
+<p><strong>les données personnelles</strong> : noms, emails, identifiants de comptes, extraits
+   de bases utilisateurs ;</p>
+</li>
+<li>
+<p><strong>les données d'exploitation nominatives</strong> : adresses IP internes,
+   topologie détaillée, noms de serveurs de production — remplacés par des
+   pseudonymes.</p>
+</li>
+</ol>
+<p>La transformation se fait <strong>avant</strong> la demande. Exemple pour un script qui
+échoue sur un environnement réel :</p>
+<div class="code-block"><pre><code class="language-bash"># Version brute — à ne jamais coller dans un prompt :
+# « Voici le log : user jdupont@entreprise.fr failed on 10.34.12.7 (PROD-FIN-01) »
+
+# Version anonymisée, seule version acceptable :
+« Voici le log (anonymisé) :
+  user USER1 failed on IP-INTERNE-1 (SERVEUR-A)
+  ERROR: connection refused on port 5432 »
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le diagnostic reste possible : l'agent travaille sur la structure de l'erreur,
+pas sur l'identité des systèmes. La règle se vérifie en relisant sa demande
+avant de l'envoyer — deux secondes qui évitent une fuite définitive.</p>
+<div class="callout danger"><div class="callout-title">Le collé-copié du mardi matin</div><p>La fuite la plus fréquente n'est pas un prompt réfléchi : c'est un
+copier-coller de log « juste pour que l'agent regarde ». Le réflexe :
+anonymiser par habitude, avec un alias shell si besoin
+(<code>alias anony='sed -E "s/[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+/IP/g"'</code>).
+Ce qui est parti dans l'API ne se rappelle pas.</p></div>
+<h3>Secrets : injection plutôt que copie</h3>
+<p>La règle d'or : un secret vit dans l'environnement ou un gestionnaire dédié,
+jamais dans un fichier du dépôt, un script, un prompt ou une variable
+versionnée. Chaque niveau d'isolation fournit son mécanisme :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Niveau</th>
+<th>Mécanisme</th>
+<th>Propriété</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Poste (jour 1)</td>
+<td>variable d'environnement du shell + <code>deny Read(.env)</code></td>
+<td>le secret reste sur le poste, hors dépôt</td>
+</tr>
+<tr>
+<td>Bac à sable intégré</td>
+<td><code>denyRead</code> sur <code>~/.ssh</code>, <code>~/.aws/credentials</code></td>
+<td>la commande ne peut pas lire les credentials</td>
+</tr>
+<tr>
+<td>Compose</td>
+<td><code>custom_sbx/.env</code> non versionné, injecté au démarrage</td>
+<td>le fichier reste local au poste</td>
+</tr>
+<tr>
+<td>MicroVM sbx</td>
+<td><code>sbx secret set &lt;service&gt;</code> — géré par le proxy</td>
+<td>la valeur n'entre jamais dans la VM</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le niveau microVM est le plus fort : le proxy de l'hôte injecte la valeur
+dans les requêtes autorisées, la VM ne la voit jamais.</p>
+<div class="code-block"><pre><code class="language-bash">sbx secret set github     # renseigne le token GitHub une fois
+sbx secret set gitlab
+sbx secret ls              # vérifier ce qui est déclaré (sans afficher les valeurs)
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le kit déclare l'usage attendu : quel service, quel en-tête, quel domaine.
+L'injection est ciblée — un token GitHub n'est ajouté qu'aux requêtes vers
+les domaines GitHub déclarés.</p>
+<p>Le cas des <strong>clés SSH de cible</strong> mérite une mention propre, car il apparaît
+dès le premier atelier. La clé qui joint la cible de laboratoire n'est pas un
+secret de production, mais elle obéit aux mêmes règles :</p>
+<ul>
+<li>
+<p>générée <strong>pour l'environnement de labo uniquement</strong>, jamais réutilisée d'un
+  environnement réel — la clé du bac à sable ne doit ouvrir que la cible du
+  bac à sable ;</p>
+</li>
+<li>
+<p>échangée par <strong>volume dédié</strong> entre services (le volume <code>target-ssh-keys</code>
+  du Compose), pas par copie dans le dépôt ni par collage dans un prompt ;</p>
+</li>
+<li>
+<p><strong>jetable sans formalité</strong> : détruire le bac à sable détruit la paire de
+  clés ; personne ne « garde » la clé d'une cible disparue.</p>
+</li>
+</ul>
+<p>La question de contrôle, avant chaque atelier : si cette clé fuit dans un
+carnet, un log ou un dépôt, qu'est-ce qu'elle ouvre ? La bonne réponse tient
+en un mot : rien hors du bac à sable.</p>
+<h3>La liste blanche de domaines</h3>
+<p>Limiter les URL et domaines se fait à trois endroits, selon le niveau :</p>
+<ul>
+<li>
+<p><strong>bac à sable intégré</strong> : <code>sandbox.network.allowedDomains</code> dans les
+  réglages — la commande Bash ne joint que ces domaines ;</p>
+</li>
+<li>
+<p><strong>kit sbx</strong> : <code>permissions.network.allow</code> — le proxy de l'hôte bloque tout
+  le reste ; <code>sbx policy log</code> liste les tentatives bloquées ;</p>
+</li>
+<li>
+<p><strong>environnement Docker</strong> : réseau <code>egress</code> restreint, ou règles réseau de
+  l'entreprise.</p>
+</li>
+</ul>
+<p>Une liste blanche d'atelier type :</p>
+<div class="code-block"><pre><code class="language-yaml">permissions:
+  network:
+    allow:
+      - api.github.com        # forge : clonage, API
+      - gitlab.com            # forge interne ou publique
+      - registry.npmjs.org    # paquets npm (MCP, plugins)
+      - pypi.org              # paquets Python
+      - files.pythonhosted.org
+      - registry-1.docker.io  # images Docker
+      - deb.debian.org        # miroir de paquets de la cible
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le principe : chaque domaine répond à un besoin écrit. Une liste blanche qui
+s'allonge « au cas où » devient une liste noire déguisée ; la discipline
+d'ajout (un besoin, une justification, une ligne) garde la liste courte et
+lisible.</p>
+<h3>Journaliser pour prouver</h3>
+<p>Une politique qui n'est pas observable n'est pas auditable. Trois réflexes de
+journalisation complètent les listes blanches :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Quoi</th>
+<th>Où</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Commandes exécutées par l'agent</td>
+<td>hook <code>PreToolUse</code> → append local</td>
+<td>reconstitution post-incident</td>
+</tr>
+<tr>
+<td>Tentatives réseau bloquées</td>
+<td><code>sbx policy log</code> (microVM)</td>
+<td>ajout justifié de domaines</td>
+</tr>
+<tr>
+<td>Connexions sortantes du poste</td>
+<td>journal du proxy d'entreprise</td>
+<td>conformité réseau du service</td>
+</tr>
+</tbody>
+</table></div>
+<p>La lecture périodique de ces journaux fait partie de l'entretien du bac à
+sable : un domaine régulièrement bloqué et légitime rejoint la liste blanche
+avec sa justification ; une tentative de sortie inattendue se signale à la
+sécurité. Le journal n'est pas de la surveillance individuelle — c'est la
+trace de ce que l'agent a réellement fait, indépendamment de ce que la session
+en raconte.</p>
+<div class="callout tip"><div class="callout-title">Diagnostiquer un blocage réseau</div><p>Une commande qui échoue dans le bac à sable alors qu'elle marche sur le
+poste a presque toujours la même cause : un domaine absent de la liste.
+<code>sbx policy log</code> (microVM) montre la tentative et son verdict ; dans le
+bac à sable intégré, le message d'erreur cite le domaine bloqué. Ajouter le
+domaine à la liste — avec sa justification — plutôt que désactiver la
+politique.</p></div>
+<h3>Permissions fines : le tableau de référence</h3>
+<p>Le workflow du jour 2 suppose le principe du moindre privilège, posé une
+fois pour toutes. Le tableau de référence de l'équipe :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Permission par défaut</th>
+<th>Extension justifiée</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dépôt</td>
+<td>lecture</td>
+<td>écriture par l'agent principal, après plan validé</td>
+</tr>
+<tr>
+<td>Shell local</td>
+<td>commandes d'observation, tests réversibles</td>
+<td>commande mutante après affichage et confirmation</td>
+</tr>
+<tr>
+<td>Système distant</td>
+<td>aucune exécution au cadrage</td>
+<td>SSH vers cible isolée, commande ciblée et validée</td>
+</tr>
+<tr>
+<td>Réseau</td>
+<td>hôtes nécessaires aux MCP, registres, documentation</td>
+<td>ajout après justification dans le kit</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>aucun secret dans prompts, scripts ou journaux</td>
+<td>injection par <code>sbx secret set</code> ou variable locale</td>
+</tr>
+<tr>
+<td>Git distant</td>
+<td>lecture des informations nécessaires</td>
+<td>branche, push, commentaire après approbation explicite</td>
+</tr>
+</tbody>
+</table></div>
+<p>Deux interdits d'application :</p>
+<ul>
+<li>
+<p>jamais de session démarrée avec <code>--dangerously-skip-permissions</code> — les
+  règles fines remplacent le contournement global ;</p>
+</li>
+<li>
+<p>jamais de MCP autorisé globalement tant que ses outils de lecture n'ont pas
+  été séparés de ses outils mutants (<code>mcp__serveur__outil</code>, jour 1).</p>
+</li>
+</ul>
+</div>
+
+<div id="tab-construire-un-workflow-iteratif-plan-implemente-verifie" class="tab-content">
+<p>L'atelier du jour 1 a suivi une boucle informelle : proposer, vérifier,
+tester, décider. Ce section la formalise en un <strong>workflow en six phases</strong>,
+avec des rôles (agent principal, sous-agents), des droits par phase et des
+contrôles à chaque sortie de phase. C'est le cœur opérationnel de la journée.</p>
+<h3>Les six phases</h3>
+<p><img alt="Le workflow : cadrage, plan, implémentation, consolidation, revue parallèle par sous-agents, validation finale — avec la boucle d'itération en pointillé." src="../08-images/ch2-workflow-scripting.svg" /></p>
+<p>Le schéma distingue ce que l'humain valide (le plan, les corrections retenues)
+de ce que les vérifications automatisées tranchent (syntaxe, lint, tests). Les
+sous-agents de la phase 5 rendent des <strong>rapports</strong> : fichier, problème,
+impact, correctif proposé. Ils ne modifient pas le script en parallèle —
+l'agent principal consolide, une seule main écrit dans le dépôt.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Objectif</th>
+<th>Éléments Claude Code</th>
+<th>Droits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. Cadrage</td>
+<td>besoin, limites, critères d'acceptation</td>
+<td>agent principal</td>
+<td>lecture du dépôt</td>
+</tr>
+<tr>
+<td>2. Plan</td>
+<td>étapes et tests prévus, sans modification</td>
+<td>agent principal</td>
+<td>lecture seule</td>
+</tr>
+<tr>
+<td>3. Implémentation</td>
+<td>première version lisible et défensive</td>
+<td>sous-agent de génération + skill Bash défensif</td>
+<td>écriture dans le dépôt</td>
+</tr>
+<tr>
+<td>4. Consolidation</td>
+<td>application des corrections retenues</td>
+<td>agent principal</td>
+<td>écriture</td>
+</tr>
+<tr>
+<td>5. Revue parallèle</td>
+<td>portabilité, tests, lint, cible</td>
+<td>sous-agents en lecture seule</td>
+<td>aucun droit d'écriture</td>
+</tr>
+<tr>
+<td>6. Validation</td>
+<td>preuves de fonctionnement</td>
+<td>contrôles + cible isolée</td>
+<td>exécution locale, SSH sur approbation</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Phase 1-2 : cadrer et planifier</h3>
+<p>L'amorçage type d'une session de développement de script :</p>
+<div class="code-block"><pre><code class="language-text">&gt; Lis CLAUDE.md, puis définis les entrées, sorties, OS cibles, droits requis,
+  données sensibles, conditions d'échec, journalisation et critères
+  d'acceptation pour ce script. Propose ensuite un plan de mise en œuvre
+  et de test. Ne modifie aucun fichier.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La demande impose trois choses dans l'ordre : le <strong>périmètre</strong> (entrées,
+sorties, cibles), les <strong>risques</strong> (données sensibles, conditions d'échec) et
+le <strong>plan</strong> — sans code. Le plan se corrige en une phrase ; un script mal
+cadré se corrige en une session.</p>
+<p>Un cadrage sérieux se reconnaît à ses critères d'acceptation : la phrase ou
+les commandes qui diront, à la fin, si le travail est terminé. « Le script
+fonctionne » n'est pas un critère ; « <code>bats tests/espace-disque.bats</code>
+passe, et l'exécution sur la cible affiche l'état des trois services du
+fichier de référence » en est un. Les critères s'écrivent <strong>avant</strong> le plan :
+ils orientent le choix des tests de la phase 6.</p>
+<p>Le plan validé est un <strong>artefact de transfert</strong> : un document qui survit à la
+session. Si le contexte se dégrade ou si la session s'interrompt, le plan
+écrit dans le dépôt (ou le ticket) permet à la session suivante de reprendre
+sans redécouvrir. C'est la même logique que <code>CLAUDE.md</code>, mais pour une tâche
+précise plutôt que pour le dépôt entier.</p>
+<h3>Phase 3 : générer avec le cadre défensif</h3>
+<p>L'implémentation part du plan validé :</p>
+<div class="code-block"><pre><code class="language-text">&gt; Implémente scripts/monitoring/espace-disque.sh en suivant le plan.
+  Applique le skill bash-defensive-patterns : validation des paramètres,
+  set -euo pipefail, trap de nettoyage, journalisation, codes de retour.
+  Crée uniquement ce fichier.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le <strong>skill défensif</strong> porte les exigences non négociables du dépôt :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Exigence</th>
+<th>Pourquoi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>validation des paramètres avec message d'aide</td>
+<td>un script sans usage est un script abandonné</td>
+</tr>
+<tr>
+<td><code>set -euo pipefail</code></td>
+<td>échouer vite et fort plutôt que continuer à moitié</td>
+</tr>
+<tr>
+<td><code>trap</code> de nettoyage</td>
+<td>aucun fichier temporaire orphelin après interruption</td>
+</tr>
+<tr>
+<td>journalisation des actions</td>
+<td>le script sera exécuté par la cron, pas par un humain</td>
+</tr>
+<tr>
+<td>codes de retour explicites</td>
+<td>la cron et la CI ont besoin d'un verdict binaire</td>
+</tr>
+</tbody>
+</table></div>
+<p>L'agent principal applique lui-même la proposition retenue : le sous-agent de
+génération propose, la consolidation reste centralisée.</p>
+<h3>Phase 4-5 : consolider et passer les revues en parallèle</h3>
+<p>Après génération, les revues indépendantes tournent en parallèle, en lecture
+seule :</p>
+<div class="code-block"><pre><code class="language-text">&gt; Utilise des sous-agents en parallèle, sans modifier de fichier :
+  1. rapport de portabilité POSIX (constructions Bash non portables) ;
+  2. proposition de tests Bats : cas nominal, options invalides,
+     fichiers absents, erreurs de commandes ;
+  3. diagnostics ShellCheck : quelle alerte bloquante, quel correctif ;
+  4. avec mcp-ssh, inventorie la cible sans la modifier.
+  Retourne pour chacun : fichier, problème, impact, correctif proposé.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La force de cette phase vient de la séparation : chaque sous-agent a un
+contexte vierge et un mandat unique. L'auteur ne relit pas son propre
+travail — le rapporteur de la portabilité n'a pas écrit le script, le
+concepteur des tests n'a pas validé la portabilité. L'agent principal
+arbitre ensuite, correction par correction, en documentant ce qui est écarté
+et pourquoi.</p>
+<p>L'arbitrage suit trois règles simples :</p>
+<ol>
+<li>
+<p><strong>une correction se vérifie dans le code</strong>, pas dans le rapport — le
+   rapport dit « ligne 42 : variable non protégée », la ligne 42 dit si
+   c'est vrai ;</p>
+</li>
+<li>
+<p><strong>une correction contestable se teste</strong> — le relecteur doute d'un
+   <code>rm</code> non borné ? Un test sur répertoire temporaire tranche en une
+   minute ;</p>
+</li>
+<li>
+<p><strong>un écart se consigne</strong> — refuser un avis sans le dire laisse le
+   prochain lecteur (ou la prochaine session) croire que tout a été suivi ;
+   une ligne « écarté : faux positif, awk disponible sur la cible » clôt
+   le sujet.</p>
+</li>
+</ol>
+<div class="callout note"><div class="callout-title">Deux kinds de revue à ne pas confondre</div><p>Les <strong>vérifications automatisées</strong> (ShellCheck, <code>bash -n</code>, Bats) sont
+déterministes : le même script donne le même verdict, l'agent peut
+s'autocorriger dessus sans humain. La <strong>revue automatisée</strong> (le rapport
+d'un sous-agent) est un jugement : elle peut se tromper, omettre, et se
+vérifie sur la source primaire — le code — pas sur son résumé.</p></div>
+<h3>Phase 6 : valider</h3>
+<p>La validation exige des preuves, pas des affirmations :</p>
+<div class="code-block"><pre><code class="language-bash">bash -n scripts/monitoring/espace-disque.sh   # syntaxe
+shellcheck scripts/monitoring/espace-disque.sh # lint
+bats tests/espace-disque.bats                  # tests
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le test d'intégration sur cible isolée vient <strong>après</strong> ces contrôles locaux,
+avec une commande explicitement validée. La session se termine par un
+inventaire : ce qui a été modifié, ce qui a été testé, ce qui reste à faire.</p>
+<h3>Une session de workflow, commentée</h3>
+<p>Le transcript abrégé d'une session complète dans le bac à sable Compose :</p>
+<div class="code-block"><pre><code class="language-text">$ docker compose --env-file ./custom_sbx/.env \
+    -f ./custom_sbx/docker-compose.yml run --rm claude
+
+&gt; /mcp ; /skills ; /context
+        → la cible SSH est vue ; les skills du dépôt sont chargés ;
+          le contexte est vierge
+&gt; Lis CLAUDE.md. Cadrage : inventorie les services attendus sur la cible
+  (etc/services-attendus.conf) et signale ceux qui ne tournent pas.
+  OS cible : Debian. Lecture seule pour l'instant. Propose un plan.
+        → PHASES 1-2 : le plan s'affiche en cinq étapes
+&gt; Plan validé. Implémente avec le skill défensif. Branche atelier-3.
+        → PHASE 3 : le script est proposé, diff accepté, écrit
+&gt; Lance les revues en parallèle : portabilité POSIX, tests Bats,
+  ShellCheck, inventaire mcp-ssh de la cible. Rapports uniquement.
+        → PHASE 5 : trois rapports reviennent ; l'inventaire confirme
+          que la cible expose bien les services du fichier de conf
+&gt; Applique les correctifs 1 (usage manquant) et 3 (trap absent).
+  Écarte le 2 (faux positif : awk est dispo sur la cible). Consigne-le.
+        → PHASE 4 : consolidation, deux corrections appliquées
+&gt; bash -n, shellcheck, bats. Puis exécution sur la cible avec --dry-run
+  d'abord, exécution réelle ensuite : sortie attendue.
+        → PHASE 6 : contrôles verts ; le script rend son verdict
+&gt; Rédige la PR en suivant ia/gabarits/pull-request.md.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Points à retenir de ce déroulé :</p>
+<ol>
+<li>
+<p>la session <strong>commence par la vérification de l'environnement</strong> — travailler
+   dans un bac à sable qui n'a pas de cible SSH visible gaspille tout le
+   reste ;</p>
+</li>
+<li>
+<p>le cadrage <strong>interdit l'écriture</strong> tant que le plan n'est pas validé ;</p>
+</li>
+<li>
+<p>les rapports de revue reviennent <strong>avant</strong> la consolidation — jamais
+   l'inverse ;</p>
+</li>
+<li>
+<p>les corrections écartées se <strong>consignent</strong> : le prochain lecteur saura
+   pourquoi un avis de ShellCheck ou de relecteur n'a pas été suivi ;</p>
+</li>
+<li>
+<p>le <code>--dry-run</code> précède toujours l'exécution réelle sur cible, même dans
+   un bac à sable : l'habitude doit être identique hors du bac à sable.</p>
+</li>
+</ol>
+<h3>Le travail multi-sessions : la spécification</h3>
+<p>Un travail qui dépasse une session — refactoring d'un module complet,
+migration d'un lot de scripts — ne se pilote pas « au fil du contexte ». La
+pratique éprouvée : écrire une <strong>spécification</strong>, un document du dépôt qui
+énonce l'objectif, les contraintes, les décisions prises et la liste des
+tickets, chacun tenable dans une session.</p>
+<div class="code-block"><pre><code class="language-markdown"># plan-refactorisation.md
+
+## Objectif
+Découper les 12 scripts de scripts/legacy/ en fonctions testables,
+sans changement de comportement.
+
+## Décisions
+- Le répertoire de sortie reste scripts/ (pas de scripts/v2/).
+- Chaque script migré garde son nom ; les tests bats/ accompagnent.
+- Interdit : toucher à sauvegarde-base.sh (gelé pour audit, voir ticket #34).
+
+## Tickets
+1. collecte-journal.sh — en cours (session 2026-09-17)
+2. purge-tmp.sh — à faire
+3. alerte-disk.sh — à faire
+…
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Chaque session s'ouvre sur ce document, traite un ticket, met à jour l'état,
+et se clôt. Le document est un artefact de transfert : écrit pour un lecteur
+sans contexte, avec des chemins précis et non « le fichier dont on a parlé ».
+Les tickets indépendants peuvent même tourner en sessions parallèles —
+dans autant de bacs à sable.</p>
+<h3>Humain dans la boucle ou exécution sans surveillance ?</h3>
+<p>Deux modes de travail se partagent les tâches :</p>
+<ul>
+<li>
+<p><strong>humain dans la boucle</strong> : le stagiaire suit la session, réoriente en une
+  phrase, voit l'agent viser juste ou faux. Pour les tâches ambiguës,
+  irréversibles ou difficiles à vérifier après coup — migration, décision de
+  conception, tout ce qui touche la production ;</p>
+</li>
+<li>
+<p><strong>sans surveillance</strong> (AFK) : la session tourne seule, le résultat s'évalue
+  après coup, par une revue du diff. Pour les tâches bien spécifiées, peu
+  risquées et faciles à vérifier, dans un bac à sable balisé.</p>
+</li>
+</ul>
+<p>La règle de décision tient en deux questions : quel est le coût d'une fausse
+piste, et à quel moment serait-elle découverte ? Faible coût et détection
+rapide : le mode sans surveillance convient — avec vérifications automatisées
+et revue humaine finale du diff. Coût élevé ou détection tardive : rester
+dans la boucle. En aucun cas le mode sans surveillance ne supprime la revue
+humaine ; il la reporte à la fin, et le résultat doit être examinable (une
+branche, une PR — jamais des changements fusionnés en direct).</p>
+<div class="callout danger"><div class="callout-title">La fausse assurance du mode sans surveillance</div><p>Sans surveillance, l'agent tranche seul chaque ambiguïté par une valeur
+par défaut, et chaque décision suivante se construit dessus. L'échec
+typique : des heures de travail cohérent, soigné, abouti — à propos de la
+mauvaise cible. Avant de lancer une exécution longue : lever les
+ambiguïtés dans le cadrage ; après : relire le diff, pas le résumé.</p></div>
+</div>
+
+<div id="tab-documenter-les-scripts-generes-ou-modifies-par-l-ia" class="tab-content">
+<p>Un script généré puis testé n'est pas terminé : il doit être <strong>reprisable</strong>
+par un collègue, par la cron, et par la prochaine session de l'agent — qui
+n'a aucun souvenir de sa rédaction. La documentation est l'artefact de
+transfert qui rend la reprise possible.</p>
+<h3>Pourquoi la documentation compte double avec l'IA</h3>
+<p>Trois raisons propres au contexte assisté :</p>
+<ol>
+<li>
+<p><strong>l'agent est sans état</strong> : sans documentation, la session suivante
+   réexplique tout ce que la session de rédaction savait ;</p>
+</li>
+<li>
+<p><strong>le code généré arrive sans historique</strong> : un script hérité d'un humain
+   traîne sa légende (qui l'a écrit, pourquoi) ; un script généré n'a que ce
+   que la documentation en dit ;</p>
+</li>
+<li>
+<p><strong>la relecture humaine est le goulot</strong> : un script bien documenté se
+   relit en deux minutes ; un script opaque se relit en vingt ou ne se
+   relit pas.</p>
+</li>
+</ol>
+<h3>L'en-tête standard du dépôt</h3>
+<p>Chaque script du dépôt commence par le même en-tête :</p>
+<div class="code-block"><pre><code class="language-bash">#!/usr/bin/env bash
+#
+# espace-disque.sh — Alerte quand une partition dépasse un seuil.
+#
+# Usage     : espace-disque.sh [--seuil PCT] [--dry-run] [cible]
+# Effets    : lecture seule ; écrit une ligne dans /var/log/monitoring.log.
+# Sorties   : 0 = OK, 1 = seuil dépassé, 2 = erreur d'usage ou cible absente.
+# Contexte  : écrit avec assistance IA le [date], revu par [équipe],
+#             tests dans tests/espace-disque.bats.
+#
+set -euo pipefail
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Cinq lignes qui répondent aux cinq questions d'un repreneur : ça fait quoi,
+comment ça s'utilise, qu'est-ce que ça touche, comment ça échoue, d'où ça
+vient. La ligne « Contexte » assume l'origine assistée du script et pointe
+vers ses tests — la traçabilité de l'équipe.</p>
+<div class="callout tip"><div class="callout-title">Faire documenter par l'agent, relire par l'humain</div><p>La documentation est une tâche où l'assistant excelle — à condition de
+lui donner le gabarit : « Complète l'en-tête standard du dépôt pour ce
+script, sans modifier le code. » Puis relire : la documentation générée
+décrit parfois ce que le script devrait faire, pas ce qu'il fait. Un test
+qui échoue tranchera ; la lecture du code aussi.</p></div>
+<h3>Documenter ce que le code ne dit pas</h3>
+<p>La bonne documentation ne paraphrase pas le code — elle ajoute ce que le code
+ne peut pas dire :</p>
+<ul>
+<li>
+<p><strong>pourquoi</strong> : pourquoi ce seuil de 80 %, pourquoi ce délai entre deux
+  tentatives, pourquoi cette exclusion ;</p>
+</li>
+<li>
+<p><strong>hypothèses</strong> : ce qui doit être installé sur la cible, comptes attendus,
+  droits nécessaires ;</p>
+</li>
+<li>
+<p><strong>effets de bord</strong> : fichiers écrits, services redémarrés, e-mails envoyés ;</p>
+</li>
+<li><strong>limites connues</strong> : cas non couverts, comportement en cas de cible
+  injoignable.</li>
+</ul>
+<p>La paraphrase (« cette boucle parcourt les fichiers ») est du bruit ;
+l'hypothèse (« la cible doit avoir rsync ≥ 3.1, sinon la sauvegarde partielle
+n'est pas détectée ») est de la valeur.</p>
+<h3>Vérifier la documentation</h3>
+<p>Un contrôle simple, exécutable par l'agent ou un stagiaire : la
+documentation est-elle <strong>à jour du code</strong> ?</p>
+<div class="code-block"><pre><code class="language-text">&gt; Relis l'en-tête de scripts/monitoring/espace-disque.sh puis le code.
+&gt; Signale toute divergence : usage documenté ≠ options réelles,
+&gt; sorties documentées ≠ codes retour réels, effets documentés ≠ écritures réelles.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La documentation est une <strong>source secondaire</strong> : elle raconte le code, elle
+ne l'est pas. Quand elle diverge, c'est elle qu'on corrige — après avoir
+vérifié dans le code (source primaire) ce qui est vrai. Ce principe évite la
+dérive silencieuse : une documentation qui décrit le trimestre précédent
+avec l'assurance du trimestre courant.</p>
+<h3>Documenter à l'échelle du dossier</h3>
+<p>L'en-tête couvre le script ; le dossier a aussi sa documentation. Le même
+principe s'applique avec un gabarit de README de dossier, tenu court :</p>
+<div class="code-block"><pre><code class="language-markdown"># scripts/monitoring/
+
+Surveillance du parc de test : espace disque, services, journaux.
+
+- `espace-disque.sh` — alerte de remplissage, à lire en premier.
+- `verif-services.sh` — inventaire des services attendus vs en cours.
+- `etc/services-attendus.conf` — la liste de référence, modifiable
+  par l'équipe exploitation.
+
+Restitution : chaque script écrit une ligne dans /var/log/monitoring.log,
+format commun décrit dans docs/journalisation.md.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Quand un dossier compte plus de cinq scripts, ce README devient la première
+lecture de toute session qui y travaille — pour l'agent comme pour
+l'arrivant humain. Demander sa mise à jour après chaque ajout de script fait
+partie du workflow de phase 6 : « mets à jour le README du dossier si le
+script ajouté change le périmètre ».</p>
+</div>
+
+<div id="tab-industrialiser-l-usage-en-equipe" class="tab-content">
+<p>Un administrateur outillé, c'est un gain. Une équipe outillée, c'est un
+changement d'échelle — à condition de mutualiser : prompts, gabarits,
+contrôles et budgets. Cette section pose le socle : le répertoire « ia/ »
+partagé.</p>
+<h3>Le répertoire « ia/ » : patrimoine de l'équipe</h3>
+<p><img alt="Le répertoire ia/ : prompts maîtres à gauche, gabarits de documents au centre, qualité continue (CI/CD) à droite — le tout versionné avec le dépôt." src="../08-images/ch2-repertoire-ia.svg" /></p>
+<p>Le schéma organise le patrimoine en trois colonnes. La première, les
+<strong>prompts maîtres</strong>, reprend les commandes personnalisées du jour 1 et les
+étend au cas d'usage de l'équipe. La deuxième, les <strong>gabarits</strong>, standardise
+les documents produits par l'agent : tickets, PR, procédures. La troisième,
+la <strong>qualité continue</strong>, garantit que les mêmes verdicts s'appliquent en local
+et dans la CI. Tout vit dans le dépôt : ce qui n'est pas dans <code>ia/</code> n'existe
+pas pour l'équipe.</p>
+<div class="code-block"><pre><code class="language-text">depot-equipe/
+├── ia/
+│   ├── prompts/
+│   │   ├── nouveau-script.md      # gabarit de script défensif
+│   │   ├── revue-shell.md        # rapport fichier/problème/impact/correctif
+│   │   ├── doc-script.md         # en-tête standard
+│   │   └── diagnostic-service.md # plan de diagnostic guidé
+│   ├── gabarits/
+│   │   ├── ticket-intervention.md
+│   │   ├── pull-request.md
+│   │   ├── doc-runbook.md
+│   │   └── postmortem.md
+│   └── README.md                 # comment utiliser, comment contribuer
+└── .claude/
+    ├── commands/ → liens vers ia/prompts/   # ou déclaration directe
+    └── settings.json
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Deux conventions font vivre le répertoire :</p>
+<ul>
+<li>
+<p><strong>l'ouverture</strong> : toute modification de <code>ia/</code> passe par une revue de PR
+  comme du code — un prompt maître erroné se propage à toute l'équipe ;</p>
+</li>
+<li>
+<p><strong>l'élagage</strong> : à chaque revue trimestrielle, les prompts non utilisés
+  depuis un trimestre se corrigent ou se suppriment. Un répertoire de
+  prompts morts coûte plus à explorer qu'il ne rapporte.</p>
+</li>
+</ul>
+<h3>Standardiser les documents générés</h3>
+<p>L'agent rédige vite, mais chaque stagiaire obtient une mise en forme
+différente. Le gabarit standardise la <strong>structure</strong>, l'humain garde le
+fond. Exemple <code>ia/gabarits/pull-request.md</code> :</p>
+<div class="code-block"><pre><code class="language-markdown">## Contexte
+[Pourquoi cette PR : le problème, l'incident, le besoin. Une phrase.]
+
+## Changements
+[ Liste des modifications, fichier par fichier, une ligne chacune. ]
+
+## Tests
+[ Comment ça a été vérifié : commandes, résultats, cible. ]
+
+## Risques et points de relecture
+[ Ce qu'un relecteur doit regarder en priorité. ]
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le même principe s'applique aux tickets d'intervention (symptôme, cause,
+action, retour) et aux postmortems (chronologie, causes, mesures). L'agent
+remplit la structure à partir du contexte de la session ; le relecteur
+vérifie le fond. Le document type s'appelle par son chemin dans la demande :
+« Rédige la PR de ce script en suivant ia/gabarits/pull-request.md ».</p>
+<div class="callout tip"><div class="callout-title">Le gabarit comme prompt</div><p>Un gabarit n'est pas seulement une structure : c'est un prompt. En le
+citant dans la demande, l'humain donne à l'agent les critères d'une PR
+acceptable de l'équipe — sans les réexpliquer. Les gabarits sont les
+candidats naturels aux commandes personnalisées (<code>/pr</code>, <code>/ticket</code>).</p></div>
+<h3>Intégration au workflow Git et à la CI/CD</h3>
+<p>L'usage en équipe s'appuie sur les garde-fous existants du dépôt :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Pratique</th>
+<th>Règle</th>
+<th>Outil</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Branches</td>
+<td>l'agent travaille sur une branche, jamais sur <code>main</code></td>
+<td><code>ask</code> sur <code>git commit</code>, <code>deny</code> sur <code>git push</code></td>
+</tr>
+<tr>
+<td>Revue humaine</td>
+<td>toute PR générée ou assistée se relit comme une PR humaine — le diff, pas le résumé</td>
+<td>revue de PR (forge)</td>
+</tr>
+<tr>
+<td>Qualité</td>
+<td>ShellCheck et <code>bash -n</code> sur tous les scripts, tests Bats du dépôt</td>
+<td>pipeline CI</td>
+</tr>
+<tr>
+<td>Parité local/CI</td>
+<td>les hooks locaux exécutent les mêmes contrôles que la CI</td>
+<td>hooks + pipeline</td>
+</tr>
+<tr>
+<td>Traçabilité</td>
+<td>message de commit standard : quoi, pourquoi, référence au ticket</td>
+<td>conventions de commit</td>
+</tr>
+</tbody>
+</table></div>
+<p>La parité local/CI mérite une explication : l'agent s'autocorrige sur les
+vérifications automatisées locales (jour 1, hooks). Si la CI applique des
+règles différentes, la correction locale cesse d'être fiable. Mêmes commandes,
+mêmes versions, mêmes seuils — sinon l'agent « corrige » un code juste ou
+livre un code que la CI rejettera.</p>
+<div class="code-block"><pre><code class="language-yaml"># .gitlab-ci.yml (extrait)
+lint-scripts:
+  script:
+    - shellcheck scripts/**/*.sh
+    - bash -n scripts/**/*.sh
+
+tests-bats:
+  script:
+    - bats tests/
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Avec cette pipeline, une PR assistée arrive en revue avec les mêmes
+garanties qu'une PR manuelle : lint vert, tests verts, diff à lire. La revue
+humaine se concentre sur le seul terrain où elle est irremplaçable : ce
+changement est-il le bon ?</p>
+<h3>Budget et licences : le volet service</h3>
+<p>L'industrialisation inclut le pilotage de la consommation (jour 1,
+section « Suivre et maîtriser la consommation ») au niveau du service :</p>
+<ul>
+<li>
+<p><strong>mesurer par poste et par mois</strong> avec <code>ccusage</code> : le rapport consolidé
+  alimente la discussion, pas la surveillance individuelle ;</p>
+</li>
+<li>
+<p><strong>plafonner si nécessaire</strong> par un proxy LLM : budget dur par jour, nombre
+  de requêtes, retry — la limite est une décision de service, pas une
+  contrainte cachée dans les réglages de chacun ;</p>
+</li>
+<li>
+<p><strong>choisir la passerelle selon la politique de l'entreprise</strong> : API directe
+  ou passerelle interne (<code>ANTHROPIC_BASE_URL</code>), avec journalisation adaptée.</p>
+</li>
+</ul>
+<div class="callout note"><div class="callout-title">Une habitude d'équipe avant d'être un outil</div><p>Le répertoire <code>ia/</code>, la parité local/CI et le suivi budgétaire ne
+fonctionnent que comme des habitudes d'équipe : revues de prompts, ajout
+justifié de domaines, lecture des rapports mensuels. Le formateur insiste
+sur ce point en clôture : l'outil est installé en un jour, la pratique
+prend un trimestre — et c'est elle qui crée la valeur.</p></div>
+<h3>Qui fait quoi : la répartition des rôles</h3>
+<p>L'industrialisation clarifie les responsabilités — faute de quoi chacun
+reconfigure l'outil dans son coin et le dépôt diverge :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Acteur</th>
+<th>Responsabilité</th>
+<th>Livrable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Administrateur utilisateur</td>
+<td>appliquer le workflow, contribuer à <code>ia/</code></td>
+<td>scripts, PR, rapports de revue</td>
+</tr>
+<tr>
+<td>Référent équipe (un nom, pas un comité)</td>
+<td>entretenir <code>ia/</code>, arbitrer les conventions, animer l'élagage</td>
+<td>prompts maîtres, gabarits, CLAUDE.md</td>
+</tr>
+<tr>
+<td>Service sécurité</td>
+<td>valider les listes blanches, les <code>deny</code>, la politique de secrets</td>
+<td>avis sur le kit, exceptions tracées</td>
+</tr>
+<tr>
+<td>Service qui paie</td>
+<td>budget, licences, passerelle LLM</td>
+<td>plafonds, rapports mensuels</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le point d'attention est la colonne du référent : le répertoire <code>ia/</code>
+s'entretient ou meurt. Une équipe sans référent nommé verra ses prompts
+maîtres dériver en trois mois — chacun y ajoutant sans élaguer. Le référent
+n'est pas l'auteur de tout : il est le relecteur de la cohérence.</p>
+<h3>Déployer la pratique : le chemin de reprise</h3>
+<p>Pour une équipe qui démarre, l'ordre de mise en place compte. Chaque étape
+ne se lance que lorsque la précédente est stable :</p>
+<ol>
+<li>
+<p><strong>postes individuels</strong> (jour 1 de la formation) : installation, CLAUDE.md,
+   permissions ;</p>
+</li>
+<li>
+<p><strong>bac à sable</strong> (jour 2) : Compose en atelier, kit sbx pour les travaux
+   sensibles ;</p>
+</li>
+<li>
+<p><strong>patrimoine</strong> : répertoire <code>ia/</code> avec les trois premiers prompts —
+   nouveau-script, revue-shell, doc-script ;</p>
+</li>
+<li>
+<p><strong>qualité</strong> : hooks locaux puis pipeline CI aux mêmes verdicts ;</p>
+</li>
+<li><strong>mesure</strong> : rapport mensuel <code>ccusage</code>, décision de budget en service.</li>
+</ol>
+<p>Un mois par étape est un rythme raisonnable. Le signe que l'étape est
+acquise : les stagiaires s'en servent sans y penser — la convention devient
+un réflexe, pas une règle à relire.</p>
+</div>
+
+<div id="tab-atelier-repertoire-ia-partage-et-workflow-sandboxe" class="tab-content">
+<p>Deux ateliers clôturent la formation : l'un établit le workflow complet dans
+le bac à sable, l'autre crée le répertoire « ia/ » partagé de l'équipe. Le
+formateur valide les étapes marquées ; les critères de réussite sont
+explicites.</p>
+<h3>Atelier 3 — Workflow plan / implémente / vérifie dans le bac à sable</h3>
+<p>Objectif : dérouler les six phases du workflow sur un script réel, dans
+l'environnement d'isolation choisi par le formateur (Compose pour la salle,
+microVM si disponible).</p>
+<p>Déroulé :</p>
+<ol>
+<li><strong>Démarrer l'environnement</strong> :</li>
+</ol>
+<p>```bash
+   # Variante Compose (salle)
+   cp custom_sbx/.env.example custom_sbx/.env   # CLAUDE_PLUGIN_ROOT renseigné
+   docker compose --env-file ./custom_sbx/.env \
+     -f ./custom_sbx/docker-compose.yml run --rm claude</p>
+<p># Variante microVM
+   bash ./scripts/run-claude-sandbox.sh --dry-run   # vérifier d'abord
+   bash ./scripts/run-claude-sandbox.sh
+   ```</p>
+<ol>
+<li><strong>Vérifier l'environnement dans la session</strong> :</li>
+</ol>
+<p><code>text
+   /mcp        # mcp-ssh connecté, cible visible
+   /skills    # skills du dépôt disponibles
+   /context   # contexte propre au démarrage</code></p>
+<ol>
+<li>
+<p><strong>Cadrer puis planifier</strong> un script de vérification d'état — par exemple
+   <code>verif-services.sh</code> : inventorie les services attendus sur la cible SSH et
+   signale ceux qui ne tournent pas. Amorçage avec le prompt de la section
+   « Phase 1-2 » ; le plan est validé par le formateur.</p>
+</li>
+<li>
+<p><strong>Implémenter</strong> avec le skill défensif ; écrire dans le dépôt, sur une
+   branche <code>atelier-3</code>.</p>
+</li>
+<li>
+<p><strong>Passer les revues en parallèle</strong> : portabilité, tests Bats, ShellCheck —
+   les trois rapports revennent dans la session.</p>
+</li>
+<li>
+<p><strong>Consolider et valider</strong> : appliquer les corrections retenues, exécuter
+   <code>bash -n</code>, <code>shellcheck</code>, <code>bats</code>, puis le test d'intégration sur la cible
+   (commande validée par le formateur).</p>
+</li>
+<li>
+<p><strong>Exécuter en mode sans surveillance</strong> (démonstration) : une fois le
+   script validé, demander une exécution complète sans interaction, puis
+   relire le diff — l'expérience du « résultat cohérent mais à vérifier ».</p>
+</li>
+</ol>
+<p>Critères de réussite :</p>
+<ul>
+<li>les six phases sont visibles dans l'historique de la session ;</li>
+<li>les trois rapports de revue sont rendus <strong>avant</strong> toute consolidation ;</li>
+<li>
+<p>les contrôles passent : <code>bash -n</code>, ShellCheck sans alerte bloquante, Bats
+  vert ;</p>
+</li>
+<li>
+<p>le script fonctionne sur la cible isolée et <strong>seulement</strong> sur elle ;</p>
+</li>
+<li>le stagiaire sait dire quelle phase a demandé une validation humaine et
+  laquelle s'est autoguérie sur les vérifications.</li>
+</ul>
+<h4>Variante microVM pour les postes équipés</h4>
+<p>Quand la salle fournit des postes avec virtualisation, l'atelier bascule sur
+la microVM pour éprouver les mécanismes propres à ce niveau :</p>
+<ol>
+<li>
+<p><code>sbx login</code> puis <code>sbx run claude --name claude-admin-lab --kit ./kit .</code> —
+   le kit de la formation installe Ansible, SSH et démarre la cible Debian ;</p>
+</li>
+<li>
+<p>refaire le déroulé Compose <strong>sans rien changer</strong> : c'est le message — le
+   workflow est indépendant du niveau d'isolation, seule la frontière change ;</p>
+</li>
+<li>
+<p>en fin de session, exécuter <code>sbx policy log</code> et commenter chaque tentative
+   réseau : celle qui est passée (domaine déclaré), celle qui a été bloquée
+   (domaine oublié de la liste), celle du proxy (injection de credential) ;</p>
+</li>
+<li>
+<p>détruire puis recréer le bac à sable (<code>sbx rm</code> + relance du script) et
+   constater que le dépôt, lui, n'a rien perdu : la cible et l'état de la VM
+   sont jetables, le travail est dans le dépôt.</p>
+</li>
+</ol>
+<p>Cette variante se joue en fin de journée si le temps le permet ; le
+formateur la garde aussi comme démonstration de clôture.</p>
+<h3>Atelier 4 — Créer le répertoire « ia/ » de l'équipe</h3>
+<p>Objectif : produire le socle mutualisé — prompts maîtres, gabarits, hook —
+prêt à être fusionné dans le dépôt d'équipe.</p>
+<p>Déroulé :</p>
+<ol>
+<li><strong>Créer la structure</strong> :</li>
+</ol>
+<p><code>text
+   ia/
+   ├── prompts/
+   ├── gabarits/
+   └── README.md</code></p>
+<ol>
+<li>
+<p><strong>Migrer les acquis du jour 1</strong> : <code>.claude/commands/nouveau-script.md</code>
+   devient <code>ia/prompts/nouveau-script.md</code> ; le relecteur du jour 1 devient
+   <code>ia/prompts/revue-shell.md</code>.</p>
+</li>
+<li>
+<p><strong>Écrire deux prompts maîtres</strong> supplémentaires, choisis par l'équipe de
+   salle : <code>doc-script.md</code> (en-tête standard + vérification de divergence)
+   et <code>diagnostic-service.md</code> (plan de diagnostic guidé : symptôme →
+   hypothèses → vérifications non mutantes → rapport). Exemple de structure
+   pour ce dernier :</p>
+</li>
+</ol>
+<p>```markdown</p>
+<hr />
+<p>description: Plan de diagnostic guidé pour un service défaillant
+   allowed-tools: Read, Grep, Glob, Bash</p>
+<hr />
+<p>Diagnostique le service $ARGUMENTS en quatre temps, sans aucune action
+   mutante :
+   1. Symptôme : reformule ce qui est observé vs attendu.
+   2. Hypothèses : liste trois hypothèses ordonnées par probabilité.
+   3. Vérifications : pour chacune, la commande d'observation qui la
+      confirme ou l'infirme (lecture seule).
+   4. Rapport : symptôme, hypothèse retenue, preuves, action corrective
+      PROPOSÉE mais non exécutée — l'administrateur décide.
+   ```</p>
+<ol>
+<li>
+<p><strong>Écrire un gabarit de PR</strong> et un gabarit de ticket d'intervention à
+   partir des exemples de la section « Standardiser les documents générés ».</p>
+</li>
+<li>
+<p><strong>Poser le hook de parité</strong> : <code>PostToolUse</code> sur <code>Write|Edit</code> qui lance
+   <code>shellcheck</code> sur le fichier modifié — le même contrôle que la CI.</p>
+</li>
+<li>
+<p><strong>Relire en binôme</strong> : chaque stagiaire relit le répertoire <code>ia/</code> d'un
+   autre — prompt flou, gabarit incomplet, description manquante. La revue
+   croisée est l'occasion d'écrire les trois premières lignes du <code>README.md</code>
+   de <code>ia/</code> : à quoi ça sert, comment contribuer, qui entretient.</p>
+</li>
+</ol>
+<p>Critères de réussite :</p>
+<ul>
+<li>
+<p>chaque prompt maître a une description en en-tête (elle s'affiche dans la
+  liste des commandes) ;</p>
+</li>
+<li>
+<p>chaque gabarit se remplit <strong>entièrement</strong> à partir d'une session type du
+  jour 2 ;</p>
+</li>
+<li>
+<p>le hook déclenche ShellCheck à chaque écriture de l'agent (test : écrire
+  un script avec une erreur, voir l'alerte revenir dans la session) ;</p>
+</li>
+<li>
+<p>la branche <code>atelier-4</code> ne contient aucun secret, aucune adresse réelle
+  d'exploitation, aucun nom de personne hors les pseudonymes de la salle.</p>
+</li>
+</ul>
+<h3>Bilan des deux jours</h3>
+<p>Le second jour clôt la boucle ouverte le premier :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Jour</th>
+<th>Acquis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jour 1</td>
+<td>poste opérationnel, dépôt préparé, demande structurée, premier script généré, durci, documenté</td>
+</tr>
+<tr>
+<td>Jour 2</td>
+<td>isolation adaptée au risque, données et réseau maîtrisés, workflow en six phases reproductible, patrimoine d'équipe (<code>ia/</code>) versionné</td>
+</tr>
+</tbody>
+</table></div>
+<h4>S'auto-évaluer avant de partir</h4>
+<p>Chaque stagiaire répond seul, à voix haute ou par écrit, aux questions de
+reprise — celles qui reviennent à la semaine suivante, au poste :</p>
+<ol>
+<li>
+<p>Sur mon poste : où est ma clé, où sont mes variables de proxy, et quelle
+   commande vérifie l'installation en une ligne ?</p>
+</li>
+<li>
+<p>Sur mon dépôt : que contient mon <code>CLAUDE.md</code>, et quelle règle <code>deny</code>
+   protégerait les fichiers que je ne veux surtout pas voir lus ?</p>
+</li>
+<li>
+<p>Sur ma demande : est-ce que mon dernier prompt précisait les limites, le
+   comportement sûr par défaut et le protocole d'interaction ?</p>
+</li>
+<li>
+<p>Sur mon risque : quel niveau d'isolation pour ma prochaine tâche, et
+   pourquoi celui-là plutôt qu'un autre ?</p>
+</li>
+<li>
+<p>Sur mon équipe : quel est le premier prompt maître que je propose à
+   <code>ia/</code>, et qui sera son référent ?</p>
+</li>
+</ol>
+<p>Une question sans réponse désigne la section du support à relire — le
+chapitre, l'aide-mémoire ou le glossaire des annexes.</p>
+<p>En salle, l'évaluation gagne à se jouer à deux : chaque stagiaire pose les
+cinq questions à son binôme et note les réponses sans les corriger
+lui-même. Deux angles morts reviennent régulièrement, à écouter
+activement :</p>
+<ul>
+<li>
+<p>« je testerai directement sur la prod » : la frontière du jour 2 n'est pas
+  devenue une habitude — la cible isolée est restée une abstraction du
+  support ;</p>
+</li>
+<li>
+<p>« mon CLAUDE.md fait trois pages » : la divulgation progressive n'est pas
+  passée ; le coût permanent d'un contexte long se revoit avec <code>/cost</code>.</p>
+</li>
+</ul>
+<p>La suite appartient à l'équipe : la première PR de <code>ia/</code>, la première revue
+de prompt, le premier rapport <code>ccusage</code> mensuel. Le support de cours et ses
+annexes (glossaire, aide-mémoire, ressources officielles) accompagnent la
+reprise en autonomie.</p>
+</div>
+
+<div id="tab-quiz" class="tab-content">
+<div id="quiz-container">
+<div class="quiz-question" id="q1">
+  <h4>Question 1 — Pourquoi les permissions de session ne suffisent-elles pas à sécuriser l'exécution ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(1,'a')">A) Elles ne s'appliquent qu'aux fichiers Markdown</button>
+    <button class="quiz-option" onclick="answer(1,'b')">B) Une injection de prompt peut pousser l'agent à exécuter une commande aux effets que la confirmation ne montre pas</button>
+    <button class="quiz-option" onclick="answer(1,'c')">C) Elles sont désactivées par défaut dans Claude Code</button>
+    <button class="quiz-option" onclick="answer(1,'d')">D) Elles bloquent uniquement les lectures de fichiers</button>
+  </div>
+  <div class="quiz-feedback" id="fb1"></div>
+</div>
+<div class="quiz-question" id="q2">
+  <h4>Question 2 — Que signifie « défense en profondeur » dans ce chapitre ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(2,'a')">A) Refuser toutes les commandes par défaut et n'autoriser que la lecture</button>
+    <button class="quiz-option" onclick="answer(2,'b')">B) Combiner les permissions (couche de décision) et le bac à sable (couche d'exécution)</button>
+    <button class="quiz-option" onclick="answer(2,'c')">C) Installer trois antivirus sur le poste</button>
+    <button class="quiz-option" onclick="answer(2,'d')">D) Exécuter l'assistant uniquement depuis une machine virtuelle hors ligne</button>
+  </div>
+  <div class="quiz-feedback" id="fb2"></div>
+</div>
+<div class="quiz-question" id="q3">
+  <h4>Question 3 — Dans le bac à sable intégré, à quoi sert <code>sandbox.filesystem.denyRead</code> ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(3,'a')">A) À interdire à l'agent de lire certains chemins sensibles comme <code>~/.ssh</code> ou <code>.env</code>, même via une commande Bash</button>
+    <button class="quiz-option" onclick="answer(3,'b')">B) À supprimer définitivement ces fichiers du disque</button>
+    <button class="quiz-option" onclick="answer(3,'c')">C) À chiffrer ces fichiers automatiquement</button>
+    <button class="quiz-option" onclick="answer(3,'d')">D) À les déplacer vers le bac à sable</button>
+  </div>
+  <div class="quiz-feedback" id="fb3"></div>
+</div>
+<div class="quiz-question" id="q4">
+  <h4>Question 4 — Quelle est la particularité des secrets dans le niveau microVM (sbx) ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(4,'a')">A) Les secrets sont copiés dans la microVM au démarrage</button>
+    <button class="quiz-option" onclick="answer(4,'b')">B) Les secrets sont stockés dans le dépôt Git chiffré</button>
+    <button class="quiz-option" onclick="answer(4,'c')">C) Le proxy de l'hôte injecte les valeurs dans les requêtes autorisées ; la valeur n'entre jamais dans la microVM</button>
+    <button class="quiz-option" onclick="answer(4,'d')">D) Les secrets sont saisis à chaque commande par l'agent</button>
+  </div>
+  <div class="quiz-feedback" id="fb4"></div>
+</div>
+<div class="quiz-question" id="q5">
+  <h4>Question 5 — Que fait <code>permissions.network.allow</code> dans le kit sbx ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(5,'a')">A) Il autorise l'agent à ouvrir des ports entrants sur l'hôte</button>
+    <button class="quiz-option" onclick="answer(5,'b')">B) Il définit la liste blanche des domaines que le trafic sortant de la microVM peut joindre ; tout le reste est bloqué</button>
+    <button class="quiz-option" onclick="answer(5,'c')">C) Il liste les domaines autorisés pour la navigation web du formateur</button>
+    <button class="quiz-option" onclick="answer(5,'d')">D) Il autorise toutes les connexions locales sans journalisation</button>
+  </div>
+  <div class="quiz-feedback" id="fb5"></div>
+</div>
+<div class="quiz-question" id="q6">
+  <h4>Question 6 — Dans la variante Docker Compose, pourquoi le réseau <code>admin</code> est-il déclaré <code>internal: true</code> ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(6,'a')">A) Pour que la cible SSH n'ait aucune route sortante et qu'aucun port ne soit publié sur l'hôte</button>
+    <button class="quiz-option" onclick="answer(6,'b')">B) Pour accélérer les échanges entre conteneurs</button>
+    <button class="quiz-option" onclick="answer(6,'c')">C) Pour autoriser la cible à joindre Internet via le proxy de l'hôte</button>
+    <button class="quiz-option" onclick="answer(6,'d')">D) Pour que l'assistant ne puisse pas joindre l'API Anthropic</button>
+  </div>
+  <div class="quiz-feedback" id="fb6"></div>
+</div>
+<div class="quiz-question" id="q7">
+  <h4>Question 7 — Quelles données ne partent jamais dans un prompt envoyé au moteur IA ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(7,'a')">A) Les noms de fonctions et les messages d'erreur</button>
+    <button class="quiz-option" onclick="answer(7,'b')">B) Les secrets, les données personnelles et les données d'exploitation nominatives non anonymisées</button>
+    <button class="quiz-option" onclick="answer(7,'c')">C) Les structures de dossiers du dépôt</button>
+    <button class="quiz-option" onclick="answer(7,'d')">D) Les codes de retour des commandes</button>
+  </div>
+  <div class="quiz-feedback" id="fb7"></div>
+</div>
+<div class="quiz-question" id="q8">
+  <h4>Question 8 — Dans le workflow en six phases, qui applique les corrections à l'issue des revues parallèles ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(8,'a')">A) Chaque sous-agent modifie le script en parallèle</button>
+    <button class="quiz-option" onclick="answer(8,'b')">B) L'agent principal consolide les rapports et applique les corrections retenues, une seule main écrit dans le dépôt</button>
+    <button class="quiz-option" onclick="answer(8,'c')">C) Le formateur applique toutes les corrections à la main</button>
+    <button class="quiz-option" onclick="answer(8,'d')">D) Personne : les rapports sont archivés sans suite</button>
+  </div>
+  <div class="quiz-feedback" id="fb8"></div>
+</div>
+<div class="quiz-question" id="q9">
+  <h4>Question 9 — Quelle est la différence entre une vérification automatisée et une revue automatisée ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(9,'a')">A) Aucune, ce sont deux noms du même contrôle</button>
+    <button class="quiz-option" onclick="answer(9,'b')">B) La vérification automatisée est déterministe (même entrée, même verdict) ; la revue automatisée est un jugement qui peut se tromper et se vérifie sur la source primaire</button>
+    <button class="quiz-option" onclick="answer(9,'c')">C) La vérification automatisée s'exécute sur la cible, la revue automatisée sur le poste</button>
+    <button class="quiz-option" onclick="answer(9,'d')">D) La revue automatisée est déterministe, la vérification automatisée est un jugement</button>
+  </div>
+  <div class="quiz-feedback" id="fb9"></div>
+</div>
+<div class="quiz-question" id="q10">
+  <h4>Question 10 — Quel critère guide le choix entre « humain dans la boucle » et « exécution sans surveillance » (AFK) ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(10,'a')">A) La durée de la tâche uniquement</button>
+    <button class="quiz-option" onclick="answer(10,'b')">B) Le coût d'une fausse piste et le moment où elle serait découverte</button>
+    <button class="quiz-option" onclick="answer(10,'c')">C) Le modèle choisi (léger, intermédiaire, supérieur)</button>
+    <button class="quiz-option" onclick="answer(10,'d')">D) Le nombre de sous-agents disponibles</button>
+  </div>
+  <div class="quiz-feedback" id="fb10"></div>
+</div>
+<div class="quiz-question" id="q11">
+  <h4>Question 11 — Que doit documenter l'en-tête standard d'un script du dépôt ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(11,'a')">A) Le nom du stagiaire qui l'a exécuté et son horaire</button>
+    <button class="quiz-option" onclick="answer(11,'b')">B) L'usage, les effets, les codes de sortie, le contexte (origine assistée, revue, tests)</button>
+    <button class="quiz-option" onclick="answer(11,'c')">C) Le contenu complet du plan de la session</button>
+    <button class="quiz-option" onclick="answer(11,'d')">D) La liste des prompts utilisés, mot pour mot</button>
+  </div>
+  <div class="quiz-feedback" id="fb11"></div>
+</div>
+<div class="quiz-question" id="q12">
+  <h4>Question 12 — Pourquoi la parité entre contrôles locaux et contrôles CI est-elle essentielle ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(12,'a')">A) Elle permet de supprimer la revue humaine des PR</button>
+    <button class="quiz-option" onclick="answer(12,'b')">B) Sans parité, l'agent s'autocorrige sur des verdicts locaux que la CI contredirait, et la boucle d'autocorrection devient peu fiable</button>
+    <button class="quiz-option" onclick="answer(12,'c')">C) Elle réduit la facture de jetons de l'équipe</button>
+    <button class="quiz-option" onclick="answer(12,'d')">D) Elle n'a d'effet que sur la vitesse de compilation</button>
+  </div>
+  <div class="quiz-feedback" id="fb12"></div>
+</div>
+<div class="quiz-question" id="q13">
+  <h4>Question 13 — Dans le répertoire « ia/ » de l'équipe, comment vit un prompt maître ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(13,'a')">A) Il est figé après sa première version validée</button>
+    <button class="quiz-option" onclick="answer(13,'b')">B) Il évolue par revue de PR comme du code, et les prompts inutilisés sont corrigés ou supprimés à l'élagage périodique</button>
+    <button class="quiz-option" onclick="answer(13,'c')">C) Il est réinitialisé à chaque session pour rester frais</button>
+    <button class="quiz-option" onclick="answer(13,'d')">D) Il reste local au poste de son auteur</button>
+  </div>
+  <div class="quiz-feedback" id="fb13"></div>
+</div>
+</div>
+<div class="quiz-score" id="quiz-score">
+  <div class="score-num" id="score-display">0 / 13</div>
+  <p id="score-msg"></p>
+  <button class="btn-restart" onclick="restartQuiz()">Recommencer</button>
+</div>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+const answers = { 1:'b', 2:'b', 3:'a', 4:'c', 5:'b', 6:'a', 7:'b', 8:'b', 9:'b', 10:'b', 11:'b', 12:'b', 13:'b' };
+const feedbacks = {
+  1: { b: "Exact ! les permissions contrôlent la décision ; le bac à sable contrôle ce que la commande peut réellement atteindre.", wrong: "Non. La bonne réponse est B) Une injection de prompt peut pousser l'agent à exécuter une commande aux effets que la confirmation ne montre pas — les permissions contrôlent la décision ; le bac à sable contrôle ce que la commande peut réellement atteindre." },
+  2: { b: "Exact ! la frontière système protège même si la décision est contournée ; les restrictions de fichiers des deux couches fusionnent.", wrong: "Non. La bonne réponse est B) Combiner les permissions (couche de décision) et le bac à sable (couche d'exécution) — la frontière système protège même si la décision est contournée ; les restrictions de fichiers des deux couches fusionnent." },
+  3: { a: "Exact ! le bac à sable s'applique à la commande Bash et à ses sous-processus, là où une simple règle de permission ne couvre pas tout.", wrong: "Non. La bonne réponse est A) À interdire à l'agent de lire certains chemins sensibles comme <code>~/.ssh</code> ou <code>.env</code>, même via une commande Bash — le bac à sable s'applique à la commande Bash et à ses sous-processus, là où une simple règle de permission ne couvre pas tout." },
+  4: { c: "Exact ! <code>sbx secret set</code> déclare le secret côté hôte ; un compromis de la VM n'expose pas la valeur.", wrong: "Non. La bonne réponse est C) Le proxy de l'hôte injecte les valeurs dans les requêtes autorisées ; la valeur n'entre jamais dans la microVM — <code>sbx secret set</code> déclare le secret côté hôte ; un compromis de la VM n'expose pas la valeur." },
+  5: { b: "Exact ! chaque domaine répond à un besoin écrit ; <code>sbx policy log</code> diagnostique les tentatives bloquées.", wrong: "Non. La bonne réponse est B) Il définit la liste blanche des domaines que le trafic sortant de la microVM peut joindre ; tout le reste est bloqué — chaque domaine répond à un besoin écrit ; <code>sbx policy log</code> diagnostique les tentatives bloquées." },
+  6: { a: "Exact ! la cible n'est jointe que par le conteneur assistant, sur le réseau interne.", wrong: "Non. La bonne réponse est A) Pour que la cible SSH n'ait aucune route sortante et qu'aucun port ne soit publié sur l'hôte — la cible n'est jointe que par le conteneur assistant, sur le réseau interne." },
+  7: { b: "Exact ! l'anonymisation se fait avant la demande ; ce qui part dans l'API ne se rappelle pas.", wrong: "Non. La bonne réponse est B) Les secrets, les données personnelles et les données d'exploitation nominatives non anonymisées — l'anonymisation se fait avant la demande ; ce qui part dans l'API ne se rappelle pas." },
+  8: { b: "Exact ! les sous-agents de revue rendent des rapports en lecture seule, sans modifier le script en parallèle.", wrong: "Non. La bonne réponse est B) L'agent principal consolide les rapports et applique les corrections retenues, une seule main écrit dans le dépôt — les sous-agents de revue rendent des rapports en lecture seule, sans modifier le script en parallèle." },
+  9: { b: "Exact ! ShellCheck et Bats tranchent ; le rapport d'un sous-agent se vérifie dans le code.", wrong: "Non. La bonne réponse est B) La vérification automatisée est déterministe (même entrée, même verdict) ; la revue automatisée est un jugement qui peut se tromper et se vérifie sur la source primaire — ShellCheck et Bats tranchent ; le rapport d'un sous-agent se vérifie dans le code." },
+  10: { b: "Exact ! coût faible et détection rapide : AFK possible avec revue finale du diff ; coût élevé ou détection tardive : rester dans la boucle.", wrong: "Non. La bonne réponse est B) Le coût d'une fausse piste et le moment où elle serait découverte — coût faible et détection rapide : AFK possible avec revue finale du diff ; coût élevé ou détection tardive : rester dans la boucle." },
+  11: { b: "Exact ! cinq lignes qui répondent aux cinq questions d'un repreneur, avec la traçabilité de l'équipe.", wrong: "Non. La bonne réponse est B) L'usage, les effets, les codes de sortie, le contexte (origine assistée, revue, tests) — cinq lignes qui répondent aux cinq questions d'un repreneur, avec la traçabilité de l'équipe." },
+  12: { b: "Exact ! mêmes commandes, mêmes versions, mêmes seuils en local et en CI.", wrong: "Non. La bonne réponse est B) Sans parité, l'agent s'autocorrige sur des verdicts locaux que la CI contredirait, et la boucle d'autocorrection devient peu fiable — mêmes commandes, mêmes versions, mêmes seuils en local et en CI." },
+  13: { b: "Exact ! un prompt maître erroné se propage à toute l'équipe ; un répertoire de prompts morts coûte plus qu'il ne rapporte.", wrong: "Non. La bonne réponse est B) Il évolue par revue de PR comme du code, et les prompts inutilisés sont corrigés ou supprimés à l'élagage périodique — un prompt maître erroné se propage à toute l'équipe ; un répertoire de prompts morts coûte plus qu'il ne rapporte." }
+};
+const QUIZ_TOTAL = 13;
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>

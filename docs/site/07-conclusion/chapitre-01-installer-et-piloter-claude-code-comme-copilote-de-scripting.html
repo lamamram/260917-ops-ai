@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Support interactif de formation Claude Code pour les administrateurs : 01 — Installer et piloter Claude Code comme copilote de scripting">
+<title>01 — Installer et piloter Claude Code comme copilote de scripting</title>
+<style>
+:root {
+  --bg: #0d1117; --surface: #161b22; --surface2: #1c2128; --border: #30363d;
+  --primary: #f0883e; --primary2: #ffa657;
+  --success: #3fb950; --warning: #d29922; --danger: #f85149;
+  --text: #e6edf3; --text-muted: #8b949e; --code-bg: #010409; --radius: 10px;
+  --topbar-h: 3.25rem;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+  --primary: #bc4c00; --primary2: #953800;
+  --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+  --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #ffffff; --surface: #f6f8fa; --surface2: #eaeef2; --border: #d0d7de;
+    --primary: #bc4c00; --primary2: #953800;
+    --success: #1a7f37; --warning: #9a6700; --danger: #cf222e;
+    --text: #1f2328; --text-muted: #656d76; --code-bg: #f6f8fa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; transition: background .2s, color .2s; }
+
+/* TOPBAR — fixe, ne bouge jamais au scroll */
+.topbar {
+  position: sticky; top: 0; z-index: 200; height: var(--topbar-h);
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: .9rem; padding: 0 1rem;
+}
+.topbar .badge {
+  flex: 0 0 auto; background: var(--primary); color: #0d1117;
+  font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+}
+.topbar a.chapter-title {
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: .5rem;
+  text-decoration: none; color: var(--text); font-weight: 700; font-size: .92rem;
+  overflow: hidden;
+}
+.topbar a.chapter-title:hover { color: var(--primary); }
+.topbar a.chapter-title .num { color: var(--primary); flex: 0 0 auto; }
+.topbar a.chapter-title .txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topbar-links { flex: 0 0 auto; display: flex; align-items: center; gap: .5rem; }
+.topbar-link {
+  white-space: nowrap; padding: .4rem .8rem; border: 1px solid var(--border); border-radius: 20px;
+  font-size: .8rem; font-weight: 600; color: var(--text-muted); text-decoration: none; transition: all .2s;
+}
+.topbar-link:hover { color: var(--primary); border-color: var(--primary); }
+.theme-toggle {
+  flex: 0 0 auto; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: .4rem .7rem; border-radius: 20px; font-size: .8rem; cursor: pointer;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.theme-toggle:hover { border-color: var(--primary); }
+
+/* LAYOUT — sidebar gauche + contenu */
+.layout { display: flex; align-items: flex-start; }
+.sidebar {
+  flex: 0 0 280px; width: 280px;
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; border-right: 1px solid var(--border); background: var(--surface);
+  padding: 1.25rem 1rem 2rem;
+}
+.objectifs {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .8rem 1rem; margin-bottom: 1.25rem;
+}
+.objectifs-label { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.objectifs ul { margin: .4rem 0 0 1.1rem; }
+.objectifs li { font-size: .82rem; color: var(--text-muted); margin-bottom: .3rem; line-height: 1.4; }
+.side-nav { display: flex; flex-direction: column; gap: .1rem; }
+.side-nav button {
+  text-align: left; background: none; border: none; border-left: 3px solid transparent;
+  color: var(--text-muted); padding: .55rem .7rem; font-size: .87rem; font-weight: 500;
+  cursor: pointer; border-radius: 0 6px 6px 0; transition: all .15s;
+}
+.side-nav button:hover { color: var(--text); background: var(--surface2); }
+.side-nav button.active { color: var(--primary); border-left-color: var(--primary); background: var(--surface2); font-weight: 600; }
+.side-nav-sep { height: 1px; background: var(--border); margin: .6rem 0; }
+
+.content { flex: 1 1 auto; min-width: 0; }
+.tab-content { display: none; padding: 2rem 2.5rem 4rem; max-width: 1100px; margin: 0 auto; }
+.tab-content.active { display: block; }
+
+/* SECTIONS */
+h2 { font-size: 1.25rem; color: var(--primary2); margin: 1.8rem 0 .8rem; border-left: 3px solid var(--primary); padding-left: .75rem; }
+h3 { font-size: 1.05rem; color: var(--text); margin: 1.4rem 0 .6rem; }
+p { margin-bottom: .9rem; }
+ul, ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+li { margin-bottom: .35rem; }
+
+/* RESSOURCES — liste sous forme de cartes plutôt que de puces */
+#tab-ressources ul { list-style: none; padding-left: 0; display: flex; flex-direction: column; gap: .5rem; }
+#tab-ressources li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: .75rem 1rem; margin-bottom: 0;
+}
+#tab-ressources li a { color: var(--primary2); font-weight: 600; text-decoration: none; }
+#tab-ressources li a:hover { text-decoration: underline; }
+
+/* AIDE — divulgation progressive pas-à-pas */
+details.aide { margin-top: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+details.aide summary {
+  cursor: pointer; padding: .8rem 1.1rem; font-weight: 600; color: var(--primary);
+  list-style: none; display: flex; align-items: center; gap: .5rem;
+}
+details.aide summary::-webkit-details-marker { display: none; }
+details.aide summary::before { content: "▶"; font-size: .7rem; transition: transform .15s; }
+details.aide[open] summary::before { transform: rotate(90deg); }
+details.aide .aide-body { padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); margin-top: .2rem; padding-top: 1rem; }
+img { max-width: 100%; height: auto; display: block; margin: 1rem auto; }
+
+/* EXERCICE — un bloc par atelier, avec son aide pas-à-pas attachée juste en dessous */
+.exercice { padding: 1.3rem 0; border-top: 1px solid var(--border); }
+.exercice:first-of-type { border-top: none; padding-top: 0; }
+.exercice h3 { margin: 0 0 .8rem; color: var(--primary2); }
+
+/* CALLOUTS */
+.callout { border-radius: var(--radius); padding: .9rem 1.1rem; margin: 1.2rem 0; border-left: 4px solid; background: var(--surface2); }
+.callout.note   { border-color: var(--primary); }
+.callout.tip    { border-color: var(--success); }
+.callout.warn   { border-color: var(--warning); }
+.callout.danger { border-color: var(--danger); }
+.callout p:last-child { margin-bottom: 0; }
+.callout-title { font-weight: 700; font-size: .82rem; text-transform: uppercase; letter-spacing: .07em; margin-bottom: .4rem; }
+.callout.note   .callout-title { color: var(--primary); }
+.callout.tip    .callout-title { color: var(--success); }
+.callout.warn   .callout-title { color: var(--warning); }
+.callout.danger .callout-title { color: var(--danger); }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th { background: var(--surface2); color: var(--primary2); text-align: left; padding: .6rem .9rem; font-weight: 600; border: 1px solid var(--border); }
+td { padding: .55rem .9rem; border: 1px solid var(--border); vertical-align: top; }
+tr:hover td { background: var(--surface2); }
+
+/* CODE */
+.code-block { position: relative; margin: 1rem 0; }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1rem 1rem 1.2rem; overflow-x: auto; }
+code { font-family: 'Consolas', 'Cascadia Code', monospace; font-size: .88rem; color: var(--primary2); }
+p code, li code, td code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 5px; padding: .05rem .35rem; }
+.copy-btn {
+  position: absolute; top: .5rem; right: .5rem;
+  background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted);
+  padding: .25rem .6rem; font-size: .75rem; border-radius: 5px; cursor: pointer; transition: all .2s;
+}
+.copy-btn:hover { background: var(--primary); color: #0d1117; }
+.copy-btn.copied { background: var(--success); color: #0d1117; }
+
+/* QUIZ */
+.quiz-question { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; margin-bottom: 1.2rem; }
+.quiz-question h4 { color: var(--primary2); margin-bottom: .9rem; font-size: .98rem; }
+.quiz-options { display: flex; flex-direction: column; gap: .5rem; }
+.quiz-option {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: .6rem .9rem; cursor: pointer;
+  font-size: .9rem; transition: all .2s; text-align: left; color: var(--text);
+}
+.quiz-option:hover:not(:disabled) { border-color: var(--primary); }
+.quiz-option.correct { border-color: var(--success); color: var(--success); }
+.quiz-option.wrong   { border-color: var(--danger);  color: var(--danger);  }
+.quiz-option:disabled { cursor: default; }
+.quiz-feedback { margin-top: .6rem; font-size: .87rem; color: var(--text-muted); font-style: italic; }
+.quiz-score {
+  background: var(--surface2); border: 1px solid var(--primary);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center; margin-top: 1.5rem; display: none;
+}
+.quiz-score .score-num { font-size: 2.5rem; font-weight: 700; color: var(--primary); }
+.quiz-score p { color: var(--text-muted); margin-top: .4rem; }
+.btn-restart { background: var(--primary); color: #0d1117; border: none; padding: .6rem 1.4rem; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 1rem; font-size: .9rem; }
+.btn-restart:hover { background: var(--primary2); }
+
+/* RESPONSIVE — sidebar devient une barre horizontale sous 900px */
+@media (max-width: 900px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    position: static; width: 100%; height: auto; max-height: 40vh;
+    border-right: none; border-bottom: 1px solid var(--border);
+  }
+  .side-nav { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; gap: .3rem; }
+  .side-nav button { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; border-radius: 6px 6px 0 0; }
+  .side-nav button.active { border-left-color: transparent; border-bottom-color: var(--primary); }
+  .side-nav-sep { display: none; }
+  .tab-content { padding: 1.5rem 1.2rem 3rem; }
+  .topbar a.chapter-title { font-size: .82rem; }
+}
+</style>
+<link rel="stylesheet" href="assets/course-common.css">
+<script src="assets/course-common.js" defer></script>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="badge">Claude Code pour les administrateurs</span>
+  <a class="chapter-title" href="index.html" title="Retour à l'accueil de la formation">
+    <span class="num">01</span><span class="txt">Installer et piloter Claude Code comme copilote de scripting</span>
+  </a>
+  <div class="topbar-links">
+    <a href="annexes.html" class="topbar-link">Annexes ↗</a>
+    <a class="topbar-link" href="index.html">Sommaire</a>
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" aria-label="Basculer entre thème clair et sombre">
+      <span id="theme-icon">🌙</span> <span id="theme-label">Sombre</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="objectifs"><span class="objectifs-label">Objectifs</span><ul><li>Positionner l&#x27;assistant IA comme copilote de scripting et délimiter ses responsabilités</li><li>Installer et connecter Claude Code sur un poste d&#x27;administration, y compris derrière un proxy d&#x27;entreprise</li><li>Paramétrer modèles, fenêtre de contexte et confidentialité selon la tâche</li><li>Organiser un dépôt de scripts lisible et exploitable par l&#x27;agent</li><li>Structurer ses demandes avec les commandes, skills, agents, droits d&#x27;outils et MCP</li><li>Générer et adapter des scripts Bash pour des tâches récurrentes d&#x27;administration</li></ul></div>
+    <nav class="side-nav" id="main-nav">
+      <button class="active" onclick="showTab('positionner-l-ia-comme-copilote-de-scripting')">Positionner l&#x27;IA comme copilote de scripting</button>
+  <button class="" onclick="showTab('preparer-l-environnement-et-installer-l-assistant')">Préparer l&#x27;environnement et installer l&#x27;assistant</button>
+  <button class="" onclick="showTab('parametrer-modeles-contexte-et-confidentialite')">Paramétrer modèles, contexte et confidentialité</button>
+  <button class="" onclick="showTab('organiser-le-depot-pour-l-agent')">Organiser le dépôt pour l&#x27;agent</button>
+  <button class="" onclick="showTab('structurer-ses-demandes-commandes-skills-et-agents')">Structurer ses demandes : commandes, skills et agents</button>
+  <button class="" onclick="showTab('atelier-installation-sur-poste-et-premiers-scripts')">Atelier — installation sur poste et premiers scripts</button>
+  <button class="" onclick="showTab('quiz')">Quiz</button>
+    </nav>
+  </aside>
+  <div class="content">
+    <div id="tab-positionner-l-ia-comme-copilote-de-scripting" class="tab-content active">
+<p>Un assistant de code IA n'est ni un stagiaire zélé ni un générateur aléatoire. C'est
+un copilote : il produit vite, en grande quantité, avec une assurance qui ne doit
+jamais être confondue avec une compétence. La valeur de l'outil dépend entièrement
+de la manière dont l'administrateur cadre son usage.</p>
+<h3>Ce que l'IA fait bien</h3>
+<p>L'assistant excelle dans quatre catégories de travail, toutes utiles en
+administration :</p>
+<ul>
+<li>
+<p><strong>la génération de squelettes</strong> : première version d'un script de sauvegarde,
+  boucle de traitement, analyse d'options, structure de fonction ;</p>
+</li>
+<li>
+<p><strong>les suggestions de compléments</strong> : cas limite oublié, option de commande
+  pertinente, gestion d'erreur manquante ;</p>
+</li>
+<li>
+<p><strong>le refactoring</strong> : rendre un script hérité lisible, le découper en fonctions,
+  remplacer des constructions fragiles ;</p>
+</li>
+<li>
+<p><strong>la documentation</strong> : en-tête de script, guide d'utilisation, commentaire
+  d'une procédure opaque.</p>
+</li>
+</ul>
+<p>Ces tâches partagent un point commun : elles ont un <strong>critère de vérification
+externe</strong>. Un script tourne ou échoue ; une documentation décrit ou trahit le code.
+L'assistant peut être contrôlé après coup, ce qui rend son usage sûr.</p>
+<div class="callout note"><div class="callout-title">Une analogie de terrain</div><p>L'assistant se comporte comme un collaborateur très rapide, très lu, mais qui
+n'a jamais administré <strong>votre</strong> système. Vous ne lui confieriez pas les clés de
+la production le premier jour. Vous lui confieriez la rédaction d'un premier
+jet, que vous reliriez avant diffusion.</p></div>
+<h3>Ce que l'IA ne doit jamais décider seule</h3>
+<p>Trois domaines restent sous responsabilité humaine, sans exception :</p>
+<ul>
+<li>
+<p><strong>la sécurité</strong> : choix des droits, ouverture de ports, gestion des secrets,
+  exceptions de pare-feu. L'assistant optimise le confort, pas la politique de
+  sécurité de l'entreprise ;</p>
+</li>
+<li>
+<p><strong>l'architecture</strong> : découpage des scripts, choix des outils, structuration du
+  dépôt. Une décision d'architecture erronée se paie pendant des années ;</p>
+</li>
+<li>
+<p><strong>les opérations sensibles</strong> : tout ce qui modifie l'état d'un système en
+  production — redémarrages de services, suppressions, migrations. Une erreur
+  d'opération ne se corrige pas dans Git.</p>
+</li>
+</ul>
+<div class="callout danger"><div class="callout-title">L'erreur la plus coûteuse</div><p>Confier à l'assistant une action destructive décrite vaguement. « Nettoie les
+vieux fichiers de sauvegarde » exécuté sans borne temporelle, sans liste
+d'exclusion et sans validation humaine a déjà supprimé des sauvegardes
+récentes. Toute commande irréversible reçoit un <code>--dry-run</code>, une cible de test
+et une relecture humaine.</p></div>
+<h3>La boucle de travail administrateur + IA</h3>
+<p>Le travail assisté suit une boucle en six temps, répétée jusqu'à satisfaction :</p>
+<ol>
+<li>l'administrateur exprime un <strong>besoin</strong> précis, avec contexte et contraintes ;</li>
+<li>l'assistant <strong>propose</strong> un script ou une modification ;</li>
+<li>
+<p>l'administrateur <strong>vérifie</strong> : lecture du diff, recherche des patterns
+   dangereux ;</p>
+</li>
+<li>
+<p>les <strong>tests</strong> tranchent : <code>bash -n</code>, ShellCheck, tests Bats, exécution sur
+   cible isolée ;</p>
+</li>
+<li>
+<p>l'administrateur <strong>décide</strong> : adopter, ajuster ou refuser ;</p>
+</li>
+<li>les <strong>consignes de correction</strong> repartent vers l'assistant pour l'itération
+   suivante.</li>
+</ol>
+<p><img alt="La boucle copilote : le besoin part de l'administrateur, l'assistant propose, la vérification et les tests qualifient, la décision revient à l'administrateur." src="../08-images/ch1-boucle-copilote.svg" /></p>
+<p>Ce schéma se lit dans les deux sens. De gauche à droite, le flux nominal : le besoin
+devient proposition, la proposition devient script vérifié. Le retour en pointillé,
+du haut vers l'assistant, matérialise la correction : la boucle n'est pas une
+négociation, c'est un cycle d'amélioration. Tant que l'étape 5 n'a pas eu lieu, le
+script n'existe pas — il n'y a qu'une proposition.</p>
+<h3>Le vocabulaire minimal du développement assisté</h3>
+<p>Les échanges avec l'assistant mobilisent un vocabulaire précis. Le tableau suivant
+fixe les termes utilisés pendant toute la formation :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Terme</th>
+<th>Définition courte</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>modèle</strong> (model)</td>
+<td>Le réseau de neurones entraîné qui génère le texte ; il est sans état : il ne se souvient de rien entre deux sessions</td>
+</tr>
+<tr>
+<td><strong>jeton</strong> (token)</td>
+<td>L'unité de découpage du texte facturée et consommée ; un millier de jetons ≈ 750 mots français</td>
+</tr>
+<tr>
+<td><strong>contexte</strong></td>
+<td>Tout ce que le modèle « voit » : instructions système, historique, fichiers lus, résultats de commandes</td>
+</tr>
+<tr>
+<td><strong>fenêtre de contexte</strong></td>
+<td>La taille maximale du contexte ; au-delà, il faut compacter ou repartir de zéro</td>
+</tr>
+<tr>
+<td><strong>session</strong></td>
+<td>Une conversation continue avec l'assistant, du démarrage jusqu'à la sortie</td>
+</tr>
+<tr>
+<td><strong>harnais</strong></td>
+<td>L'outil qui enrobe le modèle : découpage du contexte, appel des outils, affichage — Claude Code est un harnais</td>
+</tr>
+<tr>
+<td><strong>agent</strong></td>
+<td>Le modèle + son harnais + ses outils : l'entité qui lit, écrit et exécute</td>
+</tr>
+<tr>
+<td><strong>vérification automatisée</strong></td>
+<td>Un contrôle déterministe : test, linter, compilation — le seul signal qui permet à l'agent de s'autocorriger</td>
+</tr>
+<tr>
+<td><strong>revue humaine</strong></td>
+<td>La lecture du diff produit par l'agent ; lire le résumé de l'agent ne compte pas</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout warn"><div class="callout-title">Confusion fréquente</div><p>« Le modèle » et « l'agent » ne sont pas interchangeables. Le modèle est sans
+état et ne sait que produire du texte. C'est le harnais qui lui donne des
+outils, un contexte et une session. Quand un script tourne mal, la cause est
+presque toujours dans le couple contexte + instructions, pas dans une
+« intelligence » du modèle.</p></div>
+<h3>Qui garde quoi : le partage des responsabilités</h3>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Domaine</th>
+<th>L'assistant</th>
+<th>L'administrateur</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rédaction du premier jet</td>
+<td>Oui, rapide</td>
+<td>Relit</td>
+</tr>
+<tr>
+<td>Choix des options de sécurité</td>
+<td>Propose</td>
+<td>Décide</td>
+</tr>
+<tr>
+<td>Exécution sur système de production</td>
+<td>Jamais</td>
+<td>Toujours</td>
+</tr>
+<tr>
+<td>Tests automatisés</td>
+<td>Écrit les tests</td>
+<td>Valide leur pertinence</td>
+</tr>
+<tr>
+<td>Interprétation d'un résultat inattendu</td>
+<td>Aide au diagnostic</td>
+<td>Tranche</td>
+</tr>
+<tr>
+<td>Décision d'architecture</td>
+<td>Suggère</td>
+<td>Assume</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cette grille est le contrat de la formation. Les chapitres suivants l'outillent :
+le présent chapitre installe le poste et le cadre de travail ; le chapitre 2
+ajoute l'isolation par bac à sable et l'industrialisation en équipe.</p>
+</div>
+
+<div id="tab-preparer-l-environnement-et-installer-l-assistant" class="tab-content">
+<p>L'installation de Claude Code sur un poste d'administration ressemble à celle de
+n'importe quel outil de développement, avec une exigence supplémentaire : le poste
+d'administration est un poste sensible, souvent derrière un proxy d'entreprise.
+Chaque étape ci-dessous intègre donc la variante « environnement contraint ».</p>
+<h3>Prérequis du poste</h3>
+<p>Le tableau récapitule les prérequis avant toute installation :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Prérequis</th>
+<th>Détail</th>
+<th>Vérification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Système supporté</td>
+<td>Linux (Ubuntu, Debian), macOS, Windows (natif ou WSL)</td>
+<td><code>uname -a</code></td>
+</tr>
+<tr>
+<td>Node.js 18+</td>
+<td>Requis pour l'installation npm</td>
+<td><code>node --version</code></td>
+</tr>
+<tr>
+<td>Terminal usable</td>
+<td>Bash, Zsh ; sous Windows, Git Bash ou WSL</td>
+<td><code>echo $SHELL</code></td>
+</tr>
+<tr>
+<td>Compte d'API</td>
+<td>Clé Anthropic valide ou compte Claude avec abonnement</td>
+<td>console d'administration de l'entreprise</td>
+</tr>
+<tr>
+<td>Droits d'installation</td>
+<td><code>npm install -g</code> ou installateur natif</td>
+<td>selon politique locale</td>
+</tr>
+</tbody>
+</table></div>
+<div class="callout tip"><div class="callout-title">Sous Windows</div><p>La voie la plus fluide est WSL2 (Ubuntu) : Claude Code s'exécute dans un
+environnement Linux complet, et les scripts Bash produits tournent tels quels.
+L'installation native Windows fonctionne aussi ; Git Bash reste nécessaire
+pour les scripts du support.</p></div>
+<h3>Gérer les clés d'API</h3>
+<p>L'authentification repose sur une clé portée par une variable d'environnement.
+Deux cas se présentent :</p>
+<ul>
+<li>
+<p><strong>compte Claude individuel</strong> (abonnement Pro/Max) : la commande <code>claude</code>
+  ouvre un flux d'authentification navigateur au premier lancement, aucune clé
+  à manipuler ;</p>
+</li>
+<li>
+<p><strong>clé d'API d'entreprise</strong> (Console Anthropic) : la clé est fournie par le</p>
+<blockquote>
+<p>service en charge des licences et posée dans l'environnement.</p>
+</blockquote>
+</li>
+</ul>
+<div class="code-block"><pre><code class="language-bash"># Clé d'API dans l'environnement du shell (à la session)
+export ANTHROPIC_API_KEY=&quot;sk-ant-api03-…&quot;
+
+# De façon permanente, dans le profil personnel (~/.bashrc), jamais dans le dépôt
+echo 'export ANTHROPIC_API_KEY=&quot;sk-ant-api03-…&quot;' &gt;&gt; ~/.bashrc
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Trois règles non négociables :</p>
+<ol>
+<li>
+<p>la clé ne figure <strong>jamais</strong> dans un fichier versionné, un script, un README
+   ou un ticket ;</p>
+</li>
+<li>
+<p>le fichier <code>.env</code> qui la contient est listé dans <code>.gitignore</code> et interdit de
+   lecture à l'agent (règle <code>Read(.env)</code> en <code>deny</code>, vue plus loin dans ce
+   chapitre) ;</p>
+</li>
+<li>
+<p>une clé compromise est révoquée depuis la console, pas « surveillée ».</p>
+</li>
+</ol>
+<div class="callout warn"><div class="callout-title">Clé visible dans un historique</div><p>Un <code>export</code> tapé directement dans un terminal partagé ou enregistré dans un
+enregistrement d'écran fuit la clé. Sur un poste de formation, saisir la clé
+dans le profil personnel, puis vérifier avec <code>echo $ANTHROPIC_API_KEY | wc -c</code>
+plutôt qu'en l'affichant.</p></div>
+<h3>Traverser un proxy d'entreprise</h3>
+<p>Sur un réseau d'entreprise, le trafic sortant passe par un proxy, souvent avec un
+certificat racine interne (inspection TLS). Claude Code, comme tout client Node.js,
+respecte les variables d'environnement standard :</p>
+<div class="code-block"><pre><code class="language-bash"># Proxy d'entreprise
+export HTTPS_PROXY=http://proxy.entreprise.example:8080
+export HTTP_PROXY=http://proxy.entreprise.example:8080
+
+# Contourner le proxy pour les adresses internes
+export NO_PROXY=&quot;localhost,127.0.0.1,.entreprise.example&quot;
+
+# Certificat racine de l'entreprise (inspection TLS)
+export NODE_EXTRA_CA_CERTS=/etc/ssl/certs/entreprise-ca.pem
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Points d'attention fréquents :</p>
+<ul>
+<li>
+<p>les proxies <strong>SOCKS ne sont pas pris en charge</strong> ; seul le proxy HTTP/HTTPS
+  fonctionne ;</p>
+</li>
+<li>
+<p>les connexions vers la boucle locale (<code>localhost</code>) contournent le proxy
+  automatiquement ;</p>
+</li>
+<li>
+<p>si le trafic reste bloqué, vérifier que le proxy autorise
+  <code>api.anthropic.com</code> et <code>claude.ai</code> dans sa liste de sortie ;</p>
+</li>
+<li>
+<p>une <strong>passerelle LLM interne</strong> (LLM Gateway type LiteLLM) remplace
+  parfois l'API directe : la variable <code>ANTHROPIC_BASE_URL</code> pointe alors vers le
+  service interne.</p>
+</li>
+</ul>
+<div class="code-block"><pre><code class="language-bash"># Passerelle LLM interne au lieu de l'API directe
+export ANTHROPIC_BASE_URL=http://llm-gateway.entreprise.example:4000
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Les pannes de connectivité se résolvent dans un ordre déterminé :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Symptôme</th>
+<th>Cause probable</th>
+<th>Vérification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>claude doctor</code> : authentification en échec</td>
+<td>clé absente ou expirée</td>
+<td><code>echo -n $ANTHROPIC_API_KEY \| wc -c</code></td>
+</tr>
+<tr>
+<td>Délai puis timeout</td>
+<td>proxy non déclaré ou refusé</td>
+<td><code>curl -I https://api.anthropic.com</code></td>
+</tr>
+<tr>
+<td>Erreur de certificat TLS</td>
+<td>autorité racine interne non ajoutée</td>
+<td><code>NODE_EXTRA_CA_CERTS</code> renseigné</td>
+</tr>
+<tr>
+<td>Réponse de la mauvaise passerelle</td>
+<td><code>ANTHROPIC_BASE_URL</code> erroné</td>
+<td><code>echo $ANTHROPIC_BASE_URL</code></td>
+</tr>
+<tr>
+<td>Session lente uniquement pour la documentation</td>
+<td>proxy qui filtre les domaines MCP</td>
+<td><code>/mcp</code> dans la session</td>
+</tr>
+</tbody>
+</table></div>
+<h3>Installer Claude Code</h3>
+<p>Deux voies d'installation officielles existent. L'installateur natif est
+recommandé : pas de dépendance Node.js globale, mises à jour intégrées.</p>
+<p><strong>Voie 1 — installateur natif (recommandé)</strong> :</p>
+<div class="code-block"><pre><code class="language-bash"># macOS et Linux
+curl -fsSL https://claude.ai/install.sh | bash
+
+# Derrière un proxy d'entreprise : les variables avant la commande
+export HTTPS_PROXY=http://proxy.entreprise.example:8080
+curl -fsSL https://claude.ai/install.sh | bash
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p><strong>Voie 2 — npm</strong> :</p>
+<div class="code-block"><pre><code class="language-bash">npm install -g @anthropic-ai/claude-code
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="callout warn"><div class="callout-title">npm sous sudo</div><p>Installer un paquet npm global avec <code>sudo</code> installe du code exécuté en root
+et crée des conflits de droits dans <code>~/.npm</code>. Sur un poste contraint,
+configurer un préfixe utilisateur (<code>npm config set prefix ~/.npm-global</code>)
+plutôt que d'élever les privilèges.</p></div>
+<p>L'intégration IDE est optionnelle mais confortable : l'extension Claude Code pour
+VS Code ajoute le lanceur, la sélection de contexte et le diff visuel des
+modifications proposées par l'agent. Le terminal reste le mode principal de cette
+formation.</p>
+<h3>Maintenir l'installation</h3>
+<p>Un poste d'administration se maintient comme un serveur : avec une procédure
+connue, pas au doigt mouillé. Trois réflexes suffisent :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Besoin</th>
+<th>Commande</th>
+<th>Fréquence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Connaître la version</td>
+<td><code>claude --version</code></td>
+<td>au diagnostic</td>
+</tr>
+<tr>
+<td>Mettre à jour (installateur natif)</td>
+<td><code>claude update</code></td>
+<td>mensuelle, ou selon la politique du service</td>
+</tr>
+<tr>
+<td>Mettre à jour (voie npm)</td>
+<td><code>npm update -g @anthropic-ai/claude-code</code></td>
+<td>idem</td>
+</tr>
+</tbody>
+</table></div>
+<p>Une montée de version peut changer des réglages par défaut (nouvelles règles de
+permissions, nouveaux outils). Le réflexe d'après-mise-à-jour : relancer
+<code>claude doctor</code>, ouvrir une session test, vérifier <code>/status</code>. Deux minutes qui
+évitent une demi-heure de diagnostic en pleine tâche.</p>
+<div class="callout warn"><div class="callout-title">Version figée sur un poste sensible</div><p>Certains services figent la version de l'outil le temps d'une validation
+interne. Dans ce cas, noter la version validée dans le <code>CLAUDE.md</code> du dépôt
+d'équipe : l'agent comme les collègues sauront qu'un écart de version
+n'est pas une simple négligence.</p></div>
+<h3>Vérifier l'installation et la connectivité</h3>
+<p>Une installation qui « semble » fonctionner sans vérification formelle coûte
+cher le lendemain. Trois contrôles suffisent :</p>
+<div class="code-block"><pre><code class="language-bash"># 1. Version installée
+claude --version
+
+# 2. Diagnostic global : installation, configuration, réseau, santé du compte
+claude doctor
+
+# 3. Première session test : le prompt le plus simple possible
+claude
+&gt; Bonjour, réponds simplement « OK ».
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Dans la session, la commande <code>/status</code> affiche le compte actif, le modèle
+courant et l'état des serveurs MCP. Si les trois contrôles passent, le poste est
+opérationnel.</p>
+<p><img alt="Chaîne complète : le poste porte la clé et les variables de proxy, le proxy d'entreprise filtre et journalise, l'API Anthropic ou la passerelle interne répond." src="../08-images/ch1-chaine-connexion.svg" /></p>
+<p>Ce schéma montre que la sécurité de la chaîne ne repose pas sur un seul maillon.
+La clé est protégée par l'environnement du shell, le trafic par le proxy, le
+compte par la console d'administration. Le bandeau du bas rappelle les trois
+réflexes permanents : politique de sortie maîtrisée, secrets hors du dépôt,
+vérifications après chaque changement.</p>
+<div class="callout tip"><div class="callout-title">Réflexe de diagnostic</div><p>En cas de doute (<code>claude doctor</code> en erreur, session qui échoue), vérifier dans
+cet ordre : la variable de clé (<code>echo -n $ANTHROPIC_API_KEY | wc -c</code>), le
+proxy (<code>curl -I https://api.anthropic.com</code>), le certificat
+(<code>NODE_EXTRA_CA_CERTS</code> renseigné), la passerelle (<code>ANTHROPIC_BASE_URL</code>).
+Quatre causes, quatre vérifications, dans cet ordre.</p></div>
+</div>
+
+<div id="tab-parametrer-modeles-contexte-et-confidentialite" class="tab-content">
+<p>Une fois l'outil installé, trois réglages déterminent la qualité et le coût du
+travail : le modèle choisi, la gestion du contexte et les préférences de
+confidentialité. Ce sont les seuls réglages qu'un administrateur touche la
+première semaine — le reste est déjà bien configuré par défaut.</p>
+<h3>Choisir le modèle selon la tâche</h3>
+<p>Claude Code propose plusieurs modèles, du plus léger au plus puissant. La règle
+d'un administrateur est simple : <strong>le modèle le plus capable n'est pas le plus
+économique</strong>. Chaque montée de gamme multiplie le coût de 3 à 15 fois.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Modèle</th>
+<th>Usage type en administration</th>
+<th>Exemple de demande</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modèle léger (Haiku)</td>
+<td>tâches simples, explication, correction ponctuelle</td>
+<td>« explique cette ligne », « corrige cette faute dans l'aide du script »</td>
+</tr>
+<tr>
+<td>Modèle intermédiaire (Sonnet)</td>
+<td>défaut polyvalent : génération, refactoring, debug</td>
+<td>« refactorise ce script de sauvegarde en fonctions »</td>
+</tr>
+<tr>
+<td>Modèle le plus capable (Opus)</td>
+<td>conception, architecture, revue de sécurité</td>
+<td>« conçois la structure du module de monitoring »</td>
+</tr>
+</tbody>
+</table></div>
+<div class="code-block"><pre><code class="language-text"># Dans une session
+/model            # liste les modèles et change le modèle courant
+
+# De façon permanente, dans ~/.claude/settings.json
+{
+  &quot;model&quot;: &quot;sonnet&quot;
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La règle d'or pour un administrateur : modèle léger pour corriger et expliquer,
+modèle intermédiaire pour générer et déboguer, modèle supérieur pour concevoir et
+relire la sécurité. Le changement se fait à la demande, pas pour la journée
+entière.</p>
+<h3>Comprendre le contexte et la fenêtre</h3>
+<p>Tout ce que le modèle lit compte : les instructions système, le fichier de
+contexte du projet, l'historique de la conversation, chaque fichier ouvert,
+chaque sortie de commande. Une session qui s'étend remplit sa fenêtre de
+contexte comme un réservoir — et quand le réservoir déborde, le travail se
+dégrade.</p>
+<p>La dégradation est progressive et sournoise :</p>
+<ul>
+<li>
+<p>d'abord, l'agent relit des fichiers qu'il avait déjà lus (la fenêtre est
+  presque pleine) ;</p>
+</li>
+<li>
+<p>puis, le compactage automatique résume l'historique et perd des décisions
+  prises une heure plus tôt ;</p>
+</li>
+<li>
+<p>enfin, l'agent « oublie » une contrainte donnée au début et produit un script
+  qui la contredit — avec assurance.</p>
+</li>
+</ul>
+<p><img alt="La fenêtre de contexte se remplit tour après tour : instructions et CLAUDE.md en bas, historique et résultats d'outils au-dessus ; l'espace restant se réduit jusqu'au seuil de compactage." src="../08-images/ch1-cycle-contexte.svg" /></p>
+<p>Le schéma appelle une lecture attentive : le bloc vert, en bas, est payé à
+<strong>chaque tour</strong>, que la tâche le concerne ou non. C'est pourquoi un fichier de
+contexte (<code>CLAUDE.md</code>) doit rester court — son coût est permanent. Les blocs
+bleus, eux, ne servent souvent plus à rien après quelques tours : les résultats
+d'outils d'une exploration achevée n'ont plus d'usage, mais restent dans la
+fenêtre.</p>
+<h3>Piloter le contexte : les commandes de gestion</h3>
+<p>Quatre commandes suffisent à maîtriser la fenêtre :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Commande</th>
+<th>Effet</th>
+<th>Quand l'utiliser</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/context</code></td>
+<td>Affiche le remplissage de la fenêtre et son contenu</td>
+<td>point de contrôle régulier</td>
+</tr>
+<tr>
+<td><code>/compact</code></td>
+<td>Résume l'historique et repart avec le résumé</td>
+<td>à une frontière de phase, avant une nouvelle tâche</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>Vide tout et repart de zéro</td>
+<td>entre deux tâches sans lien</td>
+</tr>
+<tr>
+<td><code>/cost</code></td>
+<td>Affiche les jetons et le coût de la session</td>
+<td>avant/après une tâche coûteuse</td>
+</tr>
+</tbody>
+</table></div>
+<div class="code-block"><pre><code class="language-text"># Exemple de discipline de session
+/context              # où en suis-je ?
+/compact              # le cadrage est fait, on allège avant la génération
+… génération du script …
+/cost                 # mesure du coût de la passe
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="callout tip"><div class="callout-title">Compactage manuel plutôt qu'automatique</div><p>Le compactage automatique se déclenche vers 80 % de remplissage, au milieu
+d'une tâche, sans que personne ne choisisse ce qui est conservé. Compacter
+manuellement à une frontière naturelle — plan établi, script généré, tests
+passés — garde le contrôle des décisions. La frontière de phase est le bon
+moment ; le milieu d'un refactoring en est le pire.</p></div>
+<h3>Suivre et maîtriser la consommation</h3>
+<p>En équipe, la question arrive vite : « combien coûte un administrateur assisté
+par mois ? ». Les jetons d'entrée se facturent à chaque tour ; un fichier de
+5 000 lignes lu en entier consomme environ 12 000 jetons, relus à chaque tour
+tant qu'il reste dans l'historique.</p>
+<p>Le tableau des leviers, du plus impactant au plus fin :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Levier</th>
+<th>Gain typique</th>
+<th>Mise en œuvre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Choisir le bon modèle</td>
+<td>×3 à ×15 sur le coût</td>
+<td>Haiku pour les tâches simples, Sonnet par défaut</td>
+</tr>
+<tr>
+<td><code>/compact</code> régulier</td>
+<td>évite le gonflement</td>
+<td>à ~50 % de remplissage, aux frontières de phase</td>
+</tr>
+<tr>
+<td><code>CLAUDE.md</code> concis</td>
+<td>contexte injecté une fois</td>
+<td>conventions et commandes, pas de documentation recopiée</td>
+</tr>
+<tr>
+<td>Sous-agents pour les recherches</td>
+<td>le bruit reste hors du contexte principal</td>
+<td>l'agent lance la recherche, reçoit un rapport court</td>
+</tr>
+<tr>
+<td>Ne pas recharger les gros fichiers</td>
+<td>un gros fichier lu = des jetons payés à chaque tour</td>
+<td>demander des extraits ciblés plutôt que la lecture intégrale</td>
+</tr>
+<tr>
+<td><code>--max-turns</code> en automatisation</td>
+<td>borne les allers-retours</td>
+<td><code>claude --max-turns 10 "vérifie les sauvegardes"</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Pour le suivi consolidé d'un poste, l'outil communautaire <code>ccusage</code> lit les
+journaux locaux de Claude Code et produit un rapport par jour, par modèle et par
+session ; les équipes qui plafonnent le budget passent par un proxy LLM
+(LiteLLM) avec budget dur configuré côté service.</p>
+<p>Un ordre de grandeur pour raisonner en session : les <strong>jetons d'entrée</strong> se
+facturent à chaque tour (le contexte complet est renvoyé au modèle à chaque
+réponse) ; les <strong>jetons de sortie</strong> ne sont facturés qu'une fois mais coûtent
+plus cher à l'unité ; le <strong>cache de lecture</strong> allège enfin la facture des
+parties du contexte inchangées entre deux tours. Conséquence pratique :
+relire les mêmes dix fichiers pendant vingt tours coûte bien plus que les
+relire trois fois en compactant entre les phases.</p>
+<div class="code-block"><pre><code class="language-text">Session exemple (modèle intermédiaire, chiffres d'ordre de grandeur) :
+- cadrage + plan            : ~10 000 jetons d'entrée, 800 de sortie
+- lecture de 4 fichiers     : ~15 000 jetons d'entrée
+- génération du script      : ~25 000 jetons d'entrée, 2 500 de sortie
+- itération + corrections   : ~40 000 jetons d'entrée, 1 500 de sortie
+→ /cost affiche le cumul ; /compact avant la revue évite de repayer
+  l'historique complet sur les tours suivants.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="callout note"><div class="callout-title">Le poste d'administration n'est pas un banc d'essai</div><p>Une habitude utile : mesurer (<code>/cost</code>) une tâche représentative — un script
+généré puis durci — une seule fois, puis s'en tenir au modèle intermédiaire.
+Le gain de temps de l'assistant se joue sur la suppression des allers-retours
+manuels, pas sur la chasse aux jetons.</p></div>
+<h3>Préférences de génération et confidentialité</h3>
+<p>Les préférences se posent dans <code>~/.claude/settings.json</code> (portée utilisateur)
+ou <code>.claude/settings.json</code> (portée projet, versionné) :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;model&quot;: &quot;sonnet&quot;,
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [&quot;Bash(bash -n *)&quot;, &quot;Bash(shellcheck *)&quot;],
+    &quot;deny&quot;: [&quot;Read(.env)&quot;, &quot;Read(.env.*)&quot;]
+  },
+  &quot;env&quot;: {
+    &quot;CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC&quot;: &quot;1&quot;
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Cet exemple condense trois bonnes pratiques : le modèle par défaut posé
+explicitement, les commandes de contrôle (<code>bash -n</code>, <code>shellcheck</code>) autorisées
+sans confirmation pour fluidifier la boucle de tests, et les fichiers de
+secrets interdits de lecture. La variable
+<code>CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1</code> coupe le trafic non essentiel
+(statistiques d'usage, mises à jour) — utile sur un poste sensible ou à bande
+passante comptée.</p>
+<p>Côté confidentialité, trois questions à trancher avec la sécurité de
+l'entreprise avant la première session :</p>
+<ol>
+<li>
+<p><strong>quels dépôts</strong> l'assistant peut-il lire ? (un dépôt interne d'exploitation
+   n'a pas le même statut qu'un dépôt d'outillage) ;</p>
+</li>
+<li>
+<p><strong>quelles données</strong> peuvent figurer dans un prompt ? (jamais de secrets,
+   jamais de données personnelles en clair) ;</p>
+</li>
+<li>
+<p><strong>quel trajet</strong> les requêtes empruntent-elles ? (API directe ou passerelle
+   interne journalisée).</p>
+</li>
+</ol>
+<div class="callout danger"><div class="callout-title">Le secret dans le prompt</div><p>Coller un mot de passe, une clé ou un token « juste pour que l'assistant
+teste » l'envoie dans la requête API et le laisse dans l'historique local de
+la session. Un secret ne transite jamais par un prompt : il vit dans
+l'environnement du shell ou dans un gestionnaire de secrets, et le script le
+lit au moment de l'exécution.</p></div>
+</div>
+
+<div id="tab-organiser-le-depot-pour-l-agent" class="tab-content">
+<p>Un agent est sans état : chaque session repart de zéro. Tout ce qui n'est pas
+écrit dans le dépôt doit être réexpliqué, chaque fois. Un dépôt bien organisé
+réduit ce coût et fiabilise le travail — l'équivalent, pour l'agent, de ce
+qu'une bonne documentation représente pour un nouvel arrivant.</p>
+<h3>Pourquoi l'organisation prime</h3>
+<p>Comparez deux dépôts de scripts d'administration :</p>
+<ul>
+<li>
+<p><strong>dépôt A</strong> : 200 scripts à plat, noms courts (<code>b1.sh</code>, <code>fix2.sh</code>), aucun
+  README ; l'agent lit dix fichiers avant de comprendre, propose des doublons,
+  contredit des conventions invisibles ;</p>
+</li>
+<li>
+<p><strong>dépôt B</strong> : dossiers par domaine (<code>scripts/sauvegarde/</code>,
+  <code>scripts/monitoring/</code>), noms explicites, <code>CLAUDE.md</code> de vingt lignes ; l'agent
+  comprend la structure en une lecture et suit les conventions du dépôt.</p>
+</li>
+</ul>
+<p>Le dépôt B produit de meilleurs scripts avec le même modèle et le même harnais.
+La différence ne vient pas de l'IA : elle vient de l'<strong>expérience agent</strong> (AX)
+du dépôt — sa préparation pour un lecteur sans état.</p>
+<div class="callout note"><div class="callout-title">DX et AX</div><p>La DX (expérience développeur) s'adresse aux humains : documentation
+d'accueil, tutoriels, accompagnement. L'AX (expérience agent) s'adresse aux
+lecteurs sans état : vérifications automatisées rapides, structure
+prévisible, instructions toujours chargées mais courtes. Les deux se
+recouvrent souvent — une base claire pour l'un aide l'autre — mais divergent
+sur un point : la connaissance tribale (« demande à Sarah ») ne fonctionne
+pas avec un agent.</p></div>
+<h3>CLAUDE.md : la feuille de route permanente</h3>
+<p><code>CLAUDE.md</code>, à la racine du dépôt, est chargé au démarrage de chaque session.
+C'est le seul endroit garanti lu. Son contenu cible : tout ce que l'agent ne
+peut pas déduire du code seul.</p>
+<div class="code-block"><pre><code class="language-markdown"># CLAUDE.md — dépôt scripts-admin
+
+## Commandes
+- Syntaxe : `bash -n scripts/*.sh` avant tout commit
+- Lint : `shellcheck scripts/*.sh`
+- Tests : `bats tests/`
+
+## Conventions
+- Un script = une tâche, un en-tête documentant objectif, usage, effets.
+- Bash strict : `set -euo pipefail` obligatoire.
+- Aucune valeur codée en dur : tout paramètre passe par une option ou .env.
+
+## Interdits
+- Ne jamais modifier `generated/` (produit par le pipeline).
+- Ne jamais appeler `docker system prune` ni aucun `rm -rf` non borné.
+- Aucune adresse IP codée en dur : passer par `etc/hosts.ini`.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Ce fichier fait environ vingt lignes. Trois sections : commandes, conventions,
+interdits. C'est une feuille de route, pas une documentation.</p>
+<p>Ce qu'il faut <strong>éviter</strong> d'y mettre :</p>
+<ul>
+<li>
+<p>des guides complets recopiés (ils consomment des jetons à chaque tour, pour
+  des sessions qui ne les utilisent pas) ;</p>
+</li>
+<li>
+<p>des procédures détaillées (elles appartiennent à un fichier de
+  documentation, référencé) ;</p>
+</li>
+<li>
+<p>tout ce que le code montre déjà de façon évidente.</p>
+</li>
+</ul>
+<p><img alt="Le dépôt séparé en trois zones : le travail réel à gauche, les fichiers de contexte au centre, les règles de conception à droite." src="../08-images/ch1-anatomie-depot.svg" /></p>
+<p>Le schéma distingue les trois zones du dépôt. La colonne centrale —
+<code>CLAUDE.md</code>, <code>.claude/settings.json</code>, commandes personnalisées, <code>.mcp.json</code> —
+est la zone « agent » : courte, déclarative, versionnée avec le dépôt. Les
+flèches rappellent l'interaction : les fichiers de contexte orientent la
+lecture du code, et les règles de conception (à droite) gouvernent la
+rédaction des fichiers de contexte eux-mêmes.</p>
+<h3>La divulgation progressive : pointeurs plutôt que contenu</h3>
+<p>Le principe : garder la couche toujours chargée réduite, et placer le détail
+derrière des <strong>pointeurs de contexte</strong> — des mentions qui ne coûtent qu'une
+ligne tant que l'agent ne les suit pas.</p>
+<div class="code-block"><pre><code class="language-markdown"># Dans CLAUDE.md — version longue mais économe
+- Publication ou déploiement : lire d'abord `docs/runbook-deploy.md`.
+- Ajout d'un script de sauvegarde : modèle dans `templates/sauvegarde.sh`.
+- Conventions de journalisation : voir `docs/journalisation.md`.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Chaque ligne indique deux choses : <strong>un chemin stable</strong> et <strong>quand le suivre</strong>.
+Un chemin seul (<code>voir docs/…</code>) est un pointeur que l'agent ignore ; la
+condition d'usage (« quand tu ajoutes un script de sauvegarde ») lui donne sa
+raison d'être.</p>
+<div class="callout tip"><div class="callout-title">La règle des deux corrections</div><p>Après avoir corrigé l'agent deux fois sur le même point dans deux sessions
+différentes, la correction est une candidate naturelle à <code>CLAUDE.md</code>. En
+dessous de deux, c'était probablement une ambiguïté ponctuelle ; au-delà,
+c'est une règle du dépôt qui manquait.</p></div>
+<h3>Hiérarchie des fichiers de contexte</h3>
+<p>Claude Code charge les fichiers de contexte par portée, de l'entreprise au
+dossier :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Niveau</th>
+<th>Fichier</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Utilisateur</td>
+<td><code>~/.claude/CLAUDE.md</code></td>
+<td>préférences personnelles, style d'interaction</td>
+</tr>
+<tr>
+<td>Projet (partagé)</td>
+<td><code>CLAUDE.md</code> à la racine du dépôt</td>
+<td>règles d'équipe, versionné</td>
+</tr>
+<tr>
+<td>Projet (local)</td>
+<td><code>CLAUDE.local.md</code></td>
+<td>surcharges personnelles, non versionné</td>
+</tr>
+</tbody>
+</table></div>
+<p>La règle d'or : les règles d'équipe vivent dans le <code>CLAUDE.md</code> du projet ;
+les goûts personnels dans le fichier utilisateur ou local. Un
+<code>CLAUDE.local.md</code> versionné par erreur impose les préférences d'un seul à
+toute l'équipe.</p>
+<p>La commande <code>/memory</code> de la session ouvre l'ensemble de ces fichiers pour
+lecture et édition directe. C'est le chemin le plus court pour corriger une
+règle : l'agent la viole, l'administrateur ouvre <code>/memory</code>, ajuste la ligne
+fautive, la règle s'applique aux sessions suivantes. Un système de mémoire
+mal entretenu dérive comme une documentation obsolète — les règles qui n'ont
+plus cours se suppriment à la revue du dépôt, pas en accumulate.</p>
+<h3>README et conventions de nommage</h3>
+<p>Pour les humains d'abord, pour les agents ensuite :</p>
+<ul>
+<li>
+<p><strong>un README à la racine</strong> : but du dépôt en trois phrases, structure des
+  dossiers, commande de prise en main ;</p>
+</li>
+<li>
+<p><strong>un README par sous-dossier</strong> de scripts : rôle du dossier, script à lire
+  en premier ;</p>
+</li>
+<li>
+<p><strong>un nommage explicite</strong> : <code>collecte-infos-projet.sh</code> plutôt que <code>c1.sh</code> ;
+  le nom porte le rôle, l'agent comme l'humain s'épargnent une lecture.</p>
+</li>
+</ul>
+<p>Un README de sous-dossier tient en dix lignes et suit toujours le même
+schéma :</p>
+<div class="code-block"><pre><code class="language-markdown"># scripts/sauvegarde/
+
+Scripts de sauvegarde et de restauration des bases du parc de test.
+
+- `sauvegarde-base.sh` : sauvegarde quotidienne, à lire en premier.
+- `restauration-base.sh` : restauration, exécution sur cible de test
+  uniquement (voir Interdits dans CLAUDE.md).
+
+Exécution : `bash sauvegarde-base.sh --base &lt;nom&gt; --dry-run`
+Ne jamais lancer restauration-base.sh sur un service en production.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="code-block"><pre><code class="language-text">depot-admin/
+├── CLAUDE.md
+├── README.md
+├── scripts/
+│   ├── sauvegarde/
+│   │   ├── README.md
+│   │   └── sauvegarde-base.sh
+│   └── monitoring/
+├── tests/
+├── docs/
+│   ├── runbook-deploy.md
+│   └── journalisation.md
+├── templates/
+│   └── sauvegarde.sh
+└── etc/
+    └── hosts.ini
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="callout warn"><div class="callout-title">Le dépôt n'est pas un dépôt de secrets</div><p><code>.env</code>, clés, mots de passe de service n'ont rien à faire dans l'historique
+Git, même dans un dépôt privé « temporaire ». Le <code>.gitignore</code> les exclue, la
+règle <code>Read(.env)</code> en <code>deny</code> interdit leur lecture, et les secrets réels
+vivent dans l'environnement ou un gestionnaire dédié.</p></div>
+</div>
+
+<div id="tab-structurer-ses-demandes-commandes-skills-et-agents" class="tab-content">
+<p>L'outil est installé, le dépôt est préparé. Reste la compétence centrale :
+formuler des demandes qui produisent des scripts exploitables. Claude Code
+apporte pour cela quatre mécanismes — commandes standardisées, skills, agents
+et permissions — plus une brique d'extension : les serveurs MCP.</p>
+<h3>Anatomie d'une demande efficace</h3>
+<p>Une demande pauvre produit un script pauvre. Comparez :</p>
+<div class="code-block"><pre><code class="language-text">Demande faible :
+« Écris un script de nettoyage des logs. »
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="code-block"><pre><code class="language-text">Demande efficace :
+« Écris un script Bash qui supprime dans /var/log/app/ les fichiers
+*.log de plus de 30 jours.
+Contraintes :
+- bash strict (set -euo pipefail) ;
+- liste les fichiers avant suppression, ne supprime qu'après confirmation
+  ou avec --force ;
+- journalise chaque suppression dans /var/log/cleanup.log ;
+- mode --dry-run par défaut ;
+- aucune suppression hors de /var/log/app/.
+Ne modifie rien d'autre. Propose d'abord le script, sans l'exécuter. »
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La deuxième demande spécifie cinq éléments : <strong>l'objectif</strong>, les <strong>contraintes</strong>,
+le <strong>comportement par défaut sûr</strong> (<code>--dry-run</code>), les <strong>limites</strong> (aucune
+suppression hors du répertoire) et le <strong>protocole d'interaction</strong> (proposer sans
+exécuter). Chacun de ces éléments évite une itération de correction.</p>
+<p>Un gabarit de demande réutilisable :</p>
+<div class="code-block"><pre><code class="language-text">[Objectif] : ce que le script doit faire, en une phrase.
+[Contexte] : système cible, droits disponibles, dépendances.
+[Contraintes] : bash strict, journalisation, dry-run par défaut.
+[Limites] : ce que le script ne doit jamais toucher.
+[Validation] : comment le stagiaire jugera le résultat (tests, sortie attendue).
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="callout tip"><div class="callout-title">Demander un plan avant le code</div><p>Sur une tâche non triviale, une première demande utile est : « Propose un
+plan en cinq étapes, sans écrire de code. » Le plan coûte peu, se corrige
+vite, et évite de découvrir après 300 lignes que la structure ne convient pas.</p></div>
+<h3>Les commandes standardisées : les prompts /slash</h3>
+<p>Les commandes <code>/slash</code> sont des prompts intégrés, disponibles dans toute
+session. Celles d'un administrateur :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Commande</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/init</code></td>
+<td>génère un premier <code>CLAUDE.md</code> à partir du dépôt courant</td>
+</tr>
+<tr>
+<td><code>/model</code></td>
+<td>change de modèle</td>
+</tr>
+<tr>
+<td><code>/context</code></td>
+<td>état du contexte</td>
+</tr>
+<tr>
+<td><code>/compact</code></td>
+<td>compacte l'historique</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>repart de zéro</td>
+</tr>
+<tr>
+<td><code>/cost</code></td>
+<td>jetons et coût de la session</td>
+</tr>
+<tr>
+<td><code>/status</code></td>
+<td>compte, modèle, santé MCP</td>
+</tr>
+<tr>
+<td><code>/memory</code></td>
+<td>édite les fichiers de contexte chargés</td>
+</tr>
+<tr>
+<td><code>/mcp</code></td>
+<td>état des serveurs MCP</td>
+</tr>
+<tr>
+<td><code>/skills</code></td>
+<td>liste les compétences disponibles</td>
+</tr>
+</tbody>
+</table></div>
+<p>Une commande fait deux choses : elle <strong>standardise</strong> (le même prompt pour
+tout le monde) et elle <strong>documente</strong> (le titre porte l'intention). Les
+commandes intégrées couvrent la gestion de session ; la vraie puissance vient
+des commandes personnalisées de l'équipe.</p>
+<h3>Les commandes personnalisées de l'équipe</h3>
+<p>Un fichier Markdown dans <code>.claude/commands/</code> devient une commande <code>/slash</code>
+du projet. Exemple <code>.claude/commands/nouveau-script.md</code> :</p>
+<div class="code-block"><pre><code class="language-markdown">---
+description: Génère un script Bash selon les conventions du dépôt
+allowed-tools: Read, Write
+---
+
+Génère un script Bash nommé $ARGUMENTS dans scripts/.
+Applique strictement :
+- en-tête standard (objectif, usage, effets, exit codes) ;
+- set -euo pipefail ;
+- validation des paramètres avec message d'aide ;
+- trap de nettoyage pour les fichiers temporaires ;
+- journalisation dans le format de docs/journalisation.md.
+
+Produis d'abord le squelette, puis demande validation avant le corps.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Lancée par <code>/nouveau-script collecte-infos-projet.sh</code>, la commande injecte le
+prompt complet avec l'argument. Une équipe définit ainsi son vocabulaire :
+<code>/nouveau-script</code>, <code>/revue-shell</code>, <code>/doc-script</code>… Le prompt cesse d'être un
+talent individuel ; il devient un actif du dépôt.</p>
+<p>Trois conventions d'équipe rendent ce vocabulaire durable :</p>
+<ul>
+<li>
+<p><strong>un verbe par intention</strong> : <code>nouveau-</code> pour générer, <code>revue-</code> pour relire,
+  <code>doc-</code> pour documenter — la commande se devine au lieu de se chercher ;</p>
+</li>
+<li>
+<p><strong>une description dans l'en-tête</strong> : elle s'affiche dans la liste des
+  commandes et sert au stagiaire comme à l'agent ;</p>
+</li>
+<li>
+<p><strong>des commandes versionnées</strong> : une commande corrigée profite à toute
+  l'équipe au prochain <code>git pull</code>, sans diffusion manuelle.</p>
+</li>
+</ul>
+<h3>Les skills : bonnes pratiques et patterns chargés à la demande</h3>
+<p>Une <strong>compétence</strong> (skill) est une unité de savoir-faire : instructions et
+ressources, stockées dans le dépôt ou un greffon, chargées seulement quand la
+tâche les concerne. Par défaut, seuls le nom et la description occupent le
+contexte — un ou deux jets de jetons. C'est l'application directe de la
+divulgation progressive.</p>
+<p>Structure d'une compétence :</p>
+<div class="code-block"><pre><code class="language-text">shell-scripting/
+└── skills/
+    └── bash-defensive-patterns/
+        └── SKILL.md      # métadonnées + instructions
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Un <code>SKILL.md</code> contient un en-tête YAML (nom, description) puis les
+instructions : validation des paramètres, <code>trap</code>, gestion des erreurs, fichiers
+temporaires, codes de retour. Une compétence peut embarquer des scripts ou des
+modèles annexes.</p>
+<p>Usage dans une session :</p>
+<div class="code-block"><pre><code class="language-text">/shell-scripting:bash-defensive-patterns
+Relis le script proposé : paramètres, chemins, erreurs, trap, journalisation.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>La compétence distingue l'<strong>outil</strong> (ce que l'agent appelle, comme Bash ou
+Read) de la <strong>compétence</strong> (les instructions qu'il lit). L'outil exécute ; la
+compétence guide.</p>
+<h3>Les agents : une personnalité, un poste</h3>
+<p>Un <strong>agent personnalisé</strong> fixe un rôle, un modèle, un périmètre d'outils et
+des instructions propres. Fichier <code>.claude/agents/revue-shell.md</code> :</p>
+<div class="code-block"><pre><code class="language-markdown">---
+name: revue-shell
+description: Relit un script Bash pour la portabilité POSIX et la robustesse.
+tools: Read, Grep, Glob
+model: sonnet
+---
+
+Tu es relecteur de scripts shell. Tu ne modifies aucun fichier.
+Tu produis un rapport : fichier, problème, impact, correctif proposé.
+Signale tout pattern non portable (bashismes), tout rm non borné,
+toute absence de trap ou de validation des paramètres.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Dans une session, l'agent principal peut déléguer à ce relecteur comme
+<strong>sous-agent</strong> : le sous-agent consomme son propre contexte avec le travail
+bruyant (lectures multiples, grep étendus) et ne renvoie qu'un rapport court.
+Le contexte principal reste propre, et la séparation des rôles — l'auteur ne
+relit pas son propre travail — fiabilise la revue.</p>
+<p>Deux limites à connaître :</p>
+<ul>
+<li>
+<p>un sous-agent ne lance pas d'autres sous-agents : un seul niveau, pas de
+  hiérarchie ;</p>
+</li>
+<li>
+<p>le rapport d'un sous-agent est une <strong>source secondaire</strong> : ce qu'il omet
+  reste invisible pour le parent. Les faits importants se vérifient sur le
+  code, pas sur le résumé.</p>
+</li>
+</ul>
+<div class="callout note"><div class="callout-title">Agent ≠ skill</div><p>Le skill dit <strong>comment faire</strong> une catégorie de tâches (un savoir-faire
+chargé à la demande). L'agent dit <strong>qui fait</strong> et <strong>avec quoi</strong> (un rôle, un
+modèle, des outils, des limites). Le skill complète la session courante ;
+l'agent ouvre une session parallèle.</p></div>
+<h3>Gérer les droits des outils : permissions et modes</h3>
+<p>Par défaut, Claude Code demande confirmation avant toute action hors lecture —
+chaque écriture, chaque commande. Trois niveaux de réglage coexistent :</p>
+<ul>
+<li>
+<p><strong>les modes de permission</strong> : bascule rapide avec <code>Shift+Tab</code> (demander
+  tout, accepter les éditions, plan autonome) ;</p>
+</li>
+<li>
+<p><strong>les règles</strong> dans <code>settings.json</code> : <code>allow</code>, <code>ask</code>, <code>deny</code> ;</p>
+</li>
+<li><strong>la ligne de commande</strong> : <code>--disallowedTools</code> pour une session donnée.</li>
+</ul>
+<p>Les modes servent au rythme de la tâche, les règles servent à la politique du
+dépôt. Le tableau situe les trois modes usuels :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Ce qu'il fait</th>
+<th>Usage typique</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Demander tout</td>
+<td>confirmation pour chaque écriture et commande</td>
+<td>première exploration d'un dépôt inconnu</td>
+</tr>
+<tr>
+<td>Accepter les éditions</td>
+<td>les modifications de fichiers passent, les commandes demandent</td>
+<td>rédaction et refactoring en boucle courte</td>
+</tr>
+<tr>
+<td>Plan autonome</td>
+<td>l'agent enchaîne actions et commandes selon les règles</td>
+<td>ateliers répétés, déjà balisés par <code>deny</code> solides</td>
+</tr>
+</tbody>
+</table></div>
+<p>La hiérarchie des fichiers de réglages suit la même logique que celle des
+fichiers de contexte : <code>~/.claude/settings.json</code> (utilisateur),
+<code>.claude/settings.json</code> (projet, versionné), <code>.claude/settings.local.json</code>
+(local, non versionné). Les règles <code>deny</code> d'un dépôt s'appliquent à quiconque
+l'ouvre — c'est le bon endroit pour les interdits d'équipe, indépendamment du
+poste qui exécute la session.</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [
+      &quot;Bash(bash -n *)&quot;,
+      &quot;Bash(shellcheck *)&quot;,
+      &quot;Read(~/.claude/**)&quot;
+    ],
+    &quot;ask&quot;: [
+      &quot;Bash(git commit *)&quot;
+    ],
+    &quot;deny&quot;: [
+      &quot;Read(.env)&quot;,
+      &quot;Read(.env.*)&quot;,
+      &quot;Bash(rm -rf /*)&quot;,
+      &quot;Bash(git push *)&quot;,
+      &quot;Bash(docker system prune*)&quot;
+    ]
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Lecture de cet exemple : les contrôles de qualité (<code>bash -n</code>, <code>shellcheck</code>)
+passent sans friction ; un commit demande toujours confirmation ; les
+destructions non bornées et la lecture des secrets sont interdites
+définitivement. La règle <code>deny</code> prévaut sur <code>allow</code>, qui prévaut sur le mode
+courant.</p>
+<div class="callout danger"><div class="callout-title">Jamais de contournement global</div><p>L'option <code>--dangerously-skip-permissions</code> désactive toutes les
+confirmations. Sur un poste d'administration, elle n'est jamais justifiée :
+elle transforme une proposition d'agent en exécution automatique. Le bon
+réglage est la règle fine (<code>allow</code> ciblée), jamais le bypass global.</p></div>
+<h3>Une session type, commentée</h3>
+<p>Le transcript abrégé ci-dessous montre l'enchaînement des mécanismes sur une
+tâche réelle : cadrage, plan, génération, tests, revue déléguée.</p>
+<div class="code-block"><pre><code class="language-text">$ claude
+&gt; Lis CLAUDE.md puis propose un plan en cinq étapes pour un script
+  scripts/monitoring/espace-disque.sh qui alerte quand une partition
+  dépasse un seuil. Aucun code pour l'instant.
+        → le plan s'affiche ; une étape est corrigée à la main
+&gt; Étape 3 : le seuil passe par --seuil, défaut 80. Sinon le plan me va.
+  Implémente.
+        → l'agent propose le script, affiche le diff, demande la confirmation
+          d'écriture → acceptée
+&gt; bash -n scripts/monitoring/espace-disque.sh &amp;&amp; shellcheck scripts/monitoring/espace-disque.sh
+        → commandes de contrôle : allow, pas de confirmation (règle posée
+          en début de journée) ; ShellCheck signale une citation non protégée
+&gt; Corrige l'avis SC2086, relance les deux contrôles, puis délègue la revue
+  au sous-agent revue-shell : rapport fichier/problème/impact/correctif,
+  sans rien modifier.
+        → la revue tourne dans un contexte séparé ; le rapport revient
+&gt; Applique le correctif 2 (trap manquant), pas le 1 (faux positif).
+&gt; /cost
+        → mesure de la session avant de passer à la documentation
+&gt; Ajoute l'en-tête standard et la section usage, puis commit.
+        → le commit déclenche la règle ask : confirmation demandée
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Six observations sur ce déroulé :</p>
+<ol>
+<li>
+<p>la session commence par une lecture de <code>CLAUDE.md</code> — peu coûteuse, elle
+   aligne tout ce qui suit ;</p>
+</li>
+<li>
+<p>le plan précède le code : la correction d'une étape du plan coûte une
+   phrase ;</p>
+</li>
+<li>
+<p>les contrôles passent sans friction grâce aux règles <code>allow</code> ;</p>
+</li>
+<li>la revue est <strong>déléguée</strong> : le contexte principal ne reçoit qu'un rapport ;</li>
+<li>
+<p>l'administrateur arbitre les correctifs — appliquer aveuglément tout ce
+   que dit un relecteur, humain ou agent, reste une faute de méthode ;</p>
+</li>
+<li>
+<p>le commit, action distante, demande confirmation : la frontière des
+   actions « qui sortent du dépôt local » est volontairement frictionnelle.</p>
+</li>
+</ol>
+<h3>Les hooks : automatiser les points de contrôle</h3>
+<p>Un <strong>hook</strong> exécute une commande locale à un événement précis du cycle de
+l'agent. Deux événements servent la discipline d'administration :</p>
+<ul>
+<li><code>PreToolUse</code> : avant un appel d'outil — filtrer, journaliser, bloquer ;</li>
+<li><code>PostToolUse</code> : après un appel d'outil — exécuter un contrôle automatique
+  sur le résultat.</li>
+</ul>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;hooks&quot;: {
+    &quot;PostToolUse&quot;: [
+      {
+        &quot;matcher&quot;: &quot;Write|Edit&quot;,
+        &quot;hooks&quot;: [
+          { &quot;type&quot;: &quot;command&quot;, &quot;command&quot;: &quot;shellcheck \&quot;$CLAUDE_FILE_PATHS\&quot; || true&quot; }
+        ]
+      }
+    ]
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Ce hook lance ShellCheck sur chaque fichier modifié ou créé par l'agent : la
+sortie arrive dans le contexte de la session, l'agent se corrige donc tout
+seul, sans intervention. Le hook transforme une vérification automatisée en
+réflexe permanent.</p>
+<div class="callout tip"><div class="callout-title">Journaliser sans bloquer</div><p>Un hook <code>PreToolUse</code> qui journalise la commande dans un fichier local
+(append dans <code>~/.claude-journal.log</code>) donne une trace d'audit de toutes
+les commandes exécutées par l'agent — précieux pour l'analyse post-incident
+et pour rassurer la sécurité de l'entreprise.</p></div>
+<h3>Étendre les outils avec les MCP</h3>
+<p>Le protocole <strong>MCP</strong> (Model Context Protocol) connecte l'agent à des sources
+d'outils externes : serveur SSH, documentation, forges logicielles. La
+déclaration se fait dans <code>.mcp.json</code> à la racine du dépôt :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;mcpServers&quot;: {
+    &quot;context7&quot;: {
+      &quot;command&quot;: &quot;npx&quot;,
+      &quot;args&quot;: [&quot;-y&quot;, &quot;@upstash/context7-mcp&quot;]
+    },
+    &quot;mcp-ssh&quot;: {
+      &quot;command&quot;: &quot;uvx&quot;,
+      &quot;args&quot;: [&quot;mcp-ssh&quot;],
+      &quot;env&quot;: {
+        &quot;OVRD_target_HOST&quot;: &quot;127.0.0.1&quot;,
+        &quot;OVRD_target_PORT&quot;: &quot;2222&quot;,
+        &quot;OVRD_target_USER&quot;: &quot;sandbox&quot;,
+        &quot;OVRD_target_KEY&quot;: &quot;/home/agent/.ssh/cible/id_ed25519&quot;
+      }
+    }
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Deux serveurs, deux usages : <code>context7</code> donne accès à de la documentation à
+jour ; <code>mcp-ssh</code> donne à l'agent des outils SSH vers une cible de laboratoire.
+Vérification dans la session :</p>
+<div class="code-block"><pre><code class="language-text">/mcp                 # état des serveurs, nombre d'outils
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<div class="code-block"><pre><code class="language-bash"># Hors session
+claude mcp list
+claude mcp get mcp-ssh
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le point de vigilance : <strong>ne pas déduire les droits du nom du serveur</strong>. Un
+même serveur MCP expose souvent des outils de lecture et des outils mutants.
+La règle d'autorisation cible l'outil, pas le serveur :</p>
+<div class="code-block"><pre><code class="language-json">{
+  &quot;permissions&quot;: {
+    &quot;allow&quot;: [&quot;mcp__context7__*&quot;],
+    &quot;ask&quot;: [&quot;mcp__mcp-ssh__*&quot;],
+    &quot;deny&quot;: [&quot;mcp__github__create_*&quot;]
+  }
+}
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<p>Le motif <code>mcp__&lt;serveur&gt;__&lt;outil&gt;</code> désigne un outil précis ; <code>mcp__mcp-ssh</code>
+seul couvre tous les outils du serveur. La démarche recommandée : lister les
+outils réels (inspection MCP ou session <code>--verbose</code>), séparer lecture et
+mutation, puis écrire les règles.</p>
+<div class="callout warn"><div class="callout-title">Prompts MCP et outils MCP</div><p>Le raccourci <code>/</code> de la session liste aussi des <strong>prompts</strong> fournis par les
+serveurs MCP (<code>/serveur:prompt</code>). Ce ne sont pas des outils : les
+autorisations d'outils ne s'y appliquent pas. Ne jamais confondre les deux
+listes.</p></div>
+</div>
+
+<div id="tab-atelier-installation-sur-poste-et-premiers-scripts" class="tab-content">
+<p>Cette dernière section transforme la journée en pratique. Deux ateliers : le
+fil rouge d'installation, puis la génération assistée d'un premier script.
+Chaque atelier précise le déroulé et les critères de réussite ; le formateur
+valide les étapes marquées.</p>
+<h3>Atelier 1 — Installation complète sur poste (version sans sandbox)</h3>
+<p>Objectif : chaque stagiaire quitte l'atelier avec un poste opérationnel —
+Claude Code installé, authentifié, vérifié, derrière le proxy de la salle le
+cas échéant.</p>
+<p>Déroulé :</p>
+<ol>
+<li>
+<p><strong>Préparer le shell</strong> : ouvrir le terminal (Git Bash/WSL sous Windows) ;
+   vérifier <code>node --version</code> ; créer le répertoire de travail
+   <code>~/formation-claude/depot-admin</code> et l'initialiser avec <code>git init</code>.</p>
+</li>
+<li>
+<p><strong>Poser les variables d'environnement</strong> : <code>ANTHROPIC_API_KEY</code> fournie pour
+   la salle, dans le shell courant ; proxy de la salle si annoncé
+   (<code>HTTPS_PROXY</code>, éventuellement <code>NODE_EXTRA_CA_CERTS</code>).</p>
+</li>
+<li>
+<p><strong>Installer</strong> : voie npm ou installateur natif, au choix du formateur ;
+   vérifier <code>claude --version</code>.</p>
+</li>
+<li>
+<p><strong>Diagnostiquer</strong> : <code>claude doctor</code> ; corriger tout ce qui est signalé
+   avant de continuer.</p>
+</li>
+<li>
+<p><strong>Première session</strong> : lancer <code>claude</code>, prompt test « Bonjour, réponds
+   simplement OK » ; vérifier <code>/status</code> et quitter.</p>
+</li>
+<li>
+<p><strong>Préparer le dépôt</strong> : <code>/init</code> dans le dépôt de travail ; lire le
+   <code>CLAUDE.md</code> généré, l'élaguer aux trois sections (commandes,
+   conventions, interdits).</p>
+</li>
+</ol>
+<p>Critères de réussite :</p>
+<ul>
+<li><code>claude doctor</code> ne signale aucune erreur ;</li>
+<li>la session test répond ;</li>
+<li><code>CLAUDE.md</code> compte moins de trente lignes et ne contient aucun secret ;</li>
+<li>le stagiaire sait dire où se trouvent : la clé, le proxy, le fichier de
+  contexte, le fichier de permissions.</li>
+</ul>
+<div class="callout tip"><div class="callout-title">Trace d'atelier</div><p>Noter dans <code>README.md</code> du dépôt de travail la commande d'installation
+utilisée et les variables posées — sans les valeurs de secrets. Ce README
+devient la procédure de réinstallation du poste, preuve que la
+documentation générée au fil de l'eau suffit.</p></div>
+<h3>Atelier 2 — Générer et adapter un script de collecte</h3>
+<p>Objectif : produire avec l'assistant un script Bash utile — la collecte
+d'informations sur un dépôt de code — en appliquant la boucle copilote et les
+mécanismes du chapitre : demande structurée, commande personnalisée, revue
+par agent.</p>
+<p>Le script cible, <code>collecte-infos-projet.sh</code>, explore un dossier, sélectionne
+les fichiers selon des extensions configurables et détecte des technologies
+courantes dans le code et les fichiers de configuration.</p>
+<p>Déroulé :</p>
+<ol>
+<li><strong>Cadrer</strong> : demander d'abord un plan, pas du code.</li>
+</ol>
+<div class="code-block"><pre><code class="language-text">Propose un plan en cinq étapes pour un script Bash collecte-infos-projet.sh
+qui : parcourt un répertoire cible (argument, défaut .), ignore .git,
+node_modules, venv, __pycache__, dist, build, coverage ; liste les fichiers
+selon des extensions (option --extensions, défaut .py,.js,.ts,.sh) ;
+compte les lignes cumulées ; détecte des technologies (FastAPI, Django,
+Flask, React, Express, Spring, Docker) dans les fichiers sources et de
+configuration. Aucune écriture sur le disque. Pas de code pour l'instant.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li><strong>Générer</strong> : valider le plan, puis demander l'implémentation complète
+   avec les conventions du dépôt (bash strict, validation des paramètres,
+   usage). Le prompt de génération repart du plan validé :</li>
+</ol>
+<div class="code-block"><pre><code class="language-text">Le plan est validé. Implémente collecte-infos-projet.sh en le suivant,
+avec l'en-tête standard, set -euo pipefail, le trap de nettoyage,
+la validation des paramètres et le mode --help. Ne crée aucun autre
+fichier que celui-ci.
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li><strong>Vérifier et tester</strong> :</li>
+</ol>
+<div class="code-block"><pre><code class="language-bash">bash -n collecte-infos-projet.sh
+shellcheck collecte-infos-projet.sh
+bash collecte-infos-projet.sh ~/formation-claude/depot-admin
+bash collecte-infos-projet.sh ~/formation-claude/depot-admin --extensions .py,.md
+</code></pre><button class="copy-btn" onclick="copyCode(this)">Copier</button></div>
+<ol>
+<li>
+<p><strong>Revue par agent</strong> : déléguer la relecture au sous-agent <code>revue-shell</code>
+   créé plus tôt, ou au prompt équivalent : rapport fichier / problème /
+   impact / correctif, sans modification directe.</p>
+</li>
+<li>
+<p><strong>Itérer</strong> : appliquer les corrections jugées pertinentes, une par une,
+   en relançant les tests après chacune.</p>
+</li>
+<li>
+<p><strong>Durcir</strong> : ajouter la gestion des arguments invalides, le mode <code>--help</code>
+   et le message d'erreur lisible ; vérifier que le script refuse un
+   répertoire inexistant avec un code de retour non nul.</p>
+</li>
+</ol>
+<p>Critères de réussite :</p>
+<ul>
+<li><code>bash -n</code> et <code>shellcheck</code> passent sans alerte bloquante ;</li>
+<li>
+<p>le script répond à <code>--help</code> et à un répertoire inexistant par un message
+  clair et un code de retour adapté ;</p>
+</li>
+<li>
+<p>la sortie sur le dépôt de travail liste les fichiers trouvés et les
+  technologies détectées ;</p>
+</li>
+<li>
+<p>le stagiaire peut citer, pour chaque demande, quel mécanisme il a utilisé :
+  prompt libre, commande personnalisée, skill ou agent.</p>
+</li>
+</ul>
+<h3>Ce que le stagiaire emporte à la fin du jour 1</h3>
+<p>Le dépôt de travail reflète la journée ; le tableau sert de bilan d'atelier et
+de liste de vérification avant de quitter la salle :</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Fichier</th>
+<th>Rôle</th>
+<th>Test de validation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CLAUDE.md</code></td>
+<td>feuille de route de l'agent</td>
+<td>lu au démarrage de session, moins de 30 lignes</td>
+</tr>
+<tr>
+<td><code>.claude/settings.json</code></td>
+<td>permissions d'équipe</td>
+<td><code>deny</code> testé : la lecture de <code>.env</code> est refusée</td>
+</tr>
+<tr>
+<td><code>.claude/commands/nouveau-script.md</code></td>
+<td>prompt standardisé</td>
+<td><code>/nouveau-script test.sh</code> propose un squelette</td>
+</tr>
+<tr>
+<td><code>.claude/agents/revue-shell.md</code></td>
+<td>relecteur délégué</td>
+<td>la revue rend un rapport sans modifier les fichiers</td>
+</tr>
+<tr>
+<td><code>.mcp.json</code></td>
+<td>serveurs MCP du projet</td>
+<td><code>/mcp</code> affiche les serveurs connectés</td>
+</tr>
+<tr>
+<td><code>scripts/*/collecte-infos-projet.sh</code></td>
+<td>premier script assisté</td>
+<td><code>bash -n</code> et ShellCheck passent</td>
+</tr>
+<tr>
+<td><code>README.md</code></td>
+<td>procédure de réinstallation du poste</td>
+<td>un collègue refait l'installation en suivant le README</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>un poste avec Claude Code installé, diagnostiqué et connecté ;</li>
+<li>
+<p>un dépôt de travail versionné, avec <code>CLAUDE.md</code> élagué, permissions posées
+  et première commande personnalisée ;</p>
+</li>
+<li>
+<p>un premier script généré, revu, testé et durci selon la boucle copilote ;</p>
+</li>
+<li>les réflexes : demander le plan avant le code, tester après chaque
+  modification, compacter aux frontières de phase, jamais de secret dans un
+  prompt.</li>
+</ul>
+<p>Le chapitre 2 reprend exactement ce dépôt : il l'isole dans un bac à sable
+Docker, formalise le workflow de test plan / implémente / vérifie, puis
+industrialise les acquis pour toute l'équipe.</p>
+</div>
+
+<div id="tab-quiz" class="tab-content">
+<div id="quiz-container">
+<div class="quiz-question" id="q1">
+  <h4>Question 1 — Quel est le rôle correctement attribué à l'assistant IA dans le travail d'administration ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(1,'a')">A) Décider de l'architecture des scripts pour libérer du temps à l'administrateur</button>
+    <button class="quiz-option" onclick="answer(1,'b')">B) Proposer du code que l'administrateur vérifie, teste et valide avant adoption</button>
+    <button class="quiz-option" onclick="answer(1,'c')">C) Exécuter directement les opérations sensibles en production pour éviter les erreurs humaines</button>
+    <button class="quiz-option" onclick="answer(1,'d')">D) Définir la politique de sécurité de l'entreprise à partir des meilleures pratiques</button>
+  </div>
+  <div class="quiz-feedback" id="fb1"></div>
+</div>
+<div class="quiz-question" id="q2">
+  <h4>Question 2 — Parmi ces quatre tâches, laquelle peut être confiée à l'assistant sans vigilance particulière ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(2,'a')">A) L'ouverture d'un port de pare-feu jugée nécessaire</button>
+    <button class="quiz-option" onclick="answer(2,'b')">B) La suppression des anciennes sauvegardes sur le serveur de production</button>
+    <button class="quiz-option" onclick="answer(2,'c')">C) La génération d'un squelette de script de collecte d'informations</button>
+    <button class="quiz-option" onclick="answer(2,'d')">D) Le choix du découpage d'un nouveau dépôt d'exploitation</button>
+  </div>
+  <div class="quiz-feedback" id="fb2"></div>
+</div>
+<div class="quiz-question" id="q3">
+  <h4>Question 3 — Dans le vocabulaire du développement assisté, que désigne le « harnais » ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(3,'a')">A) Le modèle de langage entraîné</button>
+    <button class="quiz-option" onclick="answer(3,'b')">B) L'outil qui enrobe le modèle : gestion du contexte, appel des outils, affichage</button>
+    <button class="quiz-option" onclick="answer(3,'c')">C) La fenêtre de contexte d'une session</button>
+    <button class="quiz-option" onclick="answer(3,'d')">D) Le bac à sable dans lequel s'exécute l'agent</button>
+  </div>
+  <div class="quiz-feedback" id="fb3"></div>
+</div>
+<div class="quiz-question" id="q4">
+  <h4>Question 4 — Pourquoi dit-on que le modèle est « sans état » ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(4,'a')">A) Parce qu'il refuse les commandes destructrices</button>
+    <button class="quiz-option" onclick="answer(4,'b')">B) Parce qu'il se limite à un seul système d'exploitation</button>
+    <button class="quiz-option" onclick="answer(4,'c')">C) Parce qu'aucune mémoire ne survit d'une session à l'autre : tout doit être réexpliqué ou écrit dans le dépôt</button>
+    <button class="quiz-option" onclick="answer(4,'d')">D) Parce qu'il ne conserve pas les résultats des tests</button>
+  </div>
+  <div class="quiz-feedback" id="fb4"></div>
+</div>
+<div class="quiz-question" id="q5">
+  <h4>Question 5 — Quelle variable d'environnement doit être posée pour que Claude Code traverse un proxy d'entreprise avec un certificat racine interne ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(5,'a')">A) <code>NODE_EXTRA_CA_CERTS</code> pointant vers le certificat racine de l'entreprise</button>
+    <button class="quiz-option" onclick="answer(5,'b')">B) <code>ANTHROPIC_API_KEY</code> pointant vers le certificat</button>
+    <button class="quiz-option" onclick="answer(5,'c')">C) <code>CLAUDE_PROXY_TLS</code> pointant vers le proxy</button>
+    <button class="quiz-option" onclick="answer(5,'d')">D) Aucune : les proxies d'entreprise sont traversés automatiquement</button>
+  </div>
+  <div class="quiz-feedback" id="fb5"></div>
+</div>
+<div class="quiz-question" id="q6">
+  <h4>Question 6 — Quelle est la bonne pratique pour poser une clé d'API sur un poste d'administration ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(6,'a')">A) La versionner dans le README du dépôt pour que l'équipe la retrouve</button>
+    <button class="quiz-option" onclick="answer(6,'b')">B) La coller dans un prompt quand un script doit la tester</button>
+    <button class="quiz-option" onclick="answer(6,'c')">C) La poser dans l'environnement du shell personnel et interdire sa lecture dans les permissions du projet</button>
+    <button class="quiz-option" onclick="answer(6,'d')">D) La stocker dans un fichier <code>.env</code> versionné avec le dépôt</button>
+  </div>
+  <div class="quiz-feedback" id="fb6"></div>
+</div>
+<div class="quiz-question" id="q7">
+  <h4>Question 7 — Quelle commande vérifie globalement l'installation, la configuration et la connectivité de Claude Code ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(7,'a')">A) <code>claude --version</code></button>
+    <button class="quiz-option" onclick="answer(7,'b')">B) <code>claude doctor</code></button>
+    <button class="quiz-option" onclick="answer(7,'c')">C) <code>/cost</code></button>
+    <button class="quiz-option" onclick="answer(7,'d')">D) <code>npm doctor</code></button>
+  </div>
+  <div class="quiz-feedback" id="fb7"></div>
+</div>
+<div class="quiz-question" id="q8">
+  <h4>Question 8 — Selon la règle d'or du choix de modèle pour un administrateur, quelle gamme utiliser pour « refactoriser un playbook de sauvegarde » ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(8,'a')">A) Le modèle le plus capable, pour garantir la qualité</button>
+    <button class="quiz-option" onclick="answer(8,'b')">B) Le modèle léger, exclusivement</button>
+    <button class="quiz-option" onclick="answer(8,'c')">C) Le modèle intermédiaire, défaut polyvalent pour la génération et le débogage</button>
+    <button class="quiz-option" onclick="answer(8,'d')">D) Peu importe : tous les modèles coûtent pareil</button>
+  </div>
+  <div class="quiz-feedback" id="fb8"></div>
+</div>
+<div class="quiz-question" id="q9">
+  <h4>Question 9 — Pourquoi compacter manuellement (<code>/compact</code>) plutôt que laisser le compactage automatique agir ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(9,'a')">A) Le compactage automatique supprime des fichiers du dépôt</button>
+    <button class="quiz-option" onclick="answer(9,'b')">B) Le compactage manuel, à une frontière de phase, laisse le choix de ce qui est conservé dans le résumé</button>
+    <button class="quiz-option" onclick="answer(9,'c')">C) Le compactage automatique est désactivé par défaut</button>
+    <button class="quiz-option" onclick="answer(9,'d')">D) Le compactage manuel déconnecte la session du proxy</button>
+  </div>
+  <div class="quiz-feedback" id="fb9"></div>
+</div>
+<div class="quiz-question" id="q10">
+  <h4>Question 10 — Quelle ligne n'a rien à faire dans un <code>CLAUDE.md</code> ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(10,'a')">A) « Syntaxe : bash -n scripts/*.sh avant tout commit »</button>
+    <button class="quiz-option" onclick="answer(10,'b')">B) « Ne jamais appeler docker system prune »</button>
+    <button class="quiz-option" onclick="answer(10,'c')">C) « Publication ou déploiement : lire d'abord docs/runbook-deploy.md »</button>
+    <button class="quiz-option" onclick="answer(10,'d')">D) Le guide complet de rédaction des scripts de sauvegarde, recopié intégralement</button>
+  </div>
+  <div class="quiz-feedback" id="fb10"></div>
+</div>
+<div class="quiz-question" id="q11">
+  <h4>Question 11 — Quelle est la différence entre un skill et un agent personnalisé ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(11,'a')">A) Le skill donne un rôle et des outils ; l'agent donne un savoir-faire</button>
+    <button class="quiz-option" onclick="answer(11,'b')">B) Le skill est un savoir-faire chargé à la demande ; l'agent est un rôle avec son modèle, ses outils et ses limites</button>
+    <button class="quiz-option" onclick="answer(11,'c')">C) Aucune : ce sont deux noms du même mécanisme</button>
+    <button class="quiz-option" onclick="answer(11,'d')">D) Le skill s'exécute en production ; l'agent reste en développement</button>
+  </div>
+  <div class="quiz-feedback" id="fb11"></div>
+</div>
+<div class="quiz-question" id="q12">
+  <h4>Question 12 — Que fait la règle <code>"deny": ["Read(.env)"]</code> dans les permissions ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(12,'a')">A) Elle supprime le fichier <code>.env</code> du dépôt</button>
+    <button class="quiz-option" onclick="answer(12,'b')">B) Elle interdit à l'agent de lire les fichiers <code>.env</code>, quel que soit le mode de permission courant</button>
+    <button class="quiz-option" onclick="answer(12,'c')">C) Elle demande une confirmation avant chaque lecture</button>
+    <button class="quiz-option" onclick="answer(12,'d')">D) Elle autorise la lecture uniquement en mode plan</button>
+  </div>
+  <div class="quiz-feedback" id="fb12"></div>
+</div>
+<div class="quiz-question" id="q13">
+  <h4>Question 13 — Comment s'écrit la règle d'autorisation d'un outil précis fourni par un serveur MCP ?</h4>
+  <div class="quiz-options">
+    <button class="quiz-option" onclick="answer(13,'a')">A) <code>mcp__&lt;serveur&gt;__&lt;outil&gt;</code></button>
+    <button class="quiz-option" onclick="answer(13,'b')">B) <code>&lt;serveur&gt;/&lt;outil&gt;</code></button>
+    <button class="quiz-option" onclick="answer(13,'c')">C) <code>MCP:&lt;outil&gt;:allow</code></button>
+    <button class="quiz-option" onclick="answer(13,'d')">D) <code>tool:&lt;outil&gt;</code></button>
+  </div>
+  <div class="quiz-feedback" id="fb13"></div>
+</div>
+</div>
+<div class="quiz-score" id="quiz-score">
+  <div class="score-num" id="score-display">0 / 13</div>
+  <p id="score-msg"></p>
+  <button class="btn-restart" onclick="restartQuiz()">Recommencer</button>
+</div>
+</div>
+  </div>
+</div>
+
+<script>
+// ─── THEME ──────────────────────────────────────────────────────────────────
+(function () {
+  const root = document.documentElement;
+  const stored = localStorage.getItem('dawan-theme');
+  if (stored) root.setAttribute('data-theme', stored);
+  updateToggleLabel();
+})();
+
+function updateToggleLabel() {
+  const current = document.documentElement.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.getElementById('theme-icon').textContent = current === 'dark' ? '🌙' : '☀️';
+  document.getElementById('theme-label').textContent = current === 'dark' ? 'Sombre' : 'Clair';
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = root.getAttribute('data-theme') ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  const next = current === 'dark' ? 'light' : 'dark';
+  root.setAttribute('data-theme', next);
+  localStorage.setItem('dawan-theme', next);
+  updateToggleLabel();
+}
+
+// ─── TABS ───────────────────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.side-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+  document.querySelector('.content').scrollTo({ top: 0, behavior: 'instant' });
+}
+
+// ─── COPY CODE ──────────────────────────────────────────────────────────────
+function copyCode(btn) {
+  const pre = btn.previousElementSibling;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    btn.textContent = 'Copié !'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copier'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+// ─── QUIZ ────────────────────────────────────────────────────────────────────
+const answers = { 1:'b', 2:'c', 3:'b', 4:'c', 5:'a', 6:'c', 7:'b', 8:'c', 9:'b', 10:'d', 11:'b', 12:'b', 13:'a' };
+const feedbacks = {
+  1: { b: "Exact ! l'assistant est un copilote : il produit vite, l'administrateur garde la décision, notamment sur la sécurité, l'architecture et les opérations sensibles.", wrong: "Non. La bonne réponse est B) Proposer du code que l'administrateur vérifie, teste et valide avant adoption — l'assistant est un copilote : il produit vite, l'administrateur garde la décision, notamment sur la sécurité, l'architecture et les opérations sensibles." },
+  2: { c: "Exact ! c'est une tâche à critère de vérification externe (le script tourne ou échoue), typique de ce que l'IA fait bien.", wrong: "Non. La bonne réponse est C) La génération d'un squelette de script de collecte d'informations — c'est une tâche à critère de vérification externe (le script tourne ou échoue), typique de ce que l'IA fait bien." },
+  3: { b: "Exact ! Claude Code est un harnais ; le modèle, lui, ne sait que produire du texte.", wrong: "Non. La bonne réponse est B) L'outil qui enrobe le modèle : gestion du contexte, appel des outils, affichage — Claude Code est un harnais ; le modèle, lui, ne sait que produire du texte." },
+  4: { c: "Exact ! d'où l'importance de CLAUDE.md et du dépôt bien organisé.", wrong: "Non. La bonne réponse est C) Parce qu'aucune mémoire ne survit d'une session à l'autre : tout doit être réexpliqué ou écrit dans le dépôt — d'où l'importance de CLAUDE.md et du dépôt bien organisé." },
+  5: { a: "Exact ! les proxys HTTP/HTTPS se posent via <code>HTTPS_PROXY</code>/<code>HTTP_PROXY</code>, mais le certificat interne exige <code>NODE_EXTRA_CA_CERTS</code>.", wrong: "Non. La bonne réponse est A) <code>NODE_EXTRA_CA_CERTS</code> pointant vers le certificat racine de l'entreprise — les proxys HTTP/HTTPS se posent via <code>HTTPS_PROXY</code>/<code>HTTP_PROXY</code>, mais le certificat interne exige <code>NODE_EXTRA_CA_CERTS</code>." },
+  6: { c: "Exact ! la règle <code>deny</code> sur <code>Read(.env)</code> verrouille l'accès ; la clé ne se versionne jamais.", wrong: "Non. La bonne réponse est C) La poser dans l'environnement du shell personnel et interdire sa lecture dans les permissions du projet — la règle <code>deny</code> sur <code>Read(.env)</code> verrouille l'accès ; la clé ne se versionne jamais." },
+  7: { b: "Exact ! c'est le diagnostic global ; <code>claude --version</code> ne donne que le numéro de version, <code>/cost</code> le coût de la session.", wrong: "Non. La bonne réponse est B) <code>claude doctor</code> — c'est le diagnostic global ; <code>claude --version</code> ne donne que le numéro de version, <code>/cost</code> le coût de la session." },
+  8: { c: "Exact ! le modèle léger sert aux corrections simples, le plus capable à la conception et à la revue de sécurité.", wrong: "Non. La bonne réponse est C) Le modèle intermédiaire, défaut polyvalent pour la génération et le débogage — le modèle léger sert aux corrections simples, le plus capable à la conception et à la revue de sécurité." },
+  9: { b: "Exact ! l'automatique se déclenche vers 80 % de remplissage, au milieu d'une tâche, sans contrôle sur ce qui est perdu.", wrong: "Non. La bonne réponse est B) Le compactage manuel, à une frontière de phase, laisse le choix de ce qui est conservé dans le résumé — l'automatique se déclenche vers 80 % de remplissage, au milieu d'une tâche, sans contrôle sur ce qui est perdu." },
+  10: { d: "Exact ! CLAUDE.md est une feuille de route courte et déclarative ; les détails vivent derrière des pointeurs de contexte.", wrong: "Non. La bonne réponse est D) Le guide complet de rédaction des scripts de sauvegarde, recopié intégralement — CLAUDE.md est une feuille de route courte et déclarative ; les détails vivent derrière des pointeurs de contexte." },
+  11: { b: "Exact ! le skill complète la session courante, l'agent ouvre une session parallèle avec son propre contexte.", wrong: "Non. La bonne réponse est B) Le skill est un savoir-faire chargé à la demande ; l'agent est un rôle avec son modèle, ses outils et ses limites — le skill complète la session courante, l'agent ouvre une session parallèle avec son propre contexte." },
+  12: { b: "Exact ! une règle <code>deny</code> prévaut sur <code>allow</code> et sur le mode courant.", wrong: "Non. La bonne réponse est B) Elle interdit à l'agent de lire les fichiers <code>.env</code>, quel que soit le mode de permission courant — une règle <code>deny</code> prévaut sur <code>allow</code> et sur le mode courant." },
+  13: { a: "Exact ! ce motif désigne un outil précis ; le nom du serveur seul couvrirait tous ses outils, y compris les outils mutants.", wrong: "Non. La bonne réponse est A) <code>mcp__&lt;serveur&gt;__&lt;outil&gt;</code> — ce motif désigne un outil précis ; le nom du serveur seul couvrirait tous ses outils, y compris les outils mutants." }
+};
+const QUIZ_TOTAL = 13;
+let score = 0;
+let answered = {};
+
+function answer(qNum, choice) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  score += (choice === answers[qNum]) ? 1 : 0;
+  const qEl = document.getElementById('q' + qNum);
+  qEl.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = true;
+    const ltr = btn.textContent.trim()[0].toLowerCase();
+    if (ltr === answers[qNum]) btn.classList.add('correct');
+    else if (ltr === choice) btn.classList.add('wrong');
+  });
+  const fb = feedbacks[qNum];
+  document.getElementById('fb' + qNum).textContent = (choice === answers[qNum]) ? fb[answers[qNum]] : fb.wrong;
+  if (Object.keys(answered).length === QUIZ_TOTAL) showScore();
+}
+
+function showScore() {
+  const el = document.getElementById('quiz-score');
+  el.style.display = 'block';
+  document.getElementById('score-display').textContent = score + ' / ' + QUIZ_TOTAL;
+  const ratio = score / QUIZ_TOTAL;
+  let msg;
+  if (ratio === 1) msg = 'Parfait ! Toutes les réponses sont correctes.';
+  else if (ratio >= .8) msg = 'Très bien ! Vous maîtrisez l\'essentiel.';
+  else if (ratio >= .6) msg = 'Pas mal ! Relisez les points manqués.';
+  else if (ratio >= .4) msg = 'Quelques notions à revoir.';
+  else msg = 'Revoyez le cours avant de continuer.';
+  document.getElementById('score-msg').textContent = msg;
+}
+
+function restartQuiz() {
+  score = 0; answered = {};
+  document.getElementById('quiz-score').style.display = 'none';
+  document.querySelectorAll('.quiz-option').forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('correct','wrong');
+  });
+  document.querySelectorAll('.quiz-feedback').forEach(fb => fb.textContent = '');
+}
+</script>
+</body>
+</html>
