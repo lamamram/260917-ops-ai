@@ -1,5 +1,17 @@
 # Lexique IA pour la programmation
 
+### petite introduction aux llms
+
+* **GPT**: Generative Pre-trained **Transformer** 
+  + algorithme général de deep learning communément utilisé par les LLMs
++ lié à la notion d'Attention (cf l'article de 2017 de Vaswani et al. "Attention is all you need")
+
+* **LLM**: Large Language Model
+  + modèle de langage basé sur l'architecture Transformer
+  + entraîné sur un grand corpus de texte pour générer du texte cohérent et contextuellement pertinent
+
+* **chatGPT**: client (chat) + llm créé par *OPENAI*
+
 ---
 
 ## Table des matières
