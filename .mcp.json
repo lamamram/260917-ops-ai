@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    },
+    "gitlab": {
+      "type": "http",
+      "url": "${GITLAB_HOST:-https://gitlab.com}/api/v4/mcp",
+      "headers": {
+        "PRIVATE-TOKEN": "${GITLAB_TOKEN}"
+      }
+    },
+    "mcp-ssh": {
+      "command": "uvx",
+      "args": ["mcp-ssh"],
+      "env": {
+        "OVRD_target_HOST": "${TARGET_HOST:-127.0.0.1}",
+        "OVRD_target_PORT": "${TARGET_PORT:-2222}",
+        "OVRD_target_USER": "${TARGET_USER:-sandbox}",
+        "OVRD_target_KEY": "${TARGET_PKEY:-/home/agent/.ssh/claude-admin-target/id_ed25519}"
+      }
+    },
+    "mcp-docker": {
+      "command": "uvx",
+      "args": ["mcp-server-docker"]
+    },
+    "mcp-ansible": {
+      "command": "uvx",
+      "args": ["ansible-know-mcp"]
+    },
+    "mcp-fs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${CLAUDE_PROJECT_DIR:-.}"]
+    }
+  }
+}

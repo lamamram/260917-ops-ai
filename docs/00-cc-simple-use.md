@@ -21,6 +21,7 @@ Ouvrez PowerShell, sans droits administrateur, puis installez Claude Code :
 ```powershell
 irm https://claude.ai/install.ps1 | iex
 ```
+> il faut ajouter le chemin ~\.local\bin à la variable d'environnement PATH.
 
 Git for Windows est recommandé : il permet à Claude Code d'utiliser Git Bash. Sans
 Git for Windows, Claude Code utilise PowerShell pour les commandes système.
@@ -131,6 +132,7 @@ Vérifiez l'installation, puis ouvrez ou rechargez une session Claude Code :
 
 ```bash
 claude plugin list
+claude plugin details nom-plugin@nom-marketplace
 claude
 ```
 
@@ -194,9 +196,102 @@ sensible ou irréversible.
 
 ![Schéma général des éléments de Claude Code](../assets/claude-code-overview.svg)
 
+## 5. Régler le projet avec `.claude/settings.json` et `CLAUDE.md`
+
+Les réglages changent le comportement et les permissions de Claude Code ; les
+instructions décrivent comment travailler dans le dépôt. Gardez-les séparés :
+
+| Fichier | Portée | À versionner | Usage |
+| --- | --- | --- | --- |
+| `~/.claude/settings.json` | Utilisateur | Non | Préférences privées communes à tous les projets |
+| `.claude/settings.json` | Projet | Oui | Garde-fous partagés par l'équipe |
+| `.claude/settings.local.json` | Projet, utilisateur courant | Non | Exceptions locales, déjà ignorées par Git |
+| `CLAUDE.md` | Projet ou sous-répertoire | Oui | Conventions et procédure de travail |
+
+### Réglages principaux
+
+Créez `.claude/settings.json` pour des permissions communes, minimales et relues.
+L'exemple suivant autorise les contrôles locaux sans confirmation, demande une
+confirmation pour les opérations qui publient ou accèdent à distance et interdit la
+lecture des secrets :
+
+```jsonc
+{
+	"$schema": "https://json.schemastore.org/claude-code-settings.json",
+	"permissions": {
+		"defaultMode": "default",
+		"disableBypassPermissionsMode": "disable",
+		"disableAutoMode": "disable",
+		"blockReadsOutsideWorkingDirectories": true,
+		"allow": [
+			"Bash(git status *)",
+			"Bash(git diff *)",
+			"Bash(npm test *)"
+		],
+		"ask": [
+			"Bash(git commit *)",
+			"Bash(git push *)",
+			"Bash(ssh *)",
+			"mcp__github__*"
+		],
+		"deny": [
+			"Read(.env)",
+			"Read(.env.*)",
+			"Read(secrets/**)",
+			"Bash(curl *)",
+			"Bash(wget *)"
+		]
+	}
+}
+```
+
+`allow` exécute sans question, `ask` demande une approbation et `deny` bloque. En cas
+de recouvrement, `deny` prévaut, puis `ask`, puis `allow`. N'ajoutez jamais de jeton,
+mot de passe ou clé privée à ce fichier : passez-les par les variables d'environnement
+ou le gestionnaire de secrets adapté. La configuration des serveurs MCP reste dans
+`.mcp.json`, avec ses secrets référencés par variables d'environnement.
+
+Après une modification, ouvrez une nouvelle session ou vérifiez le diagnostic avec :
+
+```bash
+claude doctor
+```
+
+### Constitution de `CLAUDE.md`
+
+Placez `CLAUDE.md` à la racine pour les règles qui concernent tout le dépôt. Un
+`CLAUDE.md` dans un sous-répertoire ne doit contenir que les règles spécifiques à cette
+partie du code. Le fichier est une mémoire de travail versionnée, pas un journal de
+discussion ni une copie du README.
+
+Une base utile tient en quelques rubriques :
+
+```markdown
+# Instructions du projet
+
+## Commandes de validation
+- `npm test`
+- `npm run lint`
+
+## Conventions
+- Conserver les changements ciblés et couvrir les corrections par un test.
+- Ne pas modifier les fichiers générés dans `dist/`.
+
+## Sécurité
+- Ne jamais lire, afficher ou versionner les fichiers `.env`.
+- Demander confirmation avant toute publication, migration ou action distante.
+```
+
+Préférez des consignes courtes **(< 300 lignes)**, impératives et vérifiables : chemins à modifier ou à
+éviter, commandes de test exactes, conventions locales et décisions de sécurité.
+Supprimez les règles devenues fausses, évitez les longues explications et ne dupliquez
+pas les instructions générales de Claude Code. Un bon `CLAUDE.md` réduit les
+ambiguïtés sans ajouter de contexte inutile à chaque session.
+
 ## Références officielles
 
 - [Installation et diagnostic](https://code.claude.com/docs/en/setup)
 - [Authentification et ordre de priorité des credentials](https://code.claude.com/docs/en/authentication)
 - [Plugins et marketplaces](https://code.claude.com/docs/en/discover-plugins)
 - [MCP, portées et authentification](https://code.claude.com/docs/en/mcp)
+- [Réglages, permissions et fichiers d'instructions](https://code.claude.com/docs/en/settings)

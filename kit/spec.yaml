@@ -1,0 +1,98 @@
+schemaVersion: "2"
+kind: mixin
+name: claude-admin
+version: "1.0.0"
+displayName: Claude Code Admin
+description: Claude Code administration sandbox with Ansible, SSH, Docker, plugins, and MCP servers.
+
+requires:
+  agent: claude
+
+environment:
+  variables:
+    CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
+    SUPERPOWERS_DISABLE_TELEMETRY: "1"
+    GITLAB_HOST: "https://gitlab.com"
+    TARGET_HOST: "127.0.0.1"
+    TARGET_PORT: "2222"
+    TARGET_USER: "sandbox"
+    TARGET_PKEY: "/home/agent/.ssh/claude-admin-target/id_ed25519"
+
+permissions:
+  network:
+    allow:
+      - api.githubcopilot.com
+      - api.github.com
+      - github.com
+      - raw.githubusercontent.com
+      - gitlab.com
+      - registry.npmjs.org
+      - pypi.org
+      - files.pythonhosted.org
+      - astral.sh
+      - registry-1.docker.io
+      - auth.docker.io
+      - production.cloudflare.docker.com
+      - archive.ubuntu.com
+      - security.ubuntu.com
+      - ports.ubuntu.com
+      - deb.debian.org
+      - security.debian.org
+
+credentials:
+  - service: github
+    description: GitHub personal access token for the GitHub MCP server.
+    apiKey:
+      name: GITHUB_TOKEN
+      proxyManaged: true
+      inject:
+        - domain: api.githubcopilot.com
+          scheme: bearer
+  - service: gitlab
+    description: GitLab personal access token for the GitLab MCP server.
+    apiKey:
+      name: GITLAB_TOKEN
+      proxyManaged: true
+      inject:
+        - domain: gitlab.com
+          header: PRIVATE-TOKEN
+          format: "%s"
+
+setup:
+  install:
+    - command: |
+        set -eu
+        apt-get update
+        apt-get install -y --no-install-recommends ansible git openssh-client python3-pip python3-venv
+        rm -rf /var/lib/apt/lists/*
+        if ! command -v uv >/dev/null 2>&1; then
+          curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh
+          install -m 0755 /root/.local/bin/uv /usr/local/bin/uv
+          install -m 0755 /root/.local/bin/uvx /usr/local/bin/uvx
+        fi
+      user: "0"
+      description: Install Ansible, SSH, and uv for local MCP servers.
+  startup:
+    - command:
+        - sh
+        - -c
+        - |
+          set -eu
+          key_dir=/home/agent/.ssh/claude-admin-target
+          mkdir -p "$key_dir"
+          if [ ! -f "$key_dir/id_ed25519" ]; then
+            ssh-keygen -q -t ed25519 -N '' -f "$key_dir/id_ed25519"
+          fi
+          chown -R agent:agent "$key_dir"
+          docker build -t claude-admin-target:local /home/agent/.claude-admin-target
+          docker rm -f claude-admin-target >/dev/null 2>&1 || true
+          docker run -d --name claude-admin-target --network host \
+            -v "$key_dir:/ssh-keys:ro" claude-admin-target:local >/dev/null
+      user: "0"
+      description: Build and start the local Debian 13 SSH target.
+
+agentInstructions:
+  content: |
+    This sandbox includes Ansible, SSH, Docker, and local MCP servers.
+    The disposable Debian 13 target is reachable as `sandbox@127.0.0.1` on port `2222`.
+    Use the `target` alias in the mcp-ssh tools. Review commands before executing changes.

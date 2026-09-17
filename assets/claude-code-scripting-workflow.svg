@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/css" href="claude-code-diagrams.css"?>
+<svg class="cc-diagram" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 960" role="img" aria-labelledby="title description">
+  <title id="title">Workflow Claude Code pour scripts Bash</title>
+  <desc id="description">Workflow de cadrage, génération, revue parallèle, correction et validation, reliant agent principal, sous-agents, skills et MCP.</desc>
+  <style>
+    .cc-diagram { background: #f7fafc; font-family: "Segoe UI", "Noto Sans", sans-serif; }
+    .frame { fill: #ffffff; stroke: #dce5ec; stroke-width: 2; }
+    .title { fill: #172534; font-size: 29px; font-weight: 700; }
+    .subtitle, .node-detail, .arrow-label, .legend { fill: #526270; }
+    .subtitle { font-size: 16px; } .legend { font-size: 13px; }
+    .lane { fill: #f7fafc; stroke: #dce5ec; stroke-width: 1.5; }
+    .lane-title { fill: #526270; font-size: 14px; font-weight: 700; letter-spacing: 1px; }
+    .node { stroke-width: 2; } .node-blue { fill: #dcecf9; stroke: #1769aa; }
+    .node-gold { fill: #fff0cf; stroke: #a65d00; } .node-teal { fill: #d9f2ef; stroke: #007f80; }
+    .node-pink { fill: #fde3ed; stroke: #a52a5b; } .node-core { fill: #172534; stroke: #f0883e; stroke-width: 3; }
+    .node-label { fill: #172534; font-size: 17px; font-weight: 700; text-anchor: middle; }
+    .node-detail { font-size: 13px; text-anchor: middle; } .core-label { fill: #ffffff; font-size: 20px; font-weight: 700; text-anchor: middle; }
+    .core-detail { fill: #d9e5ed; font-size: 13px; text-anchor: middle; }
+    .arrow { fill: none; stroke: #a8b7c4; stroke-width: 2.5; marker-end: url(#arrowhead); }
+    .arrow-dashed { fill: none; stroke: #a8b7c4; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrowhead); }
+    .arrow-label { font-size: 12px; text-anchor: middle; }
+    .badge { fill: #ffffff; stroke: #dce5ec; stroke-width: 1.5; } .badge-text { fill: #526270; font-size: 12px; text-anchor: middle; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a8b7c4" /></marker>
+  </defs>
+
+  <rect class="frame" x="20" y="20" width="1360" height="920" rx="10" />
+  <text class="title" x="65" y="75">Workflow d'assistance pour scripts Bash</text>
+  <text class="subtitle" x="65" y="105">Les analyses indépendantes peuvent être déléguées ; un seul agent applique les modifications.</text>
+
+  <rect class="lane" x="50" y="140" width="1300" height="170" rx="8" />
+  <text class="lane-title" x="75" y="170">1. CADRAGE ET CONCEPTION</text>
+  <rect class="node node-blue" x="105" y="195" width="220" height="80" rx="8" />
+  <text class="node-label" x="215" y="225">Commande slash</text>
+  <text class="node-detail" x="215" y="249">/superpowers:brainstorming</text>
+  <text class="node-detail" x="215" y="268">objectif, risques, limites</text>
+  <path class="arrow" d="M 325 235 L 420 235" />
+  <rect class="node node-teal" x="425" y="195" width="230" height="80" rx="8" />
+  <text class="node-label" x="540" y="225">Skill</text>
+  <text class="node-detail" x="540" y="249">writing-plans</text>
+  <text class="node-detail" x="540" y="268">critères et scénarios</text>
+  <path class="arrow" d="M 655 235 L 750 235" />
+  <rect class="node node-core" x="755" y="185" width="270" height="100" rx="10" />
+  <text class="core-label" x="890" y="223">Agent principal</text>
+  <text class="core-detail" x="890" y="247">arbitre les contraintes</text>
+  <text class="core-detail" x="890" y="267">et accepte le plan</text>
+  <rect class="badge" x="1080" y="205" width="210" height="55" rx="8" />
+  <text class="badge-text" x="1185" y="229">Droit : lecture du dépôt</text>
+  <text class="badge-text" x="1185" y="247">Aucune action distante</text>
+
+  <rect class="lane" x="50" y="335" width="1300" height="185" rx="8" />
+  <text class="lane-title" x="75" y="365">2. GÉNÉRATION ET PREMIÈRE VÉRIFICATION</text>
+  <rect class="node node-gold" x="105" y="395" width="250" height="90" rx="8" />
+  <text class="node-label" x="230" y="425">Sous-agent spécialisé</text>
+  <text class="node-detail" x="230" y="449">@shell-scripting:bash-pro</text>
+  <text class="node-detail" x="230" y="469">propose le script</text>
+  <path class="arrow" d="M 355 440 L 450 440" />
+  <rect class="node node-teal" x="455" y="395" width="250" height="90" rx="8" />
+  <text class="node-label" x="580" y="425">Skill défensif</text>
+  <text class="node-detail" x="580" y="449">bash-defensive-patterns</text>
+  <text class="node-detail" x="580" y="469">erreurs, entrées, nettoyage</text>
+  <path class="arrow" d="M 705 440 L 800 440" />
+  <rect class="node node-core" x="805" y="390" width="250" height="100" rx="10" />
+  <text class="core-label" x="930" y="428">Agent principal</text>
+  <text class="core-detail" x="930" y="452">édite le script</text>
+  <text class="core-detail" x="930" y="472">après validation humaine</text>
+  <rect class="badge" x="1110" y="410" width="180" height="55" rx="8" />
+  <text class="badge-text" x="1200" y="434">Droit : écriture</text>
+  <text class="badge-text" x="1200" y="452">dans le workspace</text>
+
+  <rect class="lane" x="50" y="545" width="1300" height="215" rx="8" />
+  <text class="lane-title" x="75" y="575">3. REVUES PARALLÈLES EN LECTURE SEULE</text>
+  <rect class="node node-gold" x="95" y="615" width="255" height="100" rx="8" />
+  <text class="node-label" x="223" y="646">Sous-agent POSIX</text>
+  <text class="node-detail" x="223" y="670">@shell-scripting:posix-shell-pro</text>
+  <text class="node-detail" x="223" y="691">portabilité et syntaxe</text>
+  <rect class="node node-teal" x="405" y="615" width="255" height="100" rx="8" />
+  <text class="node-label" x="533" y="646">Skill de test</text>
+  <text class="node-detail" x="533" y="670">bats-testing-patterns</text>
+  <text class="node-detail" x="533" y="691">cas nominaux et erreurs</text>
+  <rect class="node node-pink" x="715" y="615" width="255" height="100" rx="8" />
+  <text class="node-label" x="843" y="646">MCP SSH</text>
+  <text class="node-detail" x="843" y="670">inventaire de la cible</text>
+  <text class="node-detail" x="843" y="691">aucune modification distante</text>
+  <rect class="node node-teal" x="1025" y="615" width="255" height="100" rx="8" />
+  <text class="node-label" x="1153" y="646">Skill de lint</text>
+  <text class="node-detail" x="1153" y="670">shellcheck-configuration</text>
+  <text class="node-detail" x="1153" y="691">règles et diagnostics</text>
+  <path class="arrow-dashed" d="M 223 715 C 310 790, 585 795, 685 805" />
+  <path class="arrow-dashed" d="M 533 715 C 580 770, 635 785, 685 805" />
+  <path class="arrow-dashed" d="M 843 715 C 800 770, 750 785, 715 805" />
+  <path class="arrow-dashed" d="M 1153 715 C 1010 790, 810 795, 715 805" />
+
+  <rect class="lane" x="50" y="785" width="1300" height="120" rx="8" />
+  <text class="lane-title" x="75" y="815">4. CONSOLIDATION ET VALIDATION</text>
+  <rect class="node node-core" x="550" y="830" width="300" height="55" rx="10" />
+  <text class="core-label" x="700" y="855">Agent principal : corrige et valide</text>
+  <text class="core-detail" x="700" y="874">tests Bats, ShellCheck, exécution contrôlée</text>
+  <text class="legend" x="1085" y="852">Skill final : verification-before-completion</text>
+  <text class="legend" x="1085" y="874">Droit distant : exécution explicite seulement</text>
+</svg>
