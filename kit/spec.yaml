@@ -13,6 +13,7 @@ environment:
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
     SUPERPOWERS_DISABLE_TELEMETRY: "1"
     GITLAB_HOST: "https://gitlab.com"
+    ANTHROPIC_BASE_URL: "https://openrouter.ai/api/v1"
     TARGET_HOST: "127.0.0.1"
     TARGET_PORT: "2222"
     TARGET_USER: "sandbox"
@@ -30,6 +31,7 @@ permissions:
       - pypi.org
       - files.pythonhosted.org
       - astral.sh
+      - openrouter.ai
       - registry-1.docker.io
       - auth.docker.io
       - production.cloudflare.docker.com
@@ -57,13 +59,21 @@ credentials:
         - domain: gitlab.com
           header: PRIVATE-TOKEN
           format: "%s"
+  - service: openrouter
+    description: OpenRouter API key used as ANTHROPIC_AUTH_TOKEN so Claude Code is already connected via the Anthropic-compatible endpoint.
+    apiKey:
+      name: ANTHROPIC_AUTH_TOKEN
+      proxyManaged: true
+      inject:
+        - domain: openrouter.ai
+          scheme: bearer
 
 setup:
   install:
     - command: |
         set -eu
         apt-get update
-        apt-get install -y --no-install-recommends ansible git openssh-client python3-pip python3-venv
+        apt-get install -y --no-install-recommends ansible git openssh-client python3-pip python3-venv shellcheck bats
         rm -rf /var/lib/apt/lists/*
         if ! command -v uv >/dev/null 2>&1; then
           curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh
@@ -71,7 +81,7 @@ setup:
           install -m 0755 /root/.local/bin/uvx /usr/local/bin/uvx
         fi
       user: "0"
-      description: Install Ansible, SSH, and uv for local MCP servers.
+      description: Install Ansible, SSH, shellcheck, bats, and uv for local MCP servers.
   startup:
     - command:
         - sh
