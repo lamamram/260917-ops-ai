@@ -114,6 +114,8 @@ Cloud ou Microsoft Foundry, utilisez la configuration spécifique du provider pr
 par Claude Code. Dans Claude Code, `/status` indique la méthode d'authentification et
 le provider effectivement utilisés.
 
+> confidentialité: désactiver la télémetrie dans Claude Code avec la variable d'environnement `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` ou dans les réglages utilisateur.
+
 ## 3. Installer un plugin pour l'utilisateur
 
 Les plugins peuvent apporter des commandes, agents, skills, hooks, MCP ou serveurs de
@@ -138,6 +140,35 @@ claude
 
 Dans une session déjà ouverte, lancez `/reload-plugins` pour charger le plugin. Ses
 skills sont préfixés par son nom, par exemple `/commit-commands:commit`.
+
+### exemples de commmandes / skills / agents
+
+1. exemple de commande avec entêtes
+
+```markdown
+
+---
+allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*)
+description: Create a git commit
+model: haiku
+argument-hint: [message]
+---
+
+## Context
+
+- Current git status: !`git status`
+- Current git diff (staged and unstaged changes): !`git diff HEAD`
+- Current branch: !`git branch --show-current`
+- Recent commits: !`git log --oneline -10`
+
+## Your task
+
+Based on the above changes, create a single git commit.
+
+You have the capability to call multiple tools in a single response. Stage and create the commit using a single message. Do not use any other tools or do anything else. Do not send any other text or messages besides these tool calls.
+if $1 exists, use its value in the commit message.
+
+```
 
 ## 4. Installer des MCP pour l'utilisateur
 
@@ -178,7 +209,22 @@ Pour supprimer une configuration utilisateur devenue inutile :
 claude mcp remove context7 --scope user
 ```
 
-## Les éléments de base
+## les éléments de base du harnais Claude Code
+
+1. sélectionner le modèle : `/model`
+2. sélectionner le niveau d'effort: `/effort`
+3. sélectionner le mode (agent principaux) :
+   - mode manual (par défaut) : l'agent principal attend vos instructions
+   - mode plan: l'agent principal propose un plan d'action et attend votre approbation ==> **READONLY**
+   - mode auto : l'agent principal agit de manière autonome, en respectant les permissions
+4. <ins>sessions</ins>
+   - quand on lance Claude Code, CC crée une nouvelle session, avec le premier prompt.
+   - créer une nouvelle session : `/clear` ou `clear [session-name]`
+   - reprendre une autre session: `/resume [session-name]`
+
+> Règle d'or: en changeant de thématique, de projet ou de contexte, on DOIT créer une nouvelle session. Pour éviter les **hallucinations** de contexte.
+
+## Les éléments de base pour l'assistance IA 
 
 | Élément | Rôle | Question à se poser |
 | --- | --- | --- |
