@@ -114,12 +114,34 @@ Cloud ou Microsoft Foundry, utilisez la configuration spécifique du provider pr
 par Claude Code. Dans Claude Code, `/status` indique la méthode d'authentification et
 le provider effectivement utilisés.
 
-> confidentialité: désactiver la télémetrie dans Claude Code avec la variable d'environnement `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` ou dans les réglages utilisateur.
+> <span style="color: gold;font-size:12px"><strong><ins>CONFIDENTIALITE:</ins></strong></span> <br/> 
+> <span style="color: gold;font-size:12px"><strong>désactiver la télémetrie dans Claude Code avec la variable d'environnement CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC ou dans les réglages utilisateur.</strong></span>
 
-## 3. Installer un plugin pour l'utilisateur
+## 3. les éléments de base du harnais Claude Code
 
-Les plugins peuvent apporter des commandes, agents, skills, hooks, MCP ou serveurs de
-langage. Inspectez leur contenu et n'installez que des marketplaces de confiance : un
+1. désactiver certaines config dans /config ou cf `.claude/settings.json`
+
+2. sélectionner le **modèle** : `/model`
+
+3. sélectionner le niveau **d'effort**: `/effort`
+
+4. sélectionner le **mode** (agent principaux) avec `Shift+Tab` :
+   - mode **manual** (par défaut) : l'agent principal attend vos instructions
+   - mode **plan**: l'agent principal propose un plan d'action et attend votre approbation ==> **READONLY**
+   - mode **auto** : l'agent principal agit de manière autonome, en respectant les permissions
+
+5. <ins>sessions</ins>
+   - quand on lance Claude Code, CC crée une nouvelle session, avec le premier prompt.
+   - créer une nouvelle session : `/clear` ou `clear [session-name]`
+   - reprendre une autre session: `/resume [session-name]`
+
+> <span style="color: gold;font-size:12px"><strong><ins>Règle d'or:</ins></strong></span> <br/> 
+> <span style="color: gold;font-size:12px"><strong>en changeant de thématique, de projet ou de contexte, on DOIT créer une nouvelle session. Pour éviter les **hallucinations** de contexte.</strong></span>
+
+
+## 4. Installer un plugin pour l'utilisateur
+
+Les plugins peuvent apporter des **commandes**, **agents**, **skills**, **hooks**, **MCP** ou **LSP**. Inspectez leur contenu et n'installez que des **marketplaces** de confiance : un
 plugin peut exécuter du code avec vos droits utilisateur.
 
 Ajoutez une fois la marketplace officielle, puis installez un plugin pour tous vos
@@ -143,7 +165,17 @@ skills sont préfixés par son nom, par exemple `/commit-commands:commit`.
 
 ### exemples de commmandes / skills / agents
 
-1. exemple de commande avec entêtes
+#### 1. exemple de commande avec entêtes
+
+```
+~/.claude/commands : global
+~/.claude/plugins/cache/marketplace/commit-commands/vx.y.z/commands : dans un plugin
+project/.claude/commands : dans le projet
+
+commands/
+    commit.yaml
+  
+```
 
 ```markdown
 
@@ -156,25 +188,84 @@ argument-hint: [message]
 
 ## Context
 
-- Current git status: !`git status`
-- Current git diff (staged and unstaged changes): !`git diff HEAD`
-- Current branch: !`git branch --show-current`
-- Recent commits: !`git log --oneline -10`
+BLABLA
 
 ## Your task
 
 Based on the above changes, create a single git commit.
 
-You have the capability to call multiple tools in a single response. Stage and create the commit using a single message. Do not use any other tools or do anything else. Do not send any other text or messages besides these tool calls.
-if $1 exists, use its value in the commit message.
+BLABLA
+if $1 exists, use its value to force the commit message.
 
 ```
 
+> description est **affichée dans la commande** en TUI
+> argument-hint est **affichée dans la commande** en TUI en auto-completion
+> $1, $2, ... sont les arguments passés à la commande slash
+> $ARGUMENTS est un tableau contenant tous les arguments passés à la commande slash
+
+#### 2. exemple de skill avec entêtes
+
+```
+~/.claude/skills : global
+~/.claude/plugins/cache/marketplace/shell-scripting/vx.y.z/skills : dans un plugin
+project/.claude/skills : dans le projet
+
+skills/
+    bash-defensive-patterns/
+	    SKILL.md
+		auxiliary_file.md
+```
+
+```markdown
+---
+name: bash-defensive-patterns
+description: Apply defensive patterns in bash scripts
+allowed-tools: ...
+model: haiku
+---
+
+KNOWLEDGE
+```
+
+#### 3. exemple d'agent avec entêtes
+
+```
+~/.claude/agents : global
+~/.claude/plugins/cache/marketplace/shell-scripting/vx.y.z/agents : dans un plugin
+project/.claude/agents : dans le projet
+
+agents/
+    bash-pro.md
+```
+
+```markdown
+---
+name: bash-pro
+description: Master of defensive Bash scripting for production automation, CI/CD pipelines, and system utilities. Expert in safe, portable, and testable shell scripts.
+model: sonnet
+---
+
+PERSONA
+
+peut utiliser des skills et des mcps explicitement autorisés dans les réglages du projet.
+le script dévolu à l'agent par l'agent principal est exécuté dans un sous-processus, est isolé des skills de l'agent parent.
+
+```
+
+##### Règles de base pour les agents
+
+* il y a 3 **agents principaux** : manual (par défaut), plan, auto. Les sous-agents sont toujours en mode manual.
+
+* un agent créé par un plugin ou par l'utilisateur est un **sous-agent**, qui peut être délégué par l'agent principal dans un prompt maitre
+
+* plusieurs sous-agents délégués par l'agent principal dans un prompt maitre **dans l'ordre OU en parallèle à discrétion**
+
 ## 4. Installer des MCP pour l'utilisateur
 
-Un serveur MCP ajoute à Claude Code des outils et, selon le serveur, des ressources et
-des prompts. La portée utilisateur les enregistre dans votre configuration privée et
-les rend disponibles dans tous vos projets.
+* Un serveur MCP ajoute à Claude Code des outils externes et, selon le serveur, des ressources et
+des prompts. 
+* La portée utilisateur les enregistre dans votre configuration privée et les rend disponibles dans tous vos projets.
 
 ### MCP HTTP distant
 
@@ -209,22 +300,35 @@ Pour supprimer une configuration utilisateur devenue inutile :
 claude mcp remove context7 --scope user
 ```
 
-## les éléments de base du harnais Claude Code
+### configuration JSON d'un MCP
 
-1. sélectionner le modèle : `/model`
-2. sélectionner le niveau d'effort: `/effort`
-3. sélectionner le mode (agent principaux) :
-   - mode manual (par défaut) : l'agent principal attend vos instructions
-   - mode plan: l'agent principal propose un plan d'action et attend votre approbation ==> **READONLY**
-   - mode auto : l'agent principal agit de manière autonome, en respectant les permissions
-4. <ins>sessions</ins>
-   - quand on lance Claude Code, CC crée une nouvelle session, avec le premier prompt.
-   - créer une nouvelle session : `/clear` ou `clear [session-name]`
-   - reprendre une autre session: `/resume [session-name]`
+```
+~/.claude.json: section "projects" { "mcpServers": { ... } }
+project/
+   .mcp.json
+```
 
-> Règle d'or: en changeant de thématique, de projet ou de contexte, on DOIT créer une nouvelle session. Pour éviter les **hallucinations** de contexte.
+```jsonc
+{
+  "mcpServers": {
+    "context7": {
+	  // local ou stdio
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+    "github": {
+	  // distant
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${GITHUB_TOKEN}"
+      }
+    }
+  }
+}
+```
 
-## Les éléments de base pour l'assistance IA 
+## 5. Synthèse des éléments de base pour l'assistance IA 
 
 | Élément | Rôle | Question à se poser |
 | --- | --- | --- |
@@ -238,11 +342,11 @@ agent peut déléguer à un sous-agent, un skill guide l'exécution et un MCP fo
 capacités externes nécessaires. Aucun ne remplace la revue humaine pour une action
 sensible ou irréversible.
 
-## Vue générale
+### Vue générale
 
 ![Schéma général des éléments de Claude Code](../assets/claude-code-overview.svg)
 
-## 5. Régler le projet avec `.claude/settings.json` et `CLAUDE.md`
+## 6. Régler le projet avec `.claude/settings.json` et `CLAUDE.md`
 
 Les réglages changent le comportement et les permissions de Claude Code ; les
 instructions décrivent comment travailler dans le dépôt. Gardez-les séparés :
@@ -256,19 +360,22 @@ instructions décrivent comment travailler dans le dépôt. Gardez-les séparés
 
 ### Réglages principaux
 
-Créez `.claude/settings.json` pour des permissions communes, minimales et relues.
-L'exemple suivant autorise les contrôles locaux sans confirmation, demande une
-confirmation pour les opérations qui publient ou accèdent à distance et interdit la
-lecture des secrets :
+* Créez `.claude/settings.json` pour des permissions communes, minimales et relues.
+* L'exemple suivant autorise les contrôles locaux sans confirmation, demande une confirmation pour les opérations qui publient ou accèdent à distance et interdit la lecture des secrets :
 
 ```jsonc
 {
 	"$schema": "https://json.schemastore.org/claude-code-settings.json",
 	"permissions": {
 		"defaultMode": "default",
+		// interdire le mode YOLO
 		"disableBypassPermissionsMode": "disable",
+		// interdure le chgt intempestif d'agent principal
 		"disableAutoMode": "disable",
+		// interdire la lecture de fichiers en dehors du projet
 		"blockReadsOutsideWorkingDirectories": true,
+		// interdire télémétrie et tracking
+		"disableNonessentialTraffic": true,
 		"allow": [
 			"Bash(git status *)",
 			"Bash(git diff *)",
@@ -278,6 +385,7 @@ lecture des secrets :
 			"Bash(git commit *)",
 			"Bash(git push *)",
 			"Bash(ssh *)",
+			// outils externe de mcps dans /mcp
 			"mcp__github__*"
 		],
 		"deny": [
@@ -291,26 +399,22 @@ lecture des secrets :
 }
 ```
 
-`allow` exécute sans question, `ask` demande une approbation et `deny` bloque. En cas
-de recouvrement, `deny` prévaut, puis `ask`, puis `allow`. N'ajoutez jamais de jeton,
-mot de passe ou clé privée à ce fichier : passez-les par les variables d'environnement
-ou le gestionnaire de secrets adapté. La configuration des serveurs MCP reste dans
-`.mcp.json`, avec ses secrets référencés par variables d'environnement.
+* `allow` exécute sans question, `ask` demande une approbation et `deny` bloque.
 
-Après une modification, ouvrez une nouvelle session ou vérifiez le diagnostic avec :
+> <span style="color: gold;font-size:12px"><strong><ins>Règle de préséance:</ins></strong></span><br/>
+> <span style="color: gold;font-size:12px"><strong>DENY >> ASK >> ALLOW</strong></span><br/>
+> <span style="color: gold;font-size:12px"><strong>QUELQUE SOIT L'ENDROIT: settings / command / skill / agent</strong></span>
 
-```bash
-claude doctor
-```
+* N'ajoutez jamais de jeton, mot de passe ou clé privée à ce fichier : passez-les par les variables d'environnement
+* **OU SURTOUT** le gestionnaire de secrets adapté (VAULT, 1Password, etc., pass/gpg2). 
 
 ### Constitution de `CLAUDE.md`
 
-Placez `CLAUDE.md` à la racine pour les règles qui concernent tout le dépôt. Un
-`CLAUDE.md` dans un sous-répertoire ne doit contenir que les règles spécifiques à cette
-partie du code. Le fichier est une mémoire de travail versionnée, pas un journal de
-discussion ni une copie du README.
+* Placez `CLAUDE.md` à la racine ou exécutez la commande `/init` pour les règles qui concernent tout le dépôt. 
+* Un `CLAUDE.md` dans un sous-répertoire ne doit contenir que les règles spécifiques à cette partie du code. 
+* Ce fichier est une mémoire de travail versionnée, pas un journal de discussion ni une copie du README.
 
-Une base utile tient en quelques rubriques :
+* Une base utile tient en quelques rubriques :
 
 ```markdown
 # Instructions du projet
@@ -328,13 +432,13 @@ Une base utile tient en quelques rubriques :
 - Demander confirmation avant toute publication, migration ou action distante.
 ```
 
-Préférez des consignes courtes **(< 300 lignes)**, impératives et vérifiables : chemins à modifier ou à
-éviter, commandes de test exactes, conventions locales et décisions de sécurité.
-Supprimez les règles devenues fausses, évitez les longues explications et ne dupliquez
-pas les instructions générales de Claude Code. Un bon `CLAUDE.md` réduit les
-ambiguïtés sans ajouter de contexte inutile à chaque session.
+* Préférez des consignes courtes **(< 300 lignes)**, impératives et vérifiables : chemins à modifier ou à
+* éviter, commandes de test exactes, conventions locales et décisions de sécurité.
+* Supprimez les règles devenues fausses, évitez les longues explications
+* Ne dupliquezpas les instructions générales de Claude Code. 
+* Un bon `CLAUDE.md` réduit les ambiguïtés sans ajouter de contexte inutile à chaque session.
 
-## Références officielles
+### Références officielles
 
 - [Installation et diagnostic](https://code.claude.com/docs/en/setup)
 - [Authentification et ordre de priorité des credentials](https://code.claude.com/docs/en/authentication)

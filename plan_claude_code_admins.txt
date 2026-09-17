@@ -3,30 +3,27 @@ Positionner l’IA comme “copilot” de scripting
 Ce que l’IA fait bien : génération de squelette, suggestions, refactoring, documentation
 Ce qu’elle ne doit pas décider seule : sécurité, architecture, opérations sensibles
 Organisation du travail admin + IA : boucle proposition, vérification, tests
-Installer et configurer l'assistant
+Installer l'assistant
 
 Préparer l’environnement : IDE, gestion des clés, variables d’environnement, proxy d’entreprise
 Installation de l’extension et vérifications de connectivité
 Paramétrages essentiels : modèles, limites de contexte, préférences de génération, confidentialité
 Organisation du dépôt : structure, fichiers de contexte, READMEs, conventions de nommage
-Atelier fil rouge : installation complète sur poste, configuration projet, ajout d’un fichier de contexte et premier échange “Hello Project” avec l’agent
+
+Atelier fil rouge : installation complète sur poste, version sans sandbox
 
 
 Générer des scripts Bash avec l’IA
 
-Exemples de tâches type : collecte d’infos, rotation de logs, sauvegardes simples, surveillance de services
 Structurer ses demandes pour obtenir un script exploitable et lisible
-Ajouter des garde-fous : vérifications, messages, codes de retour, logs
-Adapter et franciser les scripts proposés par l’IA pour son contexte
+lancer des prompt standardisés: les commandes
+charger des savoir faire: les skills
+affirmer une personnalité ou un poste: les agents
+gérer les droits automatiques des outils
+étendre les outils avec les MCPs
+
 Atelier pratique : générer et adapter plusieurs scripts Bash pour des tâches récurrentes avec des commandes /slash, skils, agents
-
-
-Durcir et relire des scripts existants
-
-Faire relire un script par l’IA pour identifier fragilités et mauvaises pratiques
-Améliorer la gestion des erreurs, des paramètres, des chemins et des permissions
-Ajouter de la journalisation, des contrôles de cohérence et des messages explicites
-Atelier pratique : créer un agent qualité/sécurité pour construire une version durcie
+    exemple: collecte d’infos
 
 
 Sécurité et bonnes pratiques dans les scripts assistés par IA
@@ -35,7 +32,8 @@ Identifier les patterns dangereux : commandes destructrices, sudo mal utilisé, 
 Imposer des règles internes : scripts de prod, validation par revue humaine, tests obligatoires
 Limiter l’exposition de données sensibles lors des échanges avec un moteur IA
 Documenter les scripts générés ou modifiés par l’IA pour assurer leur reprise
-Atelier pratique : établir une check-list de validation pour tout script issu d’une aide IA
+
+Atelier pratique : établir ou réviser une check-list de validation pour tout script issu d’une aide IA en utilisant un sandblox docker
 
 
 Industrialiser l’usage en équipe
@@ -43,6 +41,4 @@ Industrialiser l’usage en équipe
 Modèles de prompts réutilisables et snippets d’équipe
 Standardiser les gabarits de tickets, PR et docs générés par l’agent
 Intégration au workflow Git, CI/CD, qualité et sécurité applicative
-Atelier pratique : créer un répertoire “ia/” partagé avec prompts modèles, scripts d’automatisation et guide d’usage d’équipe
-
-----------------------------------------------------------------------------------------------------------
+Atelier pratique : créer un répertoire “ia/” partagé avec prompts maîtres
