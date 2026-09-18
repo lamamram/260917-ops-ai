@@ -10,6 +10,8 @@ RUN apt-get update \
 		python3-pip \
 		python3-venv \
 		util-linux \
+		shellcheck \
+		bats \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& npm install -g @anthropic-ai/claude-code \
 	&& curl --proto '=https' --tlsv1.2 -LsSf https://astral.sh/uv/install.sh | sh \

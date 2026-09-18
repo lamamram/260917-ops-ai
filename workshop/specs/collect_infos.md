@@ -1,6 +1,6 @@
 # Collecteur d'informations projet
 
-Petit exemple en Bash pour une demonstration de Claude Code. Le script explore un dossier, selectionne les fichiers correspondant aux extensions configurees et recherche quelques technologies dans le code et les fichiers de configuration.
+Le script explore un dossier, selectionne les fichiers correspondant aux extensions configurees et recherche quelques technologies dans le code dans les instructions d'import.
 
 ## Prerequis
 
@@ -66,13 +66,7 @@ Les dossiers `.git`, `node_modules`, `.venv`, `venv`, `__pycache__`, `dist`, `bu
 
 ## Technologies detectees
 
-La demonstration recherche actuellement les motifs associes a :
-
-- FastAPI et SQLAlchemy ;
-- Django et Flask ;
-- React et Express ;
-- Spring ;
-- Docker et Docker Compose.
+Le script recherche motifs associes à des imports de frameworks connus. La detection est basee sur des expressions regulieres simples et peut etre incomplete.
 
 La detection est volontairement simple : elle sert a illustrer une collecte initiale d'informations avant une analyse plus approfondie par Claude Code.
 
