@@ -13,7 +13,9 @@ environment:
     CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1"
     SUPERPOWERS_DISABLE_TELEMETRY: "1"
     GITLAB_HOST: "https://gitlab.com"
-    ANTHROPIC_BASE_URL: "https://openrouter.ai/api/v1"
+    ANTHROPIC_BASE_URL: "https://openrouter.ai/api"
+    # TO-DO: substitute this value to an variable set by envsubst.
+    ANTHROPIC_AUTH_TOKEN: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     TARGET_HOST: "127.0.0.1"
     TARGET_PORT: "2222"
     TARGET_USER: "sandbox"
@@ -59,14 +61,15 @@ credentials:
         - domain: gitlab.com
           header: PRIVATE-TOKEN
           format: "%s"
-  - service: openrouter
-    description: OpenRouter API key used as ANTHROPIC_AUTH_TOKEN so Claude Code is already connected via the Anthropic-compatible endpoint.
-    apiKey:
-      name: ANTHROPIC_AUTH_TOKEN
-      proxyManaged: true
-      inject:
-        - domain: openrouter.ai
-          scheme: bearer
+  # TO-DO: config for claude code sandbox with something else than anthropic_api_key.
+  # - service: openrouter
+  #   description: OpenRouter API key used as ANTHROPIC_AUTH_TOKEN so Claude Code is already connected via the Anthropic-compatible endpoint.
+  #   apiKey:
+  #     name: OPENROUTER_API_KEY
+  #     proxyManaged: true
+  #     inject:
+  #       - domain: openrouter.ai
+  #         scheme: bearer
 
 setup:
   install:

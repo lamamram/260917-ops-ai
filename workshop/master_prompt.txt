@@ -1,0 +1,5 @@
+do
+    execute /implement_test_feature collect_infos,
+    then /verify and
+while the reports are in failure
+adjust the spec file in adding notes to make it adequate to the actual feature

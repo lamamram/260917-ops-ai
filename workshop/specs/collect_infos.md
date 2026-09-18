@@ -2,6 +2,8 @@
 
 Le script explore un dossier, selectionne les fichiers correspondant aux extensions configurees et recherche quelques technologies dans le code dans les instructions d'import.
 
+nom du script : `collect_infos.sh`
+
 ## Prerequis
 
 - Bash 4 ou plus recent
@@ -25,31 +27,31 @@ EXTENSIONS=.py,.js,.ts,.tsx,.jsx,.java,.go,.rb,.php,.cs,.sh
 Analyser le dossier configure dans `.env` :
 
 ```bash
-bash ./collect_project_info.sh
+bash ./collect_infos.sh
 ```
 
 Analyser un dossier precis :
 
 ```bash
-bash ./collect_project_info.sh /chemin/vers/le/projet
+bash ./collect_infos.sh /chemin/vers/le/projet
 ```
 
 Limiter la collecte aux fichiers Python :
 
 ```bash
-bash ./collect_project_info.sh /chemin/vers/le/projet --extensions .py
+bash ./collect_infos.sh /chemin/vers/le/projet --extensions .py
 ```
 
 Analyser plusieurs extensions :
 
 ```bash
-bash ./collect_project_info.sh /chemin/vers/le/projet -e .py,.yml,.yaml
+bash ./collect_infos.sh /chemin/vers/le/projet -e .py,.yml,.yaml
 ```
 
 Afficher l'aide :
 
 ```bash
-bash ./collect_project_info.sh --help
+bash ./collect_infos.sh --help
 ```
 
 ## Informations collectees

@@ -149,3 +149,13 @@ avant de créer le sandbox.
 * Intégration au workflow Git, CI/CD, qualité et sécurité applicative
 
 > Atelier pratique : créer un répertoire “ia/” partagé avec prompts modèles, scripts d’automatisation et guide d’usage d’équipe
+
+
+
+## gestion du branching git
+
+1. /pull issue_id (à faire): chaque issue sortant du blacklog assigné à l'utilisateur doit générer une branche dédié qu'on fait descendre dans la sandbox
+   + le mieux est d' installer dans la sandbox un dépôt de spec local **beads**
+   + demande le mcp et un token d'accès (Jira / github / gitlab / gitea)
+
+2. quand la boucle TDD est validée, on pousse avec le mcp et le token
