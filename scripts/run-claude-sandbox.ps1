@@ -54,12 +54,16 @@ $pluginArguments = foreach ($pluginDirectory in $pluginDirectories) {
     $pluginDirectory
 }
 
+$mem = '12g'
+
 $pluginMount = "${resolvedPluginRoot}:ro"
 $runArguments = @(
     'run'
     'claude'
     '--name'
     $SandboxName
+    '--memory'
+    $mem
     '--kit'
     $resolvedKit
     $resolvedWorkspace
