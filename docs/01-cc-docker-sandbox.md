@@ -103,13 +103,11 @@ Le trafic sortant de la microVM passe par le proxy sbx de l'hôte. Ce proxy appl
 la politique réseau du kit et injecte les credentials autorisées sans jamais copier
 leur valeur réelle dans la microVM.
 
-### Kit et lanceurs
+### Kit et lanceur
 
 Le fichier [kit/spec.yaml](../kit/spec.yaml) est un *mixin* : il étend l'agent
 Docker intégré `claude`. Il est évalué lors de la création du sandbox par l'option
-`--kit`. Les lanceurs [scripts/run-claude-sandbox.ps1](../scripts/run-claude-sandbox.ps1)
-et [scripts/run-claude-sandbox.sh](../scripts/run-claude-sandbox.sh) construisent
-la commande suivante, adaptée aux chemins Windows ou Ubuntu :
+`--kit`. Le lanceur [scripts/run-claude-sandbox.ps1](../scripts/run-claude-sandbox.ps1)
 
 ```text
 sbx run claude --name claude-admin-lab --kit ./kit <workspace> <plugins>:ro -- --plugin-dir <plugin-actif> ...
@@ -148,16 +146,5 @@ Sous Windows, depuis la racine du dépôt :
 
 ```powershell
 .\scripts\run-claude-sandbox.ps1
-.\scripts\run-claude-sandbox.ps1 -WhatIf
 ```
-
-Sous Ubuntu :
-
-```bash
-bash ./scripts/run-claude-sandbox.sh
-bash ./scripts/run-claude-sandbox.sh --dry-run
-```
-
-Les modes `-WhatIf` et `--dry-run` vérifient l'inventaire local des plugins et
-affichent l'action prévue sans créer de microVM.
 

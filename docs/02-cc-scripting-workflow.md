@@ -5,7 +5,7 @@ Il distingue les étapes séquentielles, les revues parallélisables et les droi
 nécessaires. L'agent principal reste responsable de l'arbitrage, des modifications
 et de toute action pouvant changer un système.
 
-![Workflow Claude Code pour les scripts Bash](../assets/claude-code-scripting-workflow.svg)
+![Workflow Claude Code pour les scripts Bash](./assets/claude-code-scripting-workflow.svg)
 
 ## Vue d'ensemble
 
@@ -215,3 +215,11 @@ bats tests/
 
 Ajouter les tests d'intégration sur la cible isolée seulement après ces contrôles
 locaux et avec une commande explicitement validée.
+
+## gestion du branching git
+
+1. /pull issue_id (à faire): chaque issue sortant du blacklog assigné à l'utilisateur doit générer une branche dédié qu'on fait descendre dans la sandbox
+   + le mieux est d' installer dans la sandbox un dépôt de spec local **beads**
+   + demande le mcp et un token d'accès (Jira / github / gitlab / gitea)
+
+2. quand la boucle TDD est validée, on pousse avec le mcp et le token

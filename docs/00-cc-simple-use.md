@@ -10,7 +10,7 @@ persistants pour votre compte et disponibles dans tous vos projets.
 
 ## Schéma de démarrage
 
-![Schéma du démarrage de Claude Code](../assets/claude-code-quickstart.svg)
+![Schéma du démarrage de Claude Code](./assets/claude-code-quickstart.svg)
 
 ## 1. Installation
 
@@ -344,7 +344,7 @@ sensible ou irréversible.
 
 ### Vue générale
 
-![Schéma général des éléments de Claude Code](../assets/claude-code-overview.svg)
+![Schéma général des éléments de Claude Code](./assets/claude-code-overview.svg)
 
 ## 6. Régler le projet avec `.claude/settings.json` et `CLAUDE.md`
 
